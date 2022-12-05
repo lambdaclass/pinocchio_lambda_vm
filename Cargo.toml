@@ -1,6 +1,9 @@
 [package]
-name = "ErgodicVM"
+name = "ergodic_vm"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+
+[dev-dependencies]
+rusty-hook = "^0.11.2"
