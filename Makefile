@@ -14,3 +14,6 @@ nix-shell:
 
 nix-cuda-shell:
 	NIXPKGS_ALLOW_UNFREE=1 nix-shell --impure cuda-shell.nix
+
+test:
+	cargo test
