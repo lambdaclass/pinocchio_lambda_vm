@@ -1,14 +1,14 @@
 use std::ops;
 
-const ORDER: u64 = 17;
+const ORDER: u128 = 17;
 
 #[derive(Debug, Copy, Clone)]
 pub struct FieldElement {
-    value: u64,
+    value: u128,
 }
 
 impl FieldElement {
-    pub fn new(value: u64) -> Self {
+    pub fn new(value: u128) -> Self {
         Self {
             value: value % ORDER,
         }
