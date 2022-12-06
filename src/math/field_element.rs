@@ -55,6 +55,23 @@ impl ops::Add<FieldElement> for FieldElement {
     }
 }
 
+impl ops::Neg for FieldElement {
+    type Output = FieldElement;
+
+    fn neg(self) -> FieldElement {
+        FieldElement::new(ORDER - self.value).unwrap()
+    }
+}
+
+impl ops::Sub<FieldElement> for FieldElement {
+    type Output = FieldElement;
+
+    fn sub(self, substrahend: FieldElement) -> FieldElement {
+        let neg_substrahend = -substrahend;
+        self + neg_substrahend
+    }
+}
+
 impl ops::Mul for FieldElement {
     type Output = FieldElement;
 
@@ -183,5 +200,28 @@ mod tests {
                 * FieldElement::new(3).unwrap(),
             FieldElement::new(4).unwrap()
         )
+    }
+
+    #[test]
+    fn two_plus_its_additive_inv_is_0() {
+        let two = FieldElement::new(2).unwrap();
+
+        assert_eq!(two + (-two), FieldElement::new(0).unwrap())
+    }
+
+    #[test]
+    fn four_minus_three_is_1() {
+        let four = FieldElement::new(4).unwrap();
+        let three = FieldElement::new(3).unwrap();
+
+        assert_eq!(four - three, FieldElement::new(1).unwrap())
+    }
+
+    #[test]
+    fn zero_minus_1_is_order_minus_1() {
+        let zero = FieldElement::new(0).unwrap();
+        let one = FieldElement::new(1).unwrap();
+
+        assert_eq!(zero - one, FieldElement::new(ORDER - 1).unwrap())
     }
 }
