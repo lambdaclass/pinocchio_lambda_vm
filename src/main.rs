@@ -1,3 +1,13 @@
+mod math;
+use math::field_element::FieldElement;
+
 fn main() {
-    println!("Hello, world!");
+    let element_a = FieldElement::new(32).unwrap();
+    let element_b = FieldElement::new(32).unwrap();
+    println!(
+        "{:?} + {:?} = {:?}",
+        element_a,
+        element_b,
+        element_a + element_b
+    );
 }
