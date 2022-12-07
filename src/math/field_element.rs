@@ -1,6 +1,6 @@
 use std::ops;
 
-const ORDER: u128 = 18446744073709551359;
+pub const ORDER: u128 = 18446744073709551359;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum FieldElementError {
@@ -14,6 +14,10 @@ pub struct FieldElement {
 }
 
 impl FieldElement {
+    pub fn zero() -> Self {
+        FieldElement { value: 0 }
+    }
+
     pub fn new(value: u128) -> Result<Self, FieldElementError> {
         if value < ORDER {
             Ok(Self { value })
@@ -223,5 +227,10 @@ mod tests {
         let one = FieldElement::new(1).unwrap();
 
         assert_eq!(zero - one, FieldElement::new(ORDER - 1).unwrap())
+    }
+
+    #[test]
+    fn zero_constructor_returns_zero() {
+        assert_eq!(FieldElement::zero(), FieldElement::new(0).unwrap());
     }
 }
