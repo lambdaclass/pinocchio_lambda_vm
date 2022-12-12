@@ -1,6 +1,8 @@
 use crate::math;
 use math::field_element::FieldElement;
 
+type GroupElement = FieldElement;
+
 
 pub struct ToxicWaste {
     r_v: FieldElement,
@@ -39,10 +41,10 @@ impl EvaluationKey {
         // This will be an elliptic curve point
         let g = GroupElement::generator();
 
-        let g_v = Vec<GroupElement>;
+        let g_v : Vec<GroupElement>::new();
         for k in intermediate_variables {
-            g_v.push(g.pow(toxic_waste.r_v * v(k, s));
+            g_v.push(g.pow(toxic_waste.r_v * Vs[k].evaluate(s));
         }
     }
 }
- */
+*/

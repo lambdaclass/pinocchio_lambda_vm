@@ -1,5 +1,20 @@
 use super::field_element::FieldElement as FE;
 
+pub struct Polynomial {
+    xs: Vec<FE>,
+    ys: Vec<FE>,
+}
+
+impl Polynomial {
+    pub fn new(xs: Vec<FE>, ys: Vec<FE>) -> Self {
+        Self { xs, ys }
+    }
+
+    pub fn evaluate(&self, e: FE) -> FE {
+        interpolate(&self.xs, &self.ys, e)
+    }
+}
+
 /// Evaluate "e" on the Lagrange Polynomial interpolated on the field elements (xs, ys)
 pub fn interpolate(xs: &[FE], ys: &[FE], e: FE) -> FE {
     let mut result: FE = FE::new(0).unwrap();

@@ -1,5 +1,6 @@
-use std::ops;
 use rand::prelude::*;
+use std::fmt;
+use std::ops;
 
 const ORDER: u128 = 18446744073709551359;
 
@@ -15,6 +16,19 @@ pub struct FieldElement {
 }
 
 impl FieldElement {
+    pub fn zero() -> Self {
+        FieldElement { value: 0 }
+    }
+
+    pub fn one() -> FieldElement {
+        FieldElement { value: 1 }
+    }
+
+    pub fn generator() -> FieldElement {
+        // TODO: Is there any rule to choose the generator? E.g: Random
+        FieldElement { value: 2 }
+    }
+
     pub fn new(value: u128) -> Result<Self, FieldElementError> {
         if value < ORDER {
             Ok(Self { value })
@@ -27,7 +41,9 @@ impl FieldElement {
         let mut rng = rand::thread_rng();
         let value: u128 = rng.gen();
         // TODO: Some values have higher probability than others.
-        FieldElement { value: value % ORDER }
+        FieldElement {
+            value: value % ORDER,
+        }
     }
 
     pub fn pow(self, mut exponent: u128) -> Self {
@@ -52,6 +68,12 @@ impl FieldElement {
         } else {
             Err(FieldElementError::DivisionByZero)
         }
+    }
+}
+
+impl fmt::Display for FieldElement {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.value)
     }
 }
 
