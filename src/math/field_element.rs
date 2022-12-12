@@ -1,4 +1,5 @@
 use std::ops;
+use rand::prelude::*;
 
 const ORDER: u128 = 18446744073709551359;
 
@@ -20,6 +21,13 @@ impl FieldElement {
         } else {
             Err(FieldElementError::OutOfRangeValue)
         }
+    }
+
+    pub fn random() -> Self {
+        let mut rng = rand::thread_rng();
+        let value: u128 = rng.gen();
+        // TODO: Some values have higher probability than others.
+        FieldElement { value: value % ORDER }
     }
 
     pub fn pow(self, mut exponent: u128) -> Self {
