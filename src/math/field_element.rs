@@ -67,7 +67,7 @@ impl ops::Neg for FieldElement {
     type Output = FieldElement;
 
     fn neg(self) -> FieldElement {
-        FieldElement::new(ORDER - self.value).unwrap()
+        FieldElement::new((ORDER - self.value) % ORDER).unwrap()
     }
 }
 
@@ -96,6 +96,7 @@ impl ops::Div for FieldElement {
         self * dividend.inv().unwrap()
     }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -231,5 +232,12 @@ mod tests {
         let one = FieldElement::new(1).unwrap();
 
         assert_eq!(zero - one, FieldElement::new(ORDER - 1).unwrap())
+    }
+
+    #[test]
+    fn neg_zero_is_zero() {
+        let zero = FieldElement::new(0).unwrap();
+
+        assert_eq!(-zero, zero);
     }
 }
