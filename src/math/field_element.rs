@@ -18,6 +18,10 @@ impl FieldElement {
         FieldElement { value: 0 }
     }
 
+    pub fn one() -> Self {
+        FieldElement { value: 1 }
+    }
+
     pub fn new(value: u128) -> Result<Self, FieldElementError> {
         if value < ORDER {
             Ok(Self { value })
@@ -59,11 +63,17 @@ impl ops::Add<FieldElement> for FieldElement {
     }
 }
 
+impl ops::AddAssign for FieldElement {
+    fn add_assign(&mut self, other: Self) {
+        *self = *self + other;
+    }
+}
+
 impl ops::Neg for FieldElement {
     type Output = FieldElement;
 
     fn neg(self) -> FieldElement {
-        FieldElement::new(ORDER - self.value).unwrap()
+        FieldElement::new((ORDER - self.value) % ORDER).unwrap()
     }
 }
 
