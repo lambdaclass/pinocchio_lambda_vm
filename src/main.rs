@@ -1,10 +1,10 @@
 mod math;
-use math::field_element::FieldElement;
+use math::field_element::FieldElement as FE;
 
 fn main() {
-    let element_a = FieldElement::new(32).unwrap();
-    let element_b = FieldElement::new(32).unwrap();
-    let c = FieldElement::zero();
+    let element_a = FE::new(32).unwrap();
+    let element_b = FE::new(32).unwrap();
+    let c = FE::zero();
     println!(
         "{:?} + {:?} = {:?}",
         element_a,
