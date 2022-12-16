@@ -40,7 +40,7 @@ impl Polynomial {
                 if i != j {
                     let denominator = Polynomial::new(vec![FE::one() / (xs[i] - *x)]);
                     let numerator = Polynomial::new(vec![-*x, FE::one()]);
-                    y_term = &y_term * &(&numerator * &denominator);
+                    y_term = y_term.mul_with_ref(&(numerator * denominator));
                 }
             }
             result = result + y_term;
@@ -94,8 +94,10 @@ impl Polynomial {
             while n != Polynomial::zero() && n.degree() >= dividend.degree() {
                 let new_coefficient = n.last_coefficient() / dividend.last_coefficient();
                 q[n.degree() - dividend.degree()] = new_coefficient;
-                let d = dividend
-                    * &Polynomial::new_monomial(new_coefficient, n.degree() - dividend.degree());
+                let d = dividend.mul_with_ref(&Polynomial::new_monomial(
+                    new_coefficient,
+                    n.degree() - dividend.degree(),
+                ));
                 n = n - d;
             }
             Polynomial::new(q)
@@ -142,23 +144,6 @@ impl ops::Sub<Polynomial> for Polynomial {
 
     fn sub(self, substrahend: Polynomial) -> Polynomial {
         self + (-substrahend)
-    }
-}
-
-impl ops::Mul<&Polynomial> for &Polynomial {
-    type Output = Polynomial;
-
-    fn mul(self, poly: &Polynomial) -> Polynomial {
-        let degree = self.degree() + poly.degree();
-        let mut coefficients = vec![FE::zero(); degree + 1];
-
-        for i in 0..=poly.degree() {
-            for j in 0..=self.degree() {
-                coefficients[i + j] += poly.coefficients[i] * self.coefficients[j];
-            }
-        }
-
-        Polynomial::new(coefficients)
     }
 }
 
@@ -274,7 +259,7 @@ mod tests {
     fn multiply_2_by_3_is_6() {
         let p1 = Polynomial::new(vec![FE::new(2).unwrap()]);
         let p2 = Polynomial::new(vec![FE::new(3).unwrap()]);
-        assert_eq!(&p1 * &p2, Polynomial::new(vec![FE::new(6).unwrap()]));
+        assert_eq!(p1 * p2, Polynomial::new(vec![FE::new(6).unwrap()]));
     }
 
     #[test]
@@ -286,7 +271,7 @@ mod tests {
         ]);
         let p2 = Polynomial::new(vec![FE::new(4).unwrap(), FE::new(1).unwrap()]);
         assert_eq!(
-            &p1 * &p2,
+            p1 * p2,
             Polynomial::new(vec![
                 FE::new(12).unwrap(),
                 FE::new(15).unwrap(),
@@ -305,7 +290,7 @@ mod tests {
         ]);
         let p2 = Polynomial::new(vec![FE::new(4).unwrap(), FE::new(1).unwrap()]);
         assert_eq!(
-            &p2 * &p1,
+            p2 * p1,
             Polynomial::new(vec![
                 FE::new(12).unwrap(),
                 FE::new(15).unwrap(),
@@ -379,7 +364,7 @@ mod tests {
             FE::one() / (FE::new(2).unwrap() - FE::new(4).unwrap()),
         ]);
         let numerator = Polynomial::new(vec![-FE::new(4).unwrap(), FE::one()]);
-        let interpolating = &numerator * &denominator;
+        let interpolating = numerator * denominator;
         assert_eq!(
             (FE::new(2).unwrap() - FE::new(4).unwrap())
                 * (FE::one() / (FE::new(2).unwrap() - FE::new(4).unwrap())),
