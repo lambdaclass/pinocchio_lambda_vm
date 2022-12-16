@@ -21,14 +21,14 @@ impl Polynomial {
         }
     }
 
-    pub fn zero() -> Self {
-        Self::new(Vec::<FE>::new())
-    }
-
-    pub fn monomial(coefficient: FE, degree: usize) -> Self {
+    pub fn new_monomial(coefficient: FE, degree: usize) -> Self {
         let mut coefficients = vec![FE::zero(); degree];
         coefficients.push(coefficient);
         Self::new(coefficients)
+    }
+
+    pub fn zero() -> Self {
+        Self::new(Vec::<FE>::new())
     }
 
     pub fn interpolate(xs: &[FE], ys: &[FE]) -> Polynomial {
@@ -56,10 +56,10 @@ impl Polynomial {
     }
 
     pub fn degree(&self) -> usize {
-        if !self.coefficients.is_empty() {
-            self.coefficients.len() - 1
-        } else {
+        if self.coefficients.is_empty() {
             0
+        } else {
+            self.coefficients.len() - 1
         }
     }
 
@@ -83,6 +83,36 @@ impl Polynomial {
             pa.coefficients.resize(pb.coefficients.len(), FE::zero());
         }
         (pa, pb)
+    }
+
+    pub fn div_with_ref(self, dividend: &Self) -> Self {
+        if dividend.degree() > self.degree() {
+            Polynomial::zero()
+        } else {
+            let mut n = self;
+            let mut q: Vec<FE> = vec![FE::zero(); n.degree() + 1];
+            while n != Polynomial::zero() && n.degree() >= dividend.degree() {
+                let new_coefficient = n.last_coefficient() / dividend.last_coefficient();
+                q[n.degree() - dividend.degree()] = new_coefficient;
+                let d = dividend
+                    * &Polynomial::new_monomial(new_coefficient, n.degree() - dividend.degree());
+                n = n - d;
+            }
+            Polynomial::new(q)
+        }
+    }
+
+    pub fn mul_with_ref(&self, factor: &Self) -> Self {
+        let degree = self.degree() + factor.degree();
+        let mut coefficients = vec![FE::zero(); degree + 1];
+
+        for i in 0..=factor.degree() {
+            for j in 0..=self.degree() {
+                coefficients[i + j] += factor.coefficients[i] * self.coefficients[j];
+            }
+        }
+
+        Polynomial::new(coefficients)
     }
 }
 
@@ -122,8 +152,8 @@ impl ops::Mul<&Polynomial> for &Polynomial {
         let degree = self.degree() + poly.degree();
         let mut coefficients = vec![FE::zero(); degree + 1];
 
-        for i in 0..(poly.degree() + 1) {
-            for j in 0..(self.degree() + 1) {
+        for i in 0..=poly.degree() {
+            for j in 0..=self.degree() {
                 coefficients[i + j] += poly.coefficients[i] * self.coefficients[j];
             }
         }
@@ -132,24 +162,18 @@ impl ops::Mul<&Polynomial> for &Polynomial {
     }
 }
 
-impl ops::Div<&Polynomial> for &Polynomial {
+impl ops::Div<Polynomial> for Polynomial {
     type Output = Polynomial;
 
-    fn div(self, dividend: &Polynomial) -> Polynomial {
-        if dividend.degree() > self.degree() {
-            Polynomial::zero()
-        } else {
-            let mut n = self.clone();
-            let mut q: Vec<FE> = vec![FE::zero(); n.degree() + 1];
-            while n != Polynomial::zero() && n.degree() >= dividend.degree() {
-                let new_coefficient = n.last_coefficient() / dividend.last_coefficient();
-                q[n.degree() - dividend.degree()] = new_coefficient;
-                let d = dividend
-                    * &Polynomial::monomial(new_coefficient, n.degree() - dividend.degree());
-                n = n - d;
-            }
-            Polynomial::new(q)
-        }
+    fn div(self, dividend: Polynomial) -> Polynomial {
+        self.div_with_ref(&dividend)
+    }
+}
+
+impl ops::Mul<Polynomial> for Polynomial {
+    type Output = Polynomial;
+    fn mul(self, dividend: Polynomial) -> Polynomial {
+        self.mul_with_ref(&dividend)
     }
 }
 
@@ -295,8 +319,8 @@ mod tests {
     fn division_works() {
         let p1 = Polynomial::new(vec![FE::new(1).unwrap(), FE::new(3).unwrap()]);
         let p2 = Polynomial::new(vec![FE::new(1).unwrap(), FE::new(3).unwrap()]);
-        let p3 = &p1 * &p2;
-        assert_eq!(&p3 / &p2, p1);
+        let p3 = p1.mul_with_ref(&p2);
+        assert_eq!(p3 / p2, p1);
     }
 
     #[test]
@@ -305,7 +329,7 @@ mod tests {
         let two = FE::new(2).unwrap();
         let p1 = Polynomial::new(vec![four, four]);
         let p2 = Polynomial::new(vec![two]);
-        assert_eq!(Polynomial::new(vec![two, two]), &p1 / &p2);
+        assert_eq!(Polynomial::new(vec![two, two]), p1 / p2);
     }
 
     #[test]
@@ -316,18 +340,18 @@ mod tests {
     }
 
     #[test]
-    fn create_degree_0_monomial() {
+    fn create_degree_0_new_monomial() {
         assert_eq!(
-            Polynomial::monomial(FE::new(3).unwrap(), 0),
+            Polynomial::new_monomial(FE::new(3).unwrap(), 0),
             Polynomial::new(vec![FE::new(3).unwrap()])
         );
     }
 
     #[test]
-    fn evaluate_degree_1_monomial() {
+    fn evaluate_degree_1_new_monomial() {
         let two = FE::new(2).unwrap();
         let four = FE::new(4).unwrap();
-        let p = Polynomial::monomial(two, 1);
+        let p = Polynomial::new_monomial(two, 1);
         assert_eq!(p.evaluate(two), four);
     }
 
@@ -335,7 +359,7 @@ mod tests {
     fn evaluate_degree_2_monomyal() {
         let two = FE::new(2).unwrap();
         let eight = FE::new(8).unwrap();
-        let p = Polynomial::monomial(two, 2);
+        let p = Polynomial::new_monomial(two, 2);
         assert_eq!(p.evaluate(two), eight);
     }
 
