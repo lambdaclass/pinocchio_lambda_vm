@@ -473,4 +473,13 @@ mod tests {
         assert_eq!(FE::new(0).unwrap(), p.evaluate(FE::new(0).unwrap()));
         assert_eq!(FE::new(1).unwrap(), p.evaluate(FE::new(1).unwrap()));
     }
+
+    #[test]
+    fn interpolate_x_0_y_0() {
+        let p = Polynomial::interpolate(
+            &[FE::new(0).unwrap()],
+            &[FE::new(0).unwrap()],
+        );
+        assert_eq!(FE::new(0).unwrap(), p.evaluate(FE::new(0).unwrap()));
+    }
 }
