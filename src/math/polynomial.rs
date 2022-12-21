@@ -109,7 +109,7 @@ impl Polynomial {
         let mut coefficients = vec![FE::zero(); degree + 1];
 
         if self.coefficients.is_empty() || factor.coefficients.is_empty() {
-            Polynomial::new([FE::zero()].to_vec())
+            Polynomial::new(vec![FE::zero()])
         } else {
             for i in 0..=factor.degree() {
                 for j in 0..=self.degree() {
@@ -264,14 +264,6 @@ mod tests {
     #[test]
     fn substracting_b_and_a_equals_b_minus_a() {
         assert_eq!(polynomial_b() - polynomial_a(), polynomial_b_minus_a());
-    }
-
-    #[test]
-    fn substract_6_to_10_is_4() {
-        let p1 = Polynomial::new(vec![FE::new(10).unwrap()]);
-        let p2 = Polynomial::new(vec![FE::new(6).unwrap()]);
-        let result = Polynomial::new(vec![FE::new(4).unwrap()]);
-        assert_eq!(p1 - p2, result);
     }
 
     #[test]
@@ -476,10 +468,7 @@ mod tests {
 
     #[test]
     fn interpolate_x_0_y_0() {
-        let p = Polynomial::interpolate(
-            &[FE::new(0).unwrap()],
-            &[FE::new(0).unwrap()],
-        );
+        let p = Polynomial::interpolate(&[FE::new(0).unwrap()], &[FE::new(0).unwrap()]);
         assert_eq!(FE::new(0).unwrap(), p.evaluate(FE::new(0).unwrap()));
     }
 }
