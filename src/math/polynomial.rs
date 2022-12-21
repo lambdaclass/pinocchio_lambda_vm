@@ -108,13 +108,16 @@ impl Polynomial {
         let degree = self.degree() + factor.degree();
         let mut coefficients = vec![FE::zero(); degree + 1];
 
-        for i in 0..=factor.degree() {
-            for j in 0..=self.degree() {
-                coefficients[i + j] += factor.coefficients[i] * self.coefficients[j];
+        if self.coefficients.is_empty() || factor.coefficients.is_empty() {
+            Polynomial::new(vec![FE::zero()])
+        } else {
+            for i in 0..=factor.degree() {
+                for j in 0..=self.degree() {
+                    coefficients[i + j] += factor.coefficients[i] * self.coefficients[j];
+                }
             }
+            Polynomial::new(coefficients)
         }
-
-        Polynomial::new(coefficients)
     }
 }
 
@@ -221,6 +224,26 @@ mod tests {
     }
 
     #[test]
+    fn add_5_to_0_is_5() {
+        let p1 = Polynomial::new(vec![FE::new(5).unwrap()]);
+        let p2 = Polynomial::new(vec![FE::new(0).unwrap()]);
+        assert_eq!(p1 + p2, Polynomial::new(vec![FE::new(5).unwrap()]));
+    }
+
+    #[test]
+    fn add_0_to_5_is_5() {
+        let p1 = Polynomial::new(vec![FE::new(5).unwrap()]);
+        let p2 = Polynomial::new(vec![FE::new(0).unwrap()]);
+        assert_eq!(p2 + p1, Polynomial::new(vec![FE::new(5).unwrap()]));
+    }
+
+    #[test]
+    fn negating_0_returns_0() {
+        let p1 = Polynomial::new(vec![FE::zero()]);
+        assert_eq!(-p1, Polynomial::new(vec![FE::zero()]));
+    }
+
+    #[test]
     fn negating_a_is_equal_to_minus_a() {
         assert_eq!(-polynomial_a(), polynomial_minus_a());
     }
@@ -228,6 +251,14 @@ mod tests {
     #[test]
     fn negating_a_is_not_equal_to_a() {
         assert_ne!(-polynomial_a(), polynomial_a());
+    }
+
+    #[test]
+    fn substracting_5_5_gives_0() {
+        let p1 = Polynomial::new(vec![FE::new(5).unwrap()]);
+        let p2 = Polynomial::new(vec![FE::new(5).unwrap()]);
+        let p3 = Polynomial::new(vec![FE::zero()]);
+        assert_eq!(p1 - p2, p3);
     }
 
     #[test]
@@ -253,6 +284,20 @@ mod tests {
         let (pp1, pp2) = Polynomial::pad_with_zero_coefficients(&p1, &p2);
         assert_eq!(pp1, p1);
         assert_eq!(pp2.coefficients, vec![FE::new(3).unwrap(), FE::zero()]);
+    }
+
+    #[test]
+    fn multiply_5_and_0_is_0() {
+        let p1 = Polynomial::new(vec![FE::new(5).unwrap()]);
+        let p2 = Polynomial::new(vec![FE::new(0).unwrap()]);
+        assert_eq!(p1 * p2, Polynomial::new(vec![FE::new(0).unwrap()]));
+    }
+
+    #[test]
+    fn multiply_0_and_x_is_0() {
+        let p1 = Polynomial::new(vec![FE::new(0).unwrap()]);
+        let p2 = Polynomial::new(vec![FE::new(0).unwrap(), FE::new(1).unwrap()]);
+        assert_eq!(p1 * p2, Polynomial::new(vec![FE::new(0).unwrap()]));
     }
 
     #[test]
@@ -408,5 +453,22 @@ mod tests {
         assert_eq!(FE::new(10).unwrap(), p.evaluate(FE::new(2).unwrap()));
         assert_eq!(FE::new(19).unwrap(), p.evaluate(FE::new(5).unwrap()));
         assert_eq!(FE::new(43).unwrap(), p.evaluate(FE::new(7).unwrap()));
+    }
+
+    #[test]
+    fn interpolate_x_0_0_y_1_1() {
+        let p = Polynomial::interpolate(
+            &[FE::new(0).unwrap(), FE::new(1).unwrap()],
+            &[FE::new(0).unwrap(), FE::new(1).unwrap()],
+        );
+
+        assert_eq!(FE::new(0).unwrap(), p.evaluate(FE::new(0).unwrap()));
+        assert_eq!(FE::new(1).unwrap(), p.evaluate(FE::new(1).unwrap()));
+    }
+
+    #[test]
+    fn interpolate_x_0_y_0() {
+        let p = Polynomial::interpolate(&[FE::new(0).unwrap()], &[FE::new(0).unwrap()]);
+        assert_eq!(FE::new(0).unwrap(), p.evaluate(FE::new(0).unwrap()));
     }
 }
