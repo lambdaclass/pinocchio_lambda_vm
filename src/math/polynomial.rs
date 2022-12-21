@@ -254,6 +254,14 @@ mod tests {
     }
 
     #[test]
+    fn substracting_5_5_gives_0() {
+        let p1 = Polynomial::new(vec![FE::new(5).unwrap()]);
+        let p2 = Polynomial::new(vec![FE::new(5).unwrap()]);
+        let p3 = Polynomial::new(vec![FE::zero()]);
+        assert_eq!(p1 - p2, p3);
+    }
+
+    #[test]
     fn substracting_b_and_a_equals_b_minus_a() {
         assert_eq!(polynomial_b() - polynomial_a(), polynomial_b_minus_a());
     }
