@@ -1,5 +1,7 @@
 use crate::math::{field_element::FieldElement as FE, polynomial::Polynomial};
+
 #[derive(Debug, PartialEq, Eq)]
+/// QAP Representation of the circuits
 pub struct Qap {
     pub v: Vec<Polynomial>,
     pub w: Vec<Polynomial>,
@@ -11,8 +13,6 @@ pub struct Qap {
 pub enum CreationError {
     PolynomialVectorsSizeMismatch,
 }
-
-/// QAP Representation of the circuits
 
 impl Qap {
     pub fn new(

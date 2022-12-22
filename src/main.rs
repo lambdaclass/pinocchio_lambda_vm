@@ -1,6 +1,5 @@
 mod circuits;
 mod math;
-
 use circuits::qap::Qap;
 use math::field_element::FieldElement as FE;
 use math::polynomial::Polynomial;
