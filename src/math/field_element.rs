@@ -1,4 +1,5 @@
 use super::group::Group;
+use rand::prelude::*;
 use std::ops;
 
 pub const ORDER: u128 = 18446744073709551359;
@@ -30,6 +31,13 @@ impl FieldElement {
             Ok(Self { value })
         } else {
             Err(FieldElementError::OutOfRangeValue)
+        }
+    }
+
+    pub fn random() -> Self {
+        let value: u128 = rand::thread_rng().gen_range(0..ORDER);
+        FieldElement {
+            value: value % ORDER,
         }
     }
 
