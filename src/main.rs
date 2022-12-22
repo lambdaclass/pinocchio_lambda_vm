@@ -1,4 +1,6 @@
+mod circuits;
 mod math;
+use circuits::qap::Qap;
 use math::field_element::FieldElement as FE;
 use math::polynomial::Polynomial;
 
@@ -24,6 +26,10 @@ fn main() {
             FE::new(8).unwrap(),
         ],
     );
+
     println!("poly = {:?}", y);
     println!("poly(3) = {:?}", y.evaluate(FE::new(3).unwrap()));
+
+    Qap::new_test_circuit();
+    println!("Test cicuit target poly: {:?}", Qap::new_test_circuit());
 }
