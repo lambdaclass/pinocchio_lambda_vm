@@ -1,5 +1,5 @@
 # ErgodicVM
-Zero Knowledge Virtual Machine from scratch
+Zero Knowledge Virtual Machine from scratch implementing Pinocchio
 
 To start a shell in docker to develop:
 
