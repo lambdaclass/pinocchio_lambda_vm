@@ -6,18 +6,19 @@ use math::polynomial::Polynomial;
 type GroupType = FE;
 
 pub struct EvaluationKey {
-    g_v_k_s: Vec<GroupType>,
-    g_w_k_s: Vec<GroupType>,
-    g_y_k_s: Vec<GroupType>,
-    g_v_a_k_s: Vec<GroupType>,
-    g_w_a_k_s: Vec<GroupType>,
-    g_y_a_k_s: Vec<GroupType>,
+    gv_ks: Vec<GroupType>,
+    gw_ks: Vec<GroupType>,
+    gy_ks: Vec<GroupType>,
+    gv_alphaks: Vec<GroupType>,
+    gw_alphaks: Vec<GroupType>,
+    gy_alphaks: Vec<GroupType>,
     g_s_i: Vec<GroupType>,
-    g_g_g: Vec<GroupType>,
+    g_beta: Vec<GroupType>,
 }
 
 pub fn setup(qap: Qap) -> EvaluationKey {
     let (vs, ws, ys) = (qap.v, qap.w, qap.y);
+    
     let s = FE::random();
     let alpha_v = FE::random();
     let alpha_w = FE::random();
@@ -31,32 +32,32 @@ pub fn setup(qap: Qap) -> EvaluationKey {
     let degree = 10;
 
     EvaluationKey {
-        g_v_k_s: ivs
+        gv_ks: ivs
             .iter()
             .map(|&k| g.mul_by_scalar(rv * vs[k].evaluate(s)))
             .collect(),
-        g_w_k_s: ivs
+        gw_ks: ivs
             .iter()
             .map(|&k| g.mul_by_scalar(rw * ws[k].evaluate(s)))
             .collect(),
-        g_y_k_s: ivs
+        gy_ks: ivs
             .iter()
             .map(|&k| g.mul_by_scalar(ry * ys[k].evaluate(s)))
             .collect(),
-        g_v_a_k_s: ivs
+        gv_alphaks: ivs
             .iter()
             .map(|&k| g.mul_by_scalar(rv * alpha_v * vs[k].evaluate(s)))
             .collect(),
-        g_w_a_k_s: ivs
+        gw_alphaks: ivs
             .iter()
             .map(|&k| g.mul_by_scalar(rw * alpha_w * ws[k].evaluate(s)))
             .collect(),
-        g_y_a_k_s: ivs
+        gy_alphaks: ivs
             .iter()
             .map(|&k| g.mul_by_scalar(ry * alpha_y * ys[k].evaluate(s)))
             .collect(),
         g_s_i: (1..=degree).map(|i| g.mul_by_scalar(s.pow(i))).collect(),
-        g_g_g: ivs
+        g_beta: ivs
             .iter()
             .map(|&k| {
                 g.mul_by_scalar(
