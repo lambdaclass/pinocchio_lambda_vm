@@ -2,11 +2,10 @@ mod circuits;
 mod math;
 mod pinocchio;
 
+use circuits::qap::Qap;
 use math::field_element::FieldElement as FE;
 use math::polynomial::Polynomial;
 use pinocchio::setup::setup;
-
-use circuits::qap::Qap;
 
 fn main() {
     let _evaluation_key = setup(Qap::new_test_circuit());
