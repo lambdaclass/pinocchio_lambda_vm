@@ -9,7 +9,7 @@ use math::polynomial::Polynomial;
 use circuits::qap::Qap;
 
 fn main() {
-    let _evaluation_key = setup();
+    let _evaluation_key = setup(Qap::new_test_circuit());
 
     let element_a =  FE::new(8).unwrap();
     let element_b = FE::new(32).unwrap();
