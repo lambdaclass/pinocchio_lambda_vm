@@ -5,10 +5,10 @@ mod pinocchio;
 use circuits::qap::Qap;
 use math::field_element::FieldElement as FE;
 use math::polynomial::Polynomial;
-use pinocchio::setup::setup;
+use pinocchio::setup::{setup, ToxicWaste};
 
 fn main() {
-    let _evaluation_key = setup(Qap::new_test_circuit());
+    let _evaluation_key = setup(Qap::new_test_circuit(), ToxicWaste::sample());
 
     let element_a = FE::new(8).unwrap();
     let element_b = FE::new(32).unwrap();
