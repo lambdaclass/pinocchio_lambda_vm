@@ -2,9 +2,9 @@ use crate::circuits::qap::Qap;
 use crate::math;
 use math::field_element::FieldElement as FE;
 use math::group::Group;
-use math::polynomial::Polynomial;
 type GroupType = FE;
 
+#[allow(dead_code)]
 pub struct EvaluationKey {
     gv_ks: Vec<GroupType>,
     gw_ks: Vec<GroupType>,
@@ -18,7 +18,7 @@ pub struct EvaluationKey {
 
 pub fn setup(qap: Qap) -> EvaluationKey {
     let (vs, ws, ys) = (qap.v, qap.w, qap.y);
-    
+
     let s = FE::random();
     let alpha_v = FE::random();
     let alpha_w = FE::random();

@@ -36,9 +36,7 @@ impl FieldElement {
 
     pub fn random() -> Self {
         let value: u128 = rand::thread_rng().gen_range(0..ORDER);
-        FieldElement {
-            value: value,
-        }
+        FieldElement { value }
     }
 
     pub fn pow(self, mut exponent: u128) -> Self {
