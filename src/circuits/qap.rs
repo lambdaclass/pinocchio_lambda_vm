@@ -1,6 +1,6 @@
 use crate::math::{field_element::FieldElement as FE, polynomial::Polynomial};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 /// QAP Representation of the circuits
 pub struct Qap {
     pub v: Vec<Polynomial>,
