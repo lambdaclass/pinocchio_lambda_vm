@@ -65,7 +65,55 @@ impl ToxicWaste {
     }
 }
 
-pub fn setup(qap: Qap, toxic_waste: ToxicWaste) -> (EvaluationKey, VerifyingKey) {
+fn generate_verifying_key(qap: &Qap, toxic_waste: ToxicWaste) -> VerifyingKey {
+    let s = toxic_waste.s;
+    let alpha_v = toxic_waste.alpha_v;
+    let alpha_w = toxic_waste.alpha_w;
+    let alpha_y = toxic_waste.alpha_y;
+    let beta = toxic_waste.beta;
+    let rv = toxic_waste.rv;
+    let rw = toxic_waste.rw;
+    let gamma = toxic_waste.gamma;
+    let ry = toxic_waste.ry();
+
+    let g = GroupType::generator();
+
+    let vector_capacity = qap.number_of_inputs + qap.number_of_inputs + 1;
+    let mut gv_ks_io: Vec<GroupType> = Vec::with_capacity(vector_capacity);
+    let mut gw_ks_io: Vec<GroupType> = Vec::with_capacity(vector_capacity);
+    let mut gy_ks_io: Vec<GroupType> = Vec::with_capacity(vector_capacity);
+
+    gv_ks_io.push(g.mul_by_scalar(rv * qap.v0().evaluate(s)));
+    gw_ks_io.push(g.mul_by_scalar(rw * qap.w0().evaluate(s)));
+    gy_ks_io.push(g.mul_by_scalar(ry * qap.y0().evaluate(s)));
+
+    for k in 0..qap.v_input().len() {
+        gv_ks_io.push(g.mul_by_scalar(rv * qap.v_input()[k].evaluate(s)));
+        gw_ks_io.push(g.mul_by_scalar(rw * qap.w_input()[k].evaluate(s)));
+        gy_ks_io.push(g.mul_by_scalar(ry * qap.y_input()[k].evaluate(s)));
+    }
+
+    for k in 0..qap.v_output().len() {
+        gv_ks_io.push(g.mul_by_scalar(rv * qap.v_output()[k].evaluate(s)));
+        gw_ks_io.push(g.mul_by_scalar(rw * qap.w_output()[k].evaluate(s)));
+        gy_ks_io.push(g.mul_by_scalar(ry * qap.y_output()[k].evaluate(s)));
+    }
+
+    VerifyingKey {
+        g_1: g * GroupType::one(),
+        g_alpha_v: g * alpha_v,
+        g_alpha_w: g * alpha_w,
+        g_alpha_y: g * alpha_y,
+        g_gamma: g * gamma,
+        g_beta_gamma: g * beta * gamma,
+        gy_target_on_s: g * ry * qap.target.evaluate(s),
+        gv_ks: gv_ks_io,
+        gw_ks: gw_ks_io,
+        gy_ks: gy_ks_io,
+    }
+}
+
+fn generate_evaluation_key(qap: &Qap, toxic_waste: ToxicWaste) -> EvaluationKey {
     let (vs_mid, ws_mid, ys_mid) = (qap.v_mid(), qap.w_mid(), qap.y_mid());
 
     let s = toxic_waste.s;
@@ -75,7 +123,6 @@ pub fn setup(qap: Qap, toxic_waste: ToxicWaste) -> (EvaluationKey, VerifyingKey)
     let beta = toxic_waste.beta;
     let rv = toxic_waste.rv;
     let rw = toxic_waste.rw;
-    let gamma = toxic_waste.gamma;
     let ry = toxic_waste.ry();
 
     let g = FE::generator();
@@ -114,40 +161,7 @@ pub fn setup(qap: Qap, toxic_waste: ToxicWaste) -> (EvaluationKey, VerifyingKey)
         g_s_i.push(g.mul_by_scalar(s.pow(i.try_into().unwrap())));
     }
 
-    let mut gv_ks_io: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
-    let mut gw_ks_io: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
-    let mut gy_ks_io: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
-
-    gv_ks_io.push(g.mul_by_scalar(rv * qap.v0().evaluate(s)));
-    gw_ks_io.push(g.mul_by_scalar(rw * qap.w0().evaluate(s)));
-    gy_ks_io.push(g.mul_by_scalar(ry * qap.y0().evaluate(s)));
-
-    for k in 0..qap.v_input().len() {
-        gv_ks_io.push(g.mul_by_scalar(rv * qap.v_input()[k].evaluate(s)));
-        gw_ks_io.push(g.mul_by_scalar(rw * qap.w_input()[k].evaluate(s)));
-        gy_ks_io.push(g.mul_by_scalar(ry * qap.y_input()[k].evaluate(s)));
-    }
-
-    for k in 0..qap.v_output().len() {
-        gv_ks_io.push(g.mul_by_scalar(rv * qap.v_output()[k].evaluate(s)));
-        gw_ks_io.push(g.mul_by_scalar(rw * qap.w_output()[k].evaluate(s)));
-        gy_ks_io.push(g.mul_by_scalar(ry * qap.y_output()[k].evaluate(s)));
-    }
-
-    let vk = VerifyingKey {
-        g_1: g * GroupType::one(),
-        g_alpha_v: g * alpha_v,
-        g_alpha_w: g * alpha_w,
-        g_alpha_y: g * alpha_y,
-        g_gamma: g * gamma,
-        g_beta_gamma: g * gamma,
-        gy_target_on_s: g * ry * qap.target.evaluate(s),
-        gv_ks: gv_ks_io,
-        gw_ks: gw_ks_io,
-        gy_ks: gy_ks_io,
-    };
-
-    let ek = EvaluationKey {
+    EvaluationKey {
         gv_ks: gv_ks_mid,
         gw_ks: gw_ks_mid,
         gy_ks: gy_ks_mid,
@@ -156,9 +170,14 @@ pub fn setup(qap: Qap, toxic_waste: ToxicWaste) -> (EvaluationKey, VerifyingKey)
         gy_alphaks: gy_alphaks_mid,
         g_s_i,
         g_beta: g_beta_mid,
-    };
+    }
+}
 
-    (ek, vk)
+pub fn setup(qap: Qap, toxic_waste: ToxicWaste) -> (EvaluationKey, VerifyingKey) {
+    (
+        generate_evaluation_key(&qap, toxic_waste),
+        generate_verifying_key(&qap, toxic_waste),
+    )
 }
 
 #[cfg(test)]

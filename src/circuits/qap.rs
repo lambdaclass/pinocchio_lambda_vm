@@ -57,39 +57,39 @@ impl Qap {
     pub fn y_mid(&'_ self) -> &[Polynomial] {
         &self.y[self.number_of_inputs + 1..(self.y.len() - self.number_of_outputs)]
     }
-    
-    pub fn v_input(&'_ self) -> &[Polynomial]{
+
+    pub fn v_input(&'_ self) -> &[Polynomial] {
         &self.y[1..self.number_of_inputs + 1]
     }
 
-    pub fn w_input(&'_ self) -> &[Polynomial]{
+    pub fn w_input(&'_ self) -> &[Polynomial] {
         &self.y[1..self.number_of_inputs + 1]
     }
 
-    pub fn y_input(&'_ self) -> &[Polynomial]{
+    pub fn y_input(&'_ self) -> &[Polynomial] {
         &self.y[1..self.number_of_inputs + 1]
     }
 
-    pub fn v0(&'_ self) -> &Polynomial{
+    pub fn v0(&'_ self) -> &Polynomial {
         &self.v[0]
     }
 
-    pub fn w0(&'_ self) -> &Polynomial{
+    pub fn w0(&'_ self) -> &Polynomial {
         &self.w[0]
     }
 
-    pub fn y0(&'_ self) -> &Polynomial{
+    pub fn y0(&'_ self) -> &Polynomial {
         &self.y[0]
     }
 
-    pub fn v_output(&'_ self) -> &[Polynomial]{
+    pub fn v_output(&'_ self) -> &[Polynomial] {
         &self.y[(self.v.len() - self.number_of_outputs)..]
     }
-    pub fn w_output(&'_ self) -> &[Polynomial]{
+    pub fn w_output(&'_ self) -> &[Polynomial] {
         &self.w[(self.w.len() - self.number_of_outputs)..]
     }
 
-    pub fn y_output(&'_ self) -> &[Polynomial]{
+    pub fn y_output(&'_ self) -> &[Polynomial] {
         &self.y[(self.y.len() - self.number_of_outputs)..]
     }
 
