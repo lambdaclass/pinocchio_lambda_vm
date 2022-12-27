@@ -1,12 +1,14 @@
 use crate::math::{field_element::FieldElement as FE, polynomial::Polynomial};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 /// QAP Representation of the circuits
 pub struct Qap {
     pub v: Vec<Polynomial>,
     pub w: Vec<Polynomial>,
     pub y: Vec<Polynomial>,
     pub target: Polynomial,
+    pub number_of_inputs: usize,
+    pub number_of_outputs: usize,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -15,17 +17,45 @@ pub enum CreationError {
 }
 
 impl Qap {
+    /// Creates a new QAP
+    /// This expects vectors to be organized like:
+    /// v0,w0,y0
+    /// inputs associated v,w,y polynomials
+    /// mid associated polynomials
+    /// outputs associated v,w,y polynomials
     pub fn new(
         v: Vec<Polynomial>,
         w: Vec<Polynomial>,
         y: Vec<Polynomial>,
         target: Polynomial,
+        number_of_inputs: usize,
+        number_of_outputs: usize,
     ) -> Result<Self, CreationError> {
+        // TO DO: Check if the amount of inputs and outputs matches the polynomials
         if v.len() != w.len() || v.len() != y.len() || w.len() != y.len() {
             Err(CreationError::PolynomialVectorsSizeMismatch)
         } else {
-            Ok(Self { v, w, y, target })
+            Ok(Self {
+                v,
+                w,
+                y,
+                target,
+                number_of_inputs,
+                number_of_outputs,
+            })
         }
+    }
+
+    pub fn v_mid(&'_ self) -> &[Polynomial] {
+        &self.v[self.number_of_inputs + 1..(self.v.len() - self.number_of_outputs)]
+    }
+
+    pub fn w_mid(&'_ self) -> &[Polynomial] {
+        &self.w[self.number_of_inputs + 1..(self.w.len() - self.number_of_outputs)]
+    }
+
+    pub fn y_mid(&'_ self) -> &[Polynomial] {
+        &self.y[self.number_of_inputs + 1..(self.y.len() - self.number_of_outputs)]
     }
 
     pub fn new_test_circuit() -> Self {
@@ -72,7 +102,7 @@ impl Qap {
             Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::one()]),
         ];
 
-        Self::new(vs.to_vec(), ws.to_vec(), ys.to_vec(), t).unwrap()
+        Self::new(vs.to_vec(), ws.to_vec(), ys.to_vec(), t, 4, 1).unwrap()
     }
 }
 
@@ -94,15 +124,58 @@ mod tests {
         let t = Polynomial::new(vec![FE::new(3).unwrap()]);
         assert_eq!(
             Err(CreationError::PolynomialVectorsSizeMismatch),
-            Qap::new(v, u, w, t)
+            Qap::new(v, u, w, t, 2, 1)
         );
     }
 
     #[test]
-    fn test_circuit_v0_w0_y0_have_7_elements() {
+    fn test_circuit_v_w_y_have_7_elements() {
         let test_circuit = Qap::new_test_circuit();
         assert_eq!(test_circuit.v.len(), 7);
         assert_eq!(test_circuit.w.len(), 7);
         assert_eq!(test_circuit.y.len(), 7);
+    }
+
+    //_mid polynomials of test circuit contains only one polynomial
+    #[test]
+    fn v_mid_test_circuit_on_r6_is_0() {
+        let test_circuit = Qap::new_test_circuit();
+        let r6 = FE::new(2).unwrap();
+        assert_eq!(test_circuit.y_mid()[0].evaluate(r6), FE::zero());
+    }
+
+    #[test]
+    fn w_mid_test_circuit_has_one_element() {
+        let test_circuit = Qap::new_test_circuit();
+        print!("mid w: {:?}", test_circuit.w_mid());
+        assert_eq!(test_circuit.v_mid().len(), 1);
+    }
+
+    #[test]
+    fn w_mid_test_circuit_on_r5_is_0() {
+        let test_circuit = Qap::new_test_circuit();
+        let r5 = FE::new(1).unwrap();
+        assert_eq!(test_circuit.w_mid()[0].evaluate(r5), FE::zero());
+    }
+
+    #[test]
+    fn w_mid_test_circuit_on_r6_is_1() {
+        let test_circuit = Qap::new_test_circuit();
+        let r6 = FE::new(2).unwrap();
+        assert_eq!(test_circuit.w_mid()[0].evaluate(r6), FE::one());
+    }
+
+    #[test]
+    fn y_mid_test_circuit_on_r5_is_1() {
+        let test_circuit = Qap::new_test_circuit();
+        let r5 = FE::new(1).unwrap();
+        assert_eq!(test_circuit.y_mid()[0].evaluate(r5), FE::one());
+    }
+
+    #[test]
+    fn y_mid_test_circuit_on_r6_is_0() {
+        let test_circuit = Qap::new_test_circuit();
+        let r6 = FE::new(2).unwrap();
+        assert_eq!(test_circuit.y_mid()[0].evaluate(r6), FE::zero());
     }
 }
