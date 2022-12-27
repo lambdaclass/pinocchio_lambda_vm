@@ -60,8 +60,6 @@ pub fn setup(qap: Qap, tw: ToxicWaste) -> EvaluationKey {
 
     let degree = qap.target.degree();
 
-    // Most elements of the proving key do not include the 0 elements
-    // and the last one
     let mut gv_ks: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
     let mut gw_ks: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
     let mut gy_ks: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
@@ -74,8 +72,6 @@ pub fn setup(qap: Qap, tw: ToxicWaste) -> EvaluationKey {
     let mut g_s_i: Vec<GroupType> = Vec::with_capacity(degree);
 
     // Set evaluation keys for each of their respective k mid element
-    // Since they are the middle ones,
-    // we skip 0 elements (v0,w0,y0) and the output elements
     for k in 0..vs_mid.len() {
         gv_ks.push(g.mul_by_scalar(rv * vs_mid[k].evaluate(s)));
         gw_ks.push(g.mul_by_scalar(rw * ws_mid[k].evaluate(s)));

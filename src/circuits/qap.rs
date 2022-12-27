@@ -136,7 +136,7 @@ mod tests {
         assert_eq!(test_circuit.y.len(), 7);
     }
 
-    //Notice mid of test circuit contains only one polynomial
+    //_mid polynomials of test circuit contains only one polynomial
     #[test]
     fn v_mid_test_circuit_on_r6_is_0() {
         let test_circuit = Qap::new_test_circuit();
