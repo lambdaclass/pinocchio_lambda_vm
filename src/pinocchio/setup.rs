@@ -6,6 +6,8 @@ type GroupType = FE;
 
 #[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq, Eq)]
+/// Evaluation key for Pinocchio
+/// All the k are k_mid
 pub struct EvaluationKey {
     gv_ks: Vec<GroupType>,
     gw_ks: Vec<GroupType>,
@@ -18,6 +20,8 @@ pub struct EvaluationKey {
 }
 #[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq, Eq)]
+/// Evaluation key for Pinocchio
+/// All the k are k_io + k_0
 pub struct VerifyingKey {
     g_1: GroupType,
     g_alpha_v: GroupType,
@@ -110,15 +114,24 @@ pub fn setup(qap: Qap, toxic_waste: ToxicWaste) -> (EvaluationKey, VerifyingKey)
         g_s_i.push(g.mul_by_scalar(s.pow(i.try_into().unwrap())));
     }
 
-    let mut gv_ks: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
-    let mut gw_ks: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
-    let mut gy_ks: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
-    // TO DO: Do not compute twice mid elements for shared keys
-    // between the verifying key and the proving key
-    for k in 0..qap.v.len() {
-        gv_ks.push(g.mul_by_scalar(rv * qap.v[k].evaluate(s)));
-        gw_ks.push(g.mul_by_scalar(rw * qap.w[k].evaluate(s)));
-        gy_ks.push(g.mul_by_scalar(ry * qap.y[k].evaluate(s)));
+    let mut gv_ks_io: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
+    let mut gw_ks_io: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
+    let mut gy_ks_io: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
+
+    gv_ks_io.push(g.mul_by_scalar(rv * qap.v0().evaluate(s)));
+    gw_ks_io.push(g.mul_by_scalar(rw * qap.w0().evaluate(s)));
+    gy_ks_io.push(g.mul_by_scalar(ry * qap.y0().evaluate(s)));
+
+    for k in 0..qap.v_input().len() {
+        gv_ks_io.push(g.mul_by_scalar(rv * qap.v_input()[k].evaluate(s)));
+        gw_ks_io.push(g.mul_by_scalar(rw * qap.w_input()[k].evaluate(s)));
+        gy_ks_io.push(g.mul_by_scalar(ry * qap.y_input()[k].evaluate(s)));
+    }
+
+    for k in 0..qap.v_output().len() {
+        gv_ks_io.push(g.mul_by_scalar(rv * qap.v_output()[k].evaluate(s)));
+        gw_ks_io.push(g.mul_by_scalar(rw * qap.w_output()[k].evaluate(s)));
+        gy_ks_io.push(g.mul_by_scalar(ry * qap.y_output()[k].evaluate(s)));
     }
 
     let vk = VerifyingKey {
@@ -129,9 +142,9 @@ pub fn setup(qap: Qap, toxic_waste: ToxicWaste) -> (EvaluationKey, VerifyingKey)
         g_gamma: g * gamma,
         g_beta_gamma: g * gamma,
         gy_target_on_s: g * ry * qap.target.evaluate(s),
-        gv_ks,
-        gw_ks,
-        gy_ks,
+        gv_ks: gv_ks_io,
+        gw_ks: gw_ks_io,
+        gy_ks: gy_ks_io,
     };
 
     let ek = EvaluationKey {
@@ -241,10 +254,10 @@ mod tests {
     }
 
     #[test]
-    fn verification_key_gvks_has_length_7_for_test_circuit() {
+    fn verification_key_gvks_has_length_6_for_test_circuit() {
         let (_, vk) = setup(Qap::new_test_circuit(), identity_toxic_waste());
-        assert_eq!(vk.gv_ks.len(), 7);
-        assert_eq!(vk.gw_ks.len(), 7);
-        assert_eq!(vk.gy_ks.len(), 7);
+        assert_eq!(vk.gv_ks.len(), 6);
+        assert_eq!(vk.gw_ks.len(), 6);
+        assert_eq!(vk.gy_ks.len(), 6);
     }
 }
