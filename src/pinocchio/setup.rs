@@ -26,17 +26,17 @@ pub struct VerifyingKey {
     gy_target_on_s: GroupType,
     gv_ks: Vec<GroupType>,
     gw_ks: Vec<GroupType>,
-    gy_ks: Vec<GroupType>
+    gy_ks: Vec<GroupType>,
 }
 pub struct ToxicWaste {
     s: FE,
     alpha_v: FE,
     alpha_w: FE,
-    alpha_y: FE,    
+    alpha_y: FE,
     beta: FE,
     rv: FE,
     rw: FE,
-    gamma: FE
+    gamma: FE,
 }
 
 impl ToxicWaste {
@@ -53,7 +53,7 @@ impl ToxicWaste {
             beta: FE::random(),
             rv: FE::random(),
             rw: FE::random(),
-            gamma: FE::random()
+            gamma: FE::random(),
         }
     }
 }
@@ -119,16 +119,16 @@ pub fn setup(qap: Qap, tw: ToxicWaste) -> (EvaluationKey, VerifyingKey) {
     }
 
     let vk = VerifyingKey {
-        g_1: g*GroupType::one(),
-        g_alpha_v: g*alpha_v,
-        g_alpha_w: g*alpha_w,
-        g_alpha_y: g*alpha_y,
-        g_gamma: g*gamma,
-        g_beta_gamma: g*gamma,
-        gy_target_on_s: g*ry*qap.target.evaluate(s),
+        g_1: g * GroupType::one(),
+        g_alpha_v: g * alpha_v,
+        g_alpha_w: g * alpha_w,
+        g_alpha_y: g * alpha_y,
+        g_gamma: g * gamma,
+        g_beta_gamma: g * gamma,
+        gy_target_on_s: g * ry * qap.target.evaluate(s),
         gv_ks,
         gw_ks,
-        gy_ks
+        gy_ks,
     };
 
     let ek = EvaluationKey {
@@ -160,7 +160,7 @@ mod tests {
             beta: FE::one(),
             rv: FE::one(),
             rw: FE::one(),
-            gamma: FE::one()
+            gamma: FE::one(),
         }
     }
 
@@ -189,7 +189,7 @@ mod tests {
             beta: FE::new(2).unwrap(),
             rv: FE::new(2).unwrap(),
             rw: FE::new(2).unwrap(),
-            gamma: FE::one()
+            gamma: FE::one(),
         };
 
         let test_circuit = Qap::new_test_circuit();
