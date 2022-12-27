@@ -30,6 +30,7 @@ pub struct VerifyingKey {
     gw_ks: Vec<GroupType>,
     gy_ks: Vec<GroupType>,
 }
+#[derive(Copy,Clone, Debug, PartialEq, Eq)]
 pub struct ToxicWaste {
     s: FE,
     alpha_v: FE,
