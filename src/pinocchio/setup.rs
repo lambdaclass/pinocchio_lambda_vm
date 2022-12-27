@@ -30,7 +30,7 @@ pub struct VerifyingKey {
     gw_ks: Vec<GroupType>,
     gy_ks: Vec<GroupType>,
 }
-#[derive(Copy,Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct ToxicWaste {
     s: FE,
     alpha_v: FE,
@@ -238,5 +238,13 @@ mod tests {
             // beta * ry is 8
             test_circuit.y_mid()[0].evaluate(r5) * FE::new(8).unwrap()
         )
+    }
+
+    #[test]
+    fn verification_key_gvks_has_length_7_for_test_circuit() {
+        let (_, vk) = setup(Qap::new_test_circuit(), identity_toxic_waste());
+        assert_eq!(vk.gv_ks.len(), 7);
+        assert_eq!(vk.gw_ks.len(), 7);
+        assert_eq!(vk.gy_ks.len(), 7);
     }
 }
