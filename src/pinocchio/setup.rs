@@ -27,7 +27,7 @@ pub struct ToxicWaste {
 }
 
 impl ToxicWaste {
-   pub  fn ry(self) -> FE{
+    pub fn ry(self) -> FE {
         self.rv * self.rw
     }
 
@@ -39,13 +39,13 @@ impl ToxicWaste {
             alpha_y: FE::random(),
             beta: FE::random(),
             rv: FE::random(),
-            rw: FE::random()
+            rw: FE::random(),
         }
     }
 }
 
 pub fn setup(qap: Qap, tw: ToxicWaste) -> EvaluationKey {
-    let (vs, ws, ys) = (qap.v, qap.w, qap.y);
+    let (vs_mid, ws_mid, ys_mid) = (qap.v_mid(), qap.w_mid(), qap.y_mid());
 
     let s = tw.s;
     let alpha_v = tw.alpha_v;
@@ -62,37 +62,37 @@ pub fn setup(qap: Qap, tw: ToxicWaste) -> EvaluationKey {
 
     // Most elements of the proving key do not include the 0 elements
     // and the last one
-    let mut gv_ks: Vec<GroupType> = Vec::with_capacity(vs.len()-2);
-    let mut gw_ks: Vec<GroupType> = Vec::with_capacity(vs.len()-2);
-    let mut gy_ks: Vec<GroupType> = Vec::with_capacity(vs.len()-2);
-    let mut gv_alphaks: Vec<GroupType> = Vec::with_capacity(vs.len()-2);
-    let mut gw_alphaks: Vec<GroupType> = Vec::with_capacity(vs.len()-2);
-    let mut gy_alphaks: Vec<GroupType> = Vec::with_capacity(vs.len()-2);
-    let mut g_beta: Vec<GroupType> = Vec::with_capacity(vs.len()-2);
+    let mut gv_ks: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
+    let mut gw_ks: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
+    let mut gy_ks: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
+    let mut gv_alphaks: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
+    let mut gw_alphaks: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
+    let mut gy_alphaks: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
+    let mut g_beta: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
     // g_s_i is the only paramater to depend on the degree of the qap
     // This is an upper bound, it could be smaller
     let mut g_s_i: Vec<GroupType> = Vec::with_capacity(degree);
 
     // Set evaluation keys for each of their respective k mid element
-    // Since they are the middle ones, 
+    // Since they are the middle ones,
     // we skip 0 elements (v0,w0,y0) and the output elements
-    for k in 1..vs.len()-1 {
-        gv_ks.push(g.mul_by_scalar(rv * vs[k].evaluate(s)));
-        gw_ks.push(g.mul_by_scalar(rw * ws[k].evaluate(s)));
-        gy_ks.push(g.mul_by_scalar(ry * ys[k].evaluate(s)));
-        gv_alphaks.push(g.mul_by_scalar(ry * alpha_v * vs[k].evaluate(s)));
-        gw_alphaks.push(g.mul_by_scalar(rw * alpha_w * ws[k].evaluate(s)));
-        gy_alphaks.push(g.mul_by_scalar(ry * alpha_y * ys[k].evaluate(s)));
-        g_beta.push( 
-            rv * beta * vs[k].evaluate(s) + 
-            rw * beta * ws[k].evaluate(s) + 
-            ry * beta * ys[k].evaluate(s)
+    for k in 0..vs_mid.len() {
+        gv_ks.push(g.mul_by_scalar(rv * vs_mid[k].evaluate(s)));
+        gw_ks.push(g.mul_by_scalar(rw * ws_mid[k].evaluate(s)));
+        gy_ks.push(g.mul_by_scalar(ry * ys_mid[k].evaluate(s)));
+        gv_alphaks.push(g.mul_by_scalar(ry * alpha_v * vs_mid[k].evaluate(s)));
+        gw_alphaks.push(g.mul_by_scalar(rw * alpha_w * ws_mid[k].evaluate(s)));
+        gy_alphaks.push(g.mul_by_scalar(ry * alpha_y * ys_mid[k].evaluate(s)));
+        g_beta.push(
+            rv * beta * vs_mid[k].evaluate(s)
+                + rw * beta * ws_mid[k].evaluate(s)
+                + ry * beta * ys_mid[k].evaluate(s),
         )
     }
 
     for i in 0..qap.target.degree() {
-        // This unwrap would only fail in an OS 
-        // with 256 bits pointer, which doesn't exist 
+        // This unwrap would only fail in an OS
+        // with 256 bits pointer, which doesn't exist
         g_s_i.push(g.mul_by_scalar(s.pow(i.try_into().unwrap())));
     }
 
@@ -104,7 +104,6 @@ pub fn setup(qap: Qap, tw: ToxicWaste) -> EvaluationKey {
         gw_alphaks,
         gy_alphaks,
         g_s_i,
-        g_beta
+        g_beta,
     }
-
 }
