@@ -125,7 +125,7 @@ fn generate_evaluation_key(qap: &Qap, toxic_waste: ToxicWaste) -> EvaluationKey 
     let rw = toxic_waste.rw;
     let ry = toxic_waste.ry();
 
-    let g = FE::generator();
+    let g = GroupType::generator();
 
     let degree = qap.target.degree();
 
