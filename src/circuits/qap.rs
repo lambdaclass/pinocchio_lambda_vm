@@ -7,8 +7,8 @@ pub struct Qap {
     pub w: Vec<Polynomial>,
     pub y: Vec<Polynomial>,
     pub target: Polynomial,
-    pub amount_of_inputs: usize,
-    pub amount_of_outputs: usize,
+    pub number_of_inputs: usize,
+    pub number_of_outputs: usize,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -28,8 +28,8 @@ impl Qap {
         w: Vec<Polynomial>,
         y: Vec<Polynomial>,
         target: Polynomial,
-        amount_of_inputs: usize,
-        amount_of_outputs: usize,
+        number_of_inputs: usize,
+        number_of_outputs: usize,
     ) -> Result<Self, CreationError> {
         // TO DO: Check if the amount of inputs and outputs matches the polynomials
         if v.len() != w.len() || v.len() != y.len() || w.len() != y.len() {
@@ -40,22 +40,22 @@ impl Qap {
                 w,
                 y,
                 target,
-                amount_of_inputs,
-                amount_of_outputs,
+                number_of_inputs,
+                number_of_outputs,
             })
         }
     }
 
     pub fn v_mid(&'_ self) -> &[Polynomial] {
-        &self.v[self.amount_of_inputs + 1..(self.v.len() - self.amount_of_outputs)]
+        &self.v[self.number_of_inputs + 1..(self.v.len() - self.number_of_outputs)]
     }
 
     pub fn w_mid(&'_ self) -> &[Polynomial] {
-        &self.w[self.amount_of_inputs + 1..(self.w.len() - self.amount_of_outputs)]
+        &self.w[self.number_of_inputs + 1..(self.w.len() - self.number_of_outputs)]
     }
 
     pub fn y_mid(&'_ self) -> &[Polynomial] {
-        &self.y[self.amount_of_inputs + 1..(self.y.len() - self.amount_of_outputs)]
+        &self.y[self.number_of_inputs + 1..(self.y.len() - self.number_of_outputs)]
     }
 
     pub fn new_test_circuit() -> Self {

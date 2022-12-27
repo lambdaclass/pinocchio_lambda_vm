@@ -5,6 +5,7 @@ use math::group::Group;
 type GroupType = FE;
 
 #[allow(dead_code)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct EvaluationKey {
     gv_ks: Vec<GroupType>,
     gw_ks: Vec<GroupType>,
@@ -16,6 +17,7 @@ pub struct EvaluationKey {
     g_beta: Vec<GroupType>,
 }
 #[allow(dead_code)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct VerifyingKey {
     g_1: GroupType,
     g_alpha_v: GroupType,
@@ -58,18 +60,18 @@ impl ToxicWaste {
     }
 }
 
-pub fn setup(qap: Qap, tw: ToxicWaste) -> (EvaluationKey, VerifyingKey) {
+pub fn setup(qap: Qap, toxic_waste: ToxicWaste) -> (EvaluationKey, VerifyingKey) {
     let (vs_mid, ws_mid, ys_mid) = (qap.v_mid(), qap.w_mid(), qap.y_mid());
 
-    let s = tw.s;
-    let alpha_v = tw.alpha_v;
-    let alpha_w = tw.alpha_w;
-    let alpha_y = tw.alpha_y;
-    let beta = tw.beta;
-    let rv = tw.rv;
-    let rw = tw.rw;
-    let gamma = tw.gamma;
-    let ry = tw.ry();
+    let s = toxic_waste.s;
+    let alpha_v = toxic_waste.alpha_v;
+    let alpha_w = toxic_waste.alpha_w;
+    let alpha_y = toxic_waste.alpha_y;
+    let beta = toxic_waste.beta;
+    let rv = toxic_waste.rv;
+    let rw = toxic_waste.rw;
+    let gamma = toxic_waste.gamma;
+    let ry = toxic_waste.ry();
 
     let g = FE::generator();
 
