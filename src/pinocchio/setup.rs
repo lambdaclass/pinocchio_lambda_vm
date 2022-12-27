@@ -123,7 +123,7 @@ mod tests {
     }
 
     #[test]
-    fn evaluation_key_size_for_test_circuit_is_1() {
+    fn evaluation_keys_size_for_test_circuit_is_1_for_each_key() {
         let eval_key = setup(Qap::new_test_circuit(), identity_toxic_waste());
         assert_eq!(eval_key.gv_ks.len(), 1);
         assert_eq!(eval_key.gw_ks.len(), 1);
