@@ -65,7 +65,11 @@ impl ToxicWaste {
     }
 }
 
-fn generate_verifying_key(qap: &Qap, toxic_waste: ToxicWaste) -> VerifyingKey {
+fn generate_verifying_key(
+    qap: &Qap,
+    toxic_waste: ToxicWaste,
+    generator: GroupType,
+) -> VerifyingKey {
     let s = toxic_waste.s;
     let alpha_v = toxic_waste.alpha_v;
     let alpha_w = toxic_waste.alpha_w;
@@ -76,7 +80,7 @@ fn generate_verifying_key(qap: &Qap, toxic_waste: ToxicWaste) -> VerifyingKey {
     let gamma = toxic_waste.gamma;
     let ry = toxic_waste.ry();
 
-    let g = GroupType::generator();
+    let g = generator;
 
     let vector_capacity = qap.number_of_inputs + qap.number_of_inputs + 1;
     let mut gv_ks_io: Vec<GroupType> = Vec::with_capacity(vector_capacity);
@@ -113,7 +117,11 @@ fn generate_verifying_key(qap: &Qap, toxic_waste: ToxicWaste) -> VerifyingKey {
     }
 }
 
-fn generate_evaluation_key(qap: &Qap, toxic_waste: ToxicWaste) -> EvaluationKey {
+fn generate_evaluation_key(
+    qap: &Qap,
+    toxic_waste: ToxicWaste,
+    generator: GroupType,
+) -> EvaluationKey {
     let (vs_mid, ws_mid, ys_mid) = (qap.v_mid(), qap.w_mid(), qap.y_mid());
 
     let s = toxic_waste.s;
@@ -125,7 +133,7 @@ fn generate_evaluation_key(qap: &Qap, toxic_waste: ToxicWaste) -> EvaluationKey 
     let rw = toxic_waste.rw;
     let ry = toxic_waste.ry();
 
-    let g = GroupType::generator();
+    let g = generator;
 
     let degree = qap.target.degree();
 
@@ -174,9 +182,10 @@ fn generate_evaluation_key(qap: &Qap, toxic_waste: ToxicWaste) -> EvaluationKey 
 }
 
 pub fn setup(qap: Qap, toxic_waste: ToxicWaste) -> (EvaluationKey, VerifyingKey) {
+    let generator = GroupType::generator();
     (
-        generate_evaluation_key(&qap, toxic_waste),
-        generate_verifying_key(&qap, toxic_waste),
+        generate_evaluation_key(&qap, toxic_waste, generator),
+        generate_verifying_key(&qap, toxic_waste, generator),
     )
 }
 
