@@ -2,7 +2,7 @@ use crate::circuits::qap::Qap;
 use crate::math;
 use math::field_element::FieldElement as FE;
 use math::group::Group;
-type GroupType = FE;
+pub type GroupType = FE;
 
 #[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq, Eq)]
