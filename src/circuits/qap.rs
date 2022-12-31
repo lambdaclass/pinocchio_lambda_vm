@@ -78,24 +78,6 @@ impl Qap {
                 .reduce(|x, y| x + y)
                 .unwrap();
 
-        /*
-        let r5 = FE::new(0).unwrap();
-        let r6 = FE::new(1).unwrap();
-
-        println!("v(r5): {:?}", v.evaluate(r5));
-        println!("v(r6): {:?}", v.evaluate(r6));
-        println!("w(r5): {:?}", w.evaluate(r5));
-        println!("w(r6): {:?}", w.evaluate(r6));
-        println!("y(r5): {:?}", y.evaluate(r5));
-        println!("y(r6): {:?}", y.evaluate(r6));
-
-
-        println!("v: {:?}", v.clone());
-        println!("w: {:?}", w.clone());
-                println!("y: {:?}", y.clone());
-        println!("v * w - y: {:?}", v.clone() * w.clone() - y.clone());
-        */
-
         v * w - y
     }
 
