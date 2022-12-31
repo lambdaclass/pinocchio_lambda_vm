@@ -3,6 +3,7 @@ use std::ops;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Polynomial {
+    // coefficients[0] is the smallest coefficient
     coefficients: Vec<FE>,
 }
 
@@ -69,6 +70,14 @@ impl Polynomial {
         } else {
             FE::zero()
         }
+    }
+
+    /// Returns coefficients of the polynomial as an array
+    /// \[c0,c1,c2 .. cn\]
+    /// that represents the polynomial
+    /// c0 + c1*x + c2*x^2 ... cn
+    pub fn coefficients(&self) -> &[FE] {
+        &self.coefficients
     }
 
     /// Returns two new polynomials with the same amount of coefficients
@@ -371,6 +380,7 @@ mod tests {
 
     #[test]
     fn create_degree_0_new_monomial() {
+        println!("{:?}", Polynomial::new_monomial(FE::new(3).unwrap(), 0));
         assert_eq!(
             Polynomial::new_monomial(FE::new(3).unwrap(), 0),
             Polynomial::new(vec![FE::new(3).unwrap()])
