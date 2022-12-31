@@ -4,7 +4,6 @@ use math::field_element::FieldElement as FE;
 use math::group::Group;
 pub type GroupType = FE;
 
-#[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// Evaluation key for Pinocchio
 /// All the k are k_mid
@@ -18,7 +17,6 @@ pub struct EvaluationKey {
     pub g_s_i: Vec<GroupType>,
     pub g_beta: Vec<GroupType>,
 }
-#[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// Evaluation key for Pinocchio
 /// All the k are k_io + k_0

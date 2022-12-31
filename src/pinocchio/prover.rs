@@ -30,7 +30,6 @@ pub fn msm(c: &[FE], hidings: &[GroupType]) -> Option<GroupType> {
         .reduce(|acc, x| acc + x)
 }
 
-#[allow(dead_code)]
 pub fn generate_proof(evaluation_key: &EvaluationKey, qap: &Qap) -> Proof {
     //Inputs + solution should be an argument
     let inputs = [
