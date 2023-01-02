@@ -20,14 +20,16 @@ pub struct Proof {
     g_beta_vwy: GroupType,
     //h may be the nil polynomial
     //and so g_hs will be empty
-    g_hs: Option<GroupType>,
+    g_hs: GroupType,
 }
-
-pub fn msm(c: &[FE], hidings: &[GroupType]) -> Option<GroupType> {
+/// Calculates msm for C and hidings
+/// if either array is empty, returns zero
+pub fn msm(c: &[FE], hidings: &[GroupType]) -> GroupType {
     c.iter()
         .zip(hidings.iter())
         .map(|(&c, &h)| h.mul_by_scalar(c))
         .reduce(|acc, x| acc + x)
+        .unwrap_or_else(GroupType::zero)
 }
 
 /// Generates a proof from an evaluation_key,
@@ -46,15 +48,14 @@ pub fn generate_proof(
     // If C and the evaluation key are valid, this shouldn't fail
     // TO DO: Raise an error if some value can't be computated
     Proof {
-        g_vs: msm(c_mid, &evaluation_key.gv_ks).unwrap(),
-        g_ws: msm(c_mid, &evaluation_key.gw_ks).unwrap(),
-        g_ys: msm(c_mid, &evaluation_key.gy_ks).unwrap(),
-        g_alpha_vs: msm(c_mid, &evaluation_key.gv_alphaks).unwrap(),
-        g_alpha_ws: msm(c_mid, &evaluation_key.gw_alphaks).unwrap(),
-        g_alpha_ys: msm(c_mid, &evaluation_key.gy_alphaks).unwrap(),
-        g_beta_vwy: msm(c_mid, &evaluation_key.g_beta).unwrap(),
-        // evaluation key may have extra elements, since in this implementation
-        // we used an upper bound of elements
+        g_vs: msm(c_mid, &evaluation_key.gv_ks),
+        g_ws: msm(c_mid, &evaluation_key.gw_ks),
+        g_ys: msm(c_mid, &evaluation_key.gy_ks),
+        g_alpha_vs: msm(c_mid, &evaluation_key.gv_alphaks),
+        g_alpha_ws: msm(c_mid, &evaluation_key.gw_alphaks),
+        g_alpha_ys: msm(c_mid, &evaluation_key.gy_alphaks),
+        g_beta_vwy: msm(c_mid, &evaluation_key.g_beta),
+        // evaluation key may have extra elements for g s i, since in this implementation it uses an upper bound of elements
         g_hs: msm(
             h_polynomial.coefficients(),
             &evaluation_key.g_s_i[..h_polynomial.coefficients().len()],
@@ -73,42 +74,42 @@ mod tests {
     fn msm_11_is_1() {
         let c = [FE::one()];
         let hiding = [FE::one()];
-        assert_eq!(msm(&c, &hiding).unwrap(), FE::one());
+        assert_eq!(msm(&c, &hiding), FE::one());
     }
 
     #[test]
     fn msm_23_is_6() {
         let c = [FE::new(3).unwrap()];
         let hiding = [FE::new(2).unwrap()];
-        assert_eq!(msm(&c, &hiding).unwrap(), FE::new(6).unwrap());
+        assert_eq!(msm(&c, &hiding), FE::new(6).unwrap());
     }
 
     #[test]
     fn msm_with_c_2_3_hiding_3_4_is_18() {
         let c = [FE::new(2).unwrap(), FE::new(3).unwrap()];
         let hiding = [FE::new(3).unwrap(), FE::new(4).unwrap()];
-        assert_eq!(msm(&c, &hiding).unwrap(), FE::new(18).unwrap());
+        assert_eq!(msm(&c, &hiding), FE::new(18).unwrap());
     }
 
     #[test]
     fn msm_with_empty_c_is_none() {
         let c = [];
         let hiding = [FE::new(3).unwrap(), FE::new(4).unwrap()];
-        assert_eq!(msm(&c, &hiding), None);
+        assert_eq!(msm(&c, &hiding), FE::zero());
     }
 
     #[test]
     fn msm_with_emtpy_hiding_is_none() {
         let c = [FE::zero()];
         let hiding = [];
-        assert_eq!(msm(&c, &hiding), None);
+        assert_eq!(msm(&c, &hiding), FE::zero());
     }
 
     #[test]
     fn msm_with_empty_arguments_is_none() {
         let c = [];
         let hiding = [];
-        assert_eq!(msm(&c, &hiding), None);
+        assert_eq!(msm(&c, &hiding), FE::zero());
     }
 
     // This test runs the proof algorithms with some easy inputs
