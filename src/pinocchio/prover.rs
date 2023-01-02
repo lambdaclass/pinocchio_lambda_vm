@@ -38,9 +38,8 @@ pub fn generate_proof(
     qap: &Qap,
     qap_c_coefficients: &[FE],
 ) -> Proof {
-
     let c_mid = &qap_c_coefficients
-        [qap.number_of_inputs + 1..(qap_c_coefficients.len() - qap.number_of_outputs)];
+        [qap.number_of_inputs..(qap_c_coefficients.len() - qap.number_of_outputs)];
 
     let h_polynomial = qap.h_polynomial(qap_c_coefficients);
 
@@ -63,8 +62,6 @@ pub fn generate_proof(
     }
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use crate::math::polynomial::Polynomial;
@@ -76,75 +73,98 @@ mod tests {
     fn msm_11_is_1() {
         let c = [FE::one()];
         let hiding = [FE::one()];
-        assert_eq!(msm(&c,&hiding).unwrap(), FE::one());
+        assert_eq!(msm(&c, &hiding).unwrap(), FE::one());
     }
 
     #[test]
     fn msm_23_is_6() {
         let c = [FE::new(3).unwrap()];
         let hiding = [FE::new(2).unwrap()];
-        assert_eq!(msm(&c,&hiding).unwrap(), FE::new(6).unwrap());
+        assert_eq!(msm(&c, &hiding).unwrap(), FE::new(6).unwrap());
     }
 
     #[test]
     fn msm_with_c_2_3_hiding_3_4_is_18() {
-        let c = [FE::new(2).unwrap(),FE::new(3).unwrap()];
-        let hiding = [FE::new(3).unwrap(),FE::new(4).unwrap()];
-        assert_eq!(msm(&c,&hiding).unwrap(), FE::new(18).unwrap());
+        let c = [FE::new(2).unwrap(), FE::new(3).unwrap()];
+        let hiding = [FE::new(3).unwrap(), FE::new(4).unwrap()];
+        assert_eq!(msm(&c, &hiding).unwrap(), FE::new(18).unwrap());
     }
 
     #[test]
     fn msm_with_empty_c_is_none() {
         let c = [];
-        let hiding = [FE::new(3).unwrap(),FE::new(4).unwrap()];
-        assert_eq!(msm(&c,&hiding), None);
+        let hiding = [FE::new(3).unwrap(), FE::new(4).unwrap()];
+        assert_eq!(msm(&c, &hiding), None);
     }
 
     #[test]
     fn msm_with_emtpy_hiding_is_none() {
         let c = [FE::zero()];
         let hiding = [];
-        assert_eq!(msm(&c,&hiding), None);
+        assert_eq!(msm(&c, &hiding), None);
     }
 
     #[test]
     fn msm_with_empty_arguments_is_none() {
         let c = [];
         let hiding = [];
-        assert_eq!(msm(&c,&hiding), None);
+        assert_eq!(msm(&c, &hiding), None);
     }
 
-    // WIP
+    // This test runs the proof algorithms with some easy inputs
+    // to check operations are made correctly
+    // Eval key and polynomials don't mean anything
+    // It only works with FE as the GroupType
     #[test]
-    fn proof_test (){
-        let easy_eval_key = EvaluationKey{
+    fn proof_test() {
+        // This eval key is the identity
+        let easy_eval_key = EvaluationKey {
             gv_ks: vec![FE::one(), FE::one()],
             gw_ks: vec![FE::one(), FE::one()],
             gy_ks: vec![FE::one(), FE::one()],
-            gv_alphaks: vec![FE::one(), FE::one()],
-            gw_alphaks: vec![FE::one(), FE::one()],
-            gy_alphaks: vec![FE::one(), FE::one()],
+            gv_alphaks: vec![FE::new(2).unwrap(), FE::new(2).unwrap()],
+            gw_alphaks: vec![FE::new(2).unwrap(), FE::new(2).unwrap()],
+            gy_alphaks: vec![FE::new(2).unwrap(), FE::new(2).unwrap()],
             g_s_i: vec![FE::one(), FE::one()],
             g_beta: vec![FE::one(), FE::one()],
         };
 
-        let vwy_polynomial = 
-            vec![
-                Polynomial::new(vec![FE::zero()]),
-                Polynomial::new(vec![FE::one(),FE::one(),FE::one(),FE::one()]),
-                Polynomial::new(vec![FE::zero(),FE::one(),FE::one(),FE::one()])
-            ];
+        // vwy are all equals, the 0 element is 0, the rest are ones
+        let vwy_polynomial = vec![
+            // x0
+            Polynomial::new(vec![FE::zero()]),
+            //x1 = xinput
+            Polynomial::new(vec![FE::one(), FE::one()]),
+            //xmid
+            Polynomial::new(vec![FE::one(), FE::one()]),
+            Polynomial::new(vec![FE::one(), FE::one()]),
+            //xoutput
+            Polynomial::new(vec![FE::one(), FE::one()]),
+        ];
 
+        // We use 1 input, and 1 output, so there are 2 in the middle
         let easy_qap = Qap {
             v: vwy_polynomial.clone(),
             w: vwy_polynomial.clone(),
-            y: vwy_polynomial.clone(),
-            target: Polynomial::new(vec![]),
+            y: vwy_polynomial,
+            target: Polynomial::new(vec![FE::one(), FE::one()]),
             number_of_inputs: 1,
-            number_of_outputs: 1
+            number_of_outputs: 1,
         };
 
-        //generate_proof(&easy_eval_key, &easy_qap, qap_c_coefficients);
+        let c_coefficients = vec![
+            //c1
+            FE::one(),
+            //c_mids
+            FE::new(2).unwrap(),
+            FE::new(3).unwrap(),
+            //c4 = c_output
+            FE::one(),
+        ];
 
+        let proof = generate_proof(&easy_eval_key, &easy_qap, &c_coefficients);
+
+        assert_eq!(proof.g_vs, FE::new(5).unwrap());
+        assert_eq!(proof.g_alpha_vs, FE::new(10).unwrap());
     }
 }

@@ -70,7 +70,7 @@ impl Qap {
                 .reduce(|x, y| x + y)
                 .unwrap();
 
-        let y: Polynomial =  self.y[0].clone()
+        let y: Polynomial = self.y[0].clone()
             + self.y[1..]
                 .iter()
                 .zip(c)
@@ -320,7 +320,7 @@ mod tests {
         ];
 
         let (c5, c6) = Qap::test_qap_solver(inputs);
-        
+
         let mut c_vector = inputs.to_vec();
         c_vector.append(&mut vec![c5, c6]);
 
