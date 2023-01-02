@@ -143,7 +143,7 @@ mod tests {
         ];
 
         // y is different than vw, but only in values not in the middle
-        // so results shouldn't change 
+        // so results shouldn't change
         let y_polynomial = vec![
             // x0
             Polynomial::new(vec![FE::new(32).unwrap()]),
@@ -153,7 +153,7 @@ mod tests {
             Polynomial::new(vec![FE::one(), FE::one()]),
             Polynomial::new(vec![FE::one(), FE::one()]),
             //xoutput
-            Polynomial::new(vec![FE::new(321).unwrap(),FE::new(321).unwrap()]),
+            Polynomial::new(vec![FE::new(321).unwrap(), FE::new(321).unwrap()]),
         ];
 
         // 1 input, and 1 output, so there are 2 values in the middle
