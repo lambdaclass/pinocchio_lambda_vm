@@ -54,26 +54,26 @@ impl Qap {
     // This along the polynomial execution should be migrated with a better
     // representation of the circuit
     pub fn p_polynomial(&self, c: &[FE]) -> Polynomial {
-        let v: Polynomial = Polynomial::new_monomial(c[0], 0)
+        let v: Polynomial = self.v[0].clone()
             + self.v[1..]
                 .iter()
-                .zip(&c[1..])
+                .zip(c)
                 .map(|(v, c)| v.mul_with_ref(&Polynomial::new_monomial(*c, 0)))
                 .reduce(|x, y| x + y)
                 .unwrap();
 
-        let w: Polynomial = Polynomial::new_monomial(c[0], 0)
+        let w: Polynomial = self.w[0].clone()
             + self.w[1..]
                 .iter()
-                .zip(&c[1..])
+                .zip(c)
                 .map(|(w, c)| w.mul_with_ref(&Polynomial::new_monomial(*c, 0)))
                 .reduce(|x, y| x + y)
                 .unwrap();
 
-        let y: Polynomial = Polynomial::new_monomial(c[0], 0)
+        let y: Polynomial =  self.y[0].clone()
             + self.y[1..]
                 .iter()
-                .zip(&c[1..])
+                .zip(c)
                 .map(|(y, c)| y.mul_with_ref(&Polynomial::new_monomial(*c, 0)))
                 .reduce(|x, y| x + y)
                 .unwrap();
@@ -190,7 +190,7 @@ impl Qap {
     }
 
     /// This is a solver for the test qap
-    /// Inputs: c0,c1,c2,c3 circuit inputs
+    /// Inputs: c1,c2,c3,c4 circuit inputs
     /// Outputs: c5 intermediate result, c6 result
     pub fn test_qap_solver(inputs: [FE; 4]) -> (FE, FE) {
         let c5 = inputs[2] * inputs[3];
@@ -320,9 +320,8 @@ mod tests {
         ];
 
         let (c5, c6) = Qap::test_qap_solver(inputs);
-
-        let mut c_vector = vec![FE::zero()];
-        c_vector.append(&mut inputs.to_vec());
+        
+        let mut c_vector = inputs.to_vec();
         c_vector.append(&mut vec![c5, c6]);
 
         assert_eq!(
@@ -339,8 +338,7 @@ mod tests {
 
         let (c5, c6) = Qap::test_qap_solver(inputs);
 
-        let mut c_vector = vec![FE::zero()];
-        c_vector.append(&mut inputs.to_vec());
+        let mut c_vector = inputs.to_vec();
         c_vector.append(&mut vec![c5, c6]);
 
         assert_eq!(
@@ -357,8 +355,7 @@ mod tests {
 
         let (c5, c6) = Qap::test_qap_solver(inputs);
 
-        let mut c_vector = vec![FE::zero()];
-        c_vector.append(&mut inputs.to_vec());
+        let mut c_vector = inputs.to_vec();
         c_vector.append(&mut vec![c5, c6]);
 
         assert_eq!(
@@ -375,8 +372,7 @@ mod tests {
 
         let (c5, c6) = Qap::test_qap_solver(inputs);
 
-        let mut c_vector = vec![FE::zero()];
-        c_vector.append(&mut inputs.to_vec());
+        let mut c_vector = inputs.to_vec();
         c_vector.append(&mut vec![c5, c6]);
 
         assert_eq!(

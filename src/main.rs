@@ -22,8 +22,7 @@ fn main() {
     // For the test circuit c_mid and c_output has only one element
     let (c_mid, c_output) = Qap::test_qap_solver(inputs);
 
-    let mut c_vector = vec![FE::zero()];
-    c_vector.append(&mut inputs.to_vec());
+    let mut c_vector = inputs.to_vec();
     c_vector.push(c_mid);
     c_vector.push(c_output);
 
