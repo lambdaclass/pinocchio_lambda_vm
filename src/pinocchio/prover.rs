@@ -11,7 +11,7 @@ pub type GroupType = FE;
 /// All but hs are the mid related elements
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Proof {
-    g_v_s: GroupType,
+    g_vs: GroupType,
     g_ws: GroupType,
     g_ys: GroupType,
     g_alpha_vs: GroupType,
@@ -38,7 +38,6 @@ pub fn generate_proof(
     qap: &Qap,
     qap_c_coefficients: &[FE],
 ) -> Proof {
-    //Inputs + solution should be an argument
 
     let c_mid = &qap_c_coefficients
         [qap.number_of_inputs + 1..(qap_c_coefficients.len() - qap.number_of_outputs)];
@@ -48,7 +47,7 @@ pub fn generate_proof(
     // If C and the evaluation key are valid, this shouldn't fail
     // TO DO: Raise an error if some value can't be computated
     Proof {
-        g_v_s: msm(c_mid, &evaluation_key.gv_ks).unwrap(),
+        g_vs: msm(c_mid, &evaluation_key.gv_ks).unwrap(),
         g_ws: msm(c_mid, &evaluation_key.gw_ks).unwrap(),
         g_ys: msm(c_mid, &evaluation_key.gy_ks).unwrap(),
         g_alpha_vs: msm(c_mid, &evaluation_key.gv_alphaks).unwrap(),
@@ -61,5 +60,91 @@ pub fn generate_proof(
             h_polynomial.coefficients(),
             &evaluation_key.g_s_i[..h_polynomial.coefficients().len()],
         ),
+    }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use crate::math::polynomial::Polynomial;
+
+    use super::*;
+
+    //MSM tests require the GroupType to be a FieldElement
+    #[test]
+    fn msm_11_is_1() {
+        let c = [FE::one()];
+        let hiding = [FE::one()];
+        assert_eq!(msm(&c,&hiding).unwrap(), FE::one());
+    }
+
+    #[test]
+    fn msm_23_is_6() {
+        let c = [FE::new(3).unwrap()];
+        let hiding = [FE::new(2).unwrap()];
+        assert_eq!(msm(&c,&hiding).unwrap(), FE::new(6).unwrap());
+    }
+
+    #[test]
+    fn msm_with_c_2_3_hiding_3_4_is_18() {
+        let c = [FE::new(2).unwrap(),FE::new(3).unwrap()];
+        let hiding = [FE::new(3).unwrap(),FE::new(4).unwrap()];
+        assert_eq!(msm(&c,&hiding).unwrap(), FE::new(18).unwrap());
+    }
+
+    #[test]
+    fn msm_with_empty_c_is_none() {
+        let c = [];
+        let hiding = [FE::new(3).unwrap(),FE::new(4).unwrap()];
+        assert_eq!(msm(&c,&hiding), None);
+    }
+
+    #[test]
+    fn msm_with_emtpy_hiding_is_none() {
+        let c = [FE::zero()];
+        let hiding = [];
+        assert_eq!(msm(&c,&hiding), None);
+    }
+
+    #[test]
+    fn msm_with_empty_arguments_is_none() {
+        let c = [];
+        let hiding = [];
+        assert_eq!(msm(&c,&hiding), None);
+    }
+
+    // WIP
+    #[test]
+    fn proof_test (){
+        let easy_eval_key = EvaluationKey{
+            gv_ks: vec![FE::one(), FE::one()],
+            gw_ks: vec![FE::one(), FE::one()],
+            gy_ks: vec![FE::one(), FE::one()],
+            gv_alphaks: vec![FE::one(), FE::one()],
+            gw_alphaks: vec![FE::one(), FE::one()],
+            gy_alphaks: vec![FE::one(), FE::one()],
+            g_s_i: vec![FE::one(), FE::one()],
+            g_beta: vec![FE::one(), FE::one()],
+        };
+
+        let vwy_polynomial = 
+            vec![
+                Polynomial::new(vec![FE::zero()]),
+                Polynomial::new(vec![FE::one(),FE::one(),FE::one(),FE::one()]),
+                Polynomial::new(vec![FE::zero(),FE::one(),FE::one(),FE::one()])
+            ];
+
+        let easy_qap = Qap {
+            v: vwy_polynomial.clone(),
+            w: vwy_polynomial.clone(),
+            y: vwy_polynomial.clone(),
+            target: Polynomial::new(vec![]),
+            number_of_inputs: 1,
+            number_of_outputs: 1
+        };
+
+        //generate_proof(&easy_eval_key, &easy_qap, qap_c_coefficients);
+
     }
 }
