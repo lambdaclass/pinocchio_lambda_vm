@@ -130,7 +130,7 @@ mod tests {
         };
 
         // vwy are all equals, the 0 element is 0, the rest are ones
-        let vwy_polynomial = vec![
+        let vw_polynomial = vec![
             // x0
             Polynomial::new(vec![FE::zero()]),
             //x1 = xinput
@@ -142,11 +142,25 @@ mod tests {
             Polynomial::new(vec![FE::one(), FE::one()]),
         ];
 
+        // y is different than vw, but only in values not in the middle
+        // so results shouldn't change 
+        let y_polynomial = vec![
+            // x0
+            Polynomial::new(vec![FE::new(32).unwrap()]),
+            //x1 = xinput
+            Polynomial::new(vec![FE::new(123).unwrap(), FE::new(123).unwrap()]),
+            //xmid
+            Polynomial::new(vec![FE::one(), FE::one()]),
+            Polynomial::new(vec![FE::one(), FE::one()]),
+            //xoutput
+            Polynomial::new(vec![FE::new(321).unwrap(),FE::new(321).unwrap()]),
+        ];
+
         // 1 input, and 1 output, so there are 2 values in the middle
         let easy_qap = Qap {
-            v: vwy_polynomial.clone(),
-            w: vwy_polynomial.clone(),
-            y: vwy_polynomial,
+            v: vw_polynomial.clone(),
+            w: vw_polynomial,
+            y: y_polynomial,
             target: Polynomial::new(vec![FE::one(), FE::one()]),
             number_of_inputs: 1,
             number_of_outputs: 1,
@@ -165,6 +179,7 @@ mod tests {
         let proof = generate_proof(&easy_eval_key, &easy_qap, &c_coefficients);
 
         assert_eq!(proof.g_vs, FE::new(5).unwrap());
+        assert_eq!(proof.g_ys, FE::new(5).unwrap());
         assert_eq!(proof.g_alpha_vs, FE::new(10).unwrap());
     }
 }
