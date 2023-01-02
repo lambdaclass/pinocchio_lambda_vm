@@ -32,7 +32,7 @@ pub fn msm(c: &[FE], hidings: &[GroupType]) -> Option<GroupType> {
 
 /// Generates a proof from an evaluation_key,
 /// the qap representation of the circuit
-/// and the C of the C0, the inputs, the intermediate results and the final results
+/// the first Cs of the inputs, the intermediate Cs results and the final Cs of the results
 pub fn generate_proof(
     evaluation_key: &EvaluationKey,
     qap: &Qap,
@@ -142,7 +142,7 @@ mod tests {
             Polynomial::new(vec![FE::one(), FE::one()]),
         ];
 
-        // We use 1 input, and 1 output, so there are 2 in the middle
+        // 1 input, and 1 output, so there are 2 values in the middle
         let easy_qap = Qap {
             v: vwy_polynomial.clone(),
             w: vwy_polynomial.clone(),
