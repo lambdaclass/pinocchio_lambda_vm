@@ -21,7 +21,6 @@ impl FieldElement {
     }
 
     //This is used in functions that are necessary for the next steps
-    #[allow(dead_code)]
     pub fn one() -> Self {
         FieldElement { value: 1 }
     }

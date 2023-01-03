@@ -2,23 +2,21 @@ use crate::circuits::qap::Qap;
 use crate::math;
 use math::field_element::FieldElement as FE;
 use math::group::Group;
-type GroupType = FE;
+pub type GroupType = FE;
 
-#[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// Evaluation key for Pinocchio
 /// All the k are k_mid
 pub struct EvaluationKey {
-    gv_ks: Vec<GroupType>,
-    gw_ks: Vec<GroupType>,
-    gy_ks: Vec<GroupType>,
-    gv_alphaks: Vec<GroupType>,
-    gw_alphaks: Vec<GroupType>,
-    gy_alphaks: Vec<GroupType>,
-    g_s_i: Vec<GroupType>,
-    g_beta: Vec<GroupType>,
+    pub gv_ks: Vec<GroupType>,
+    pub gw_ks: Vec<GroupType>,
+    pub gy_ks: Vec<GroupType>,
+    pub gv_alphaks: Vec<GroupType>,
+    pub gw_alphaks: Vec<GroupType>,
+    pub gy_alphaks: Vec<GroupType>,
+    pub g_s_i: Vec<GroupType>,
+    pub g_beta: Vec<GroupType>,
 }
-#[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// Evaluation key for Pinocchio
 /// All the k are k_io + k_0
@@ -67,7 +65,7 @@ impl ToxicWaste {
 
 fn generate_verifying_key(
     qap: &Qap,
-    toxic_waste: ToxicWaste,
+    toxic_waste: &ToxicWaste,
     generator: GroupType,
 ) -> VerifyingKey {
     let s = toxic_waste.s;
@@ -119,7 +117,7 @@ fn generate_verifying_key(
 
 fn generate_evaluation_key(
     qap: &Qap,
-    toxic_waste: ToxicWaste,
+    toxic_waste: &ToxicWaste,
     generator: GroupType,
 ) -> EvaluationKey {
     let (vs_mid, ws_mid, ys_mid) = (qap.v_mid(), qap.w_mid(), qap.y_mid());
@@ -181,11 +179,11 @@ fn generate_evaluation_key(
     }
 }
 
-pub fn setup(qap: Qap, toxic_waste: ToxicWaste) -> (EvaluationKey, VerifyingKey) {
+pub fn setup(qap: &Qap, toxic_waste: &ToxicWaste) -> (EvaluationKey, VerifyingKey) {
     let generator = GroupType::generator();
     (
-        generate_evaluation_key(&qap, toxic_waste, generator),
-        generate_verifying_key(&qap, toxic_waste, generator),
+        generate_evaluation_key(qap, toxic_waste, generator),
+        generate_verifying_key(qap, toxic_waste, generator),
     )
 }
 
@@ -210,7 +208,7 @@ mod tests {
 
     #[test]
     fn evaluation_keys_size_for_test_circuit_is_1_for_each_key() {
-        let (eval_key, _) = setup(Qap::new_test_circuit(), identity_toxic_waste());
+        let (eval_key, _) = setup(&Qap::new_test_qap(), &identity_toxic_waste());
         assert_eq!(eval_key.gv_ks.len(), 1);
         assert_eq!(eval_key.gw_ks.len(), 1);
         assert_eq!(eval_key.gy_ks.len(), 1);
@@ -236,9 +234,9 @@ mod tests {
             gamma: FE::one(),
         };
 
-        let test_circuit = Qap::new_test_circuit();
+        let test_circuit = Qap::new_test_qap();
 
-        let (eval_key, _) = setup(test_circuit.clone(), tw);
+        let (eval_key, _) = setup(&test_circuit, &tw);
 
         // These keys should be the same evaluation * rv, which is two
         assert_eq!(
@@ -283,7 +281,7 @@ mod tests {
 
     #[test]
     fn verification_key_gvks_has_length_6_for_test_circuit() {
-        let (_, vk) = setup(Qap::new_test_circuit(), identity_toxic_waste());
+        let (_, vk) = setup(&Qap::new_test_qap(), &identity_toxic_waste());
         assert_eq!(vk.gv_ks.len(), 6);
         assert_eq!(vk.gw_ks.len(), 6);
         assert_eq!(vk.gy_ks.len(), 6);

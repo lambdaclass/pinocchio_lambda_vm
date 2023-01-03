@@ -46,6 +46,41 @@ impl Qap {
         }
     }
 
+    pub fn h_polynomial(&self, c: &[FE]) -> Polynomial {
+        self.p_polynomial(c).div_with_ref(&self.target)
+    }
+    /// Receives C elements of a solution of the circuit
+    /// Returns p polynomial
+    // This along the polynomial execution should be migrated with a better
+    // representation of the circuit
+    pub fn p_polynomial(&self, c: &[FE]) -> Polynomial {
+        let v: Polynomial = self.v[0].clone()
+            + self.v[1..]
+                .iter()
+                .zip(c)
+                .map(|(v, c)| v.mul_with_ref(&Polynomial::new_monomial(*c, 0)))
+                .reduce(|x, y| x + y)
+                .unwrap();
+
+        let w: Polynomial = self.w[0].clone()
+            + self.w[1..]
+                .iter()
+                .zip(c)
+                .map(|(w, c)| w.mul_with_ref(&Polynomial::new_monomial(*c, 0)))
+                .reduce(|x, y| x + y)
+                .unwrap();
+
+        let y: Polynomial = self.y[0].clone()
+            + self.y[1..]
+                .iter()
+                .zip(c)
+                .map(|(y, c)| y.mul_with_ref(&Polynomial::new_monomial(*c, 0)))
+                .reduce(|x, y| x + y)
+                .unwrap();
+
+        v * w - y
+    }
+
     pub fn v_mid(&'_ self) -> &[Polynomial] {
         &self.v[self.number_of_inputs + 1..(self.v.len() - self.number_of_outputs)]
     }
@@ -93,9 +128,13 @@ impl Qap {
         &self.y[(self.y.len() - self.number_of_outputs)..]
     }
 
-    pub fn new_test_circuit() -> Self {
-        let r5: FE = FE::new(1).unwrap();
-        let r6: FE = FE::new(2).unwrap();
+    // The following functions are only for testing purposes
+    // And will be migrated to a full circuit or program module later
+
+    /// Test qap based on pinocchios paper example
+    pub fn new_test_qap() -> Self {
+        let r5: FE = Self::test_qap_r5();
+        let r6: FE = FE::new(1).unwrap();
 
         let t: Polynomial = Polynomial::new(vec![-r5, FE::new(1).unwrap()])
             * Polynomial::new(vec![-r6, FE::new(1).unwrap()]);
@@ -139,6 +178,25 @@ impl Qap {
 
         Self::new(vs.to_vec(), ws.to_vec(), ys.to_vec(), t, 4, 1).unwrap()
     }
+
+    // r5 and r6 are exposed to help testing
+    pub fn test_qap_r5() -> FE {
+        FE::new(0).unwrap()
+    }
+
+    #[cfg(test)]
+    pub fn test_qap_r6() -> FE {
+        FE::new(1).unwrap()
+    }
+
+    /// This is a solver for the test qap
+    /// Inputs: c1,c2,c3,c4 circuit inputs
+    /// Outputs: c5 intermediate result, c6 result
+    pub fn test_qap_solver(inputs: [FE; 4]) -> (FE, FE) {
+        let c5 = inputs[2] * inputs[3];
+        let c6 = (inputs[0] + inputs[1]) * c5;
+        (c5, c6)
+    }
 }
 
 #[cfg(test)]
@@ -165,7 +223,7 @@ mod tests {
 
     #[test]
     fn test_circuit_v_w_y_have_7_elements() {
-        let test_circuit = Qap::new_test_circuit();
+        let test_circuit = Qap::new_test_qap();
         assert_eq!(test_circuit.v.len(), 7);
         assert_eq!(test_circuit.w.len(), 7);
         assert_eq!(test_circuit.y.len(), 7);
@@ -174,78 +232,180 @@ mod tests {
     //_mid polynomials of test circuit contains only one polynomial
     #[test]
     fn v_mid_test_circuit_on_r6_is_0() {
-        let test_circuit = Qap::new_test_circuit();
-        let r6 = FE::new(2).unwrap();
+        let test_circuit = Qap::new_test_qap();
+        let r6 = Qap::test_qap_r6();
         assert_eq!(test_circuit.y_mid()[0].evaluate(r6), FE::zero());
     }
 
     #[test]
     fn w_mid_test_circuit_has_one_element() {
-        let test_circuit = Qap::new_test_circuit();
-        print!("mid w: {:?}", test_circuit.w_mid());
+        let test_circuit = Qap::new_test_qap();
         assert_eq!(test_circuit.v_mid().len(), 1);
     }
 
     #[test]
     fn w_mid_test_circuit_on_r5_is_0() {
-        let test_circuit = Qap::new_test_circuit();
-        let r5 = FE::new(1).unwrap();
+        let test_circuit = Qap::new_test_qap();
+        let r5 = Qap::test_qap_r5();
         assert_eq!(test_circuit.w_mid()[0].evaluate(r5), FE::zero());
     }
 
     #[test]
     fn w_mid_test_circuit_on_r6_is_1() {
-        let test_circuit = Qap::new_test_circuit();
-        let r6 = FE::new(2).unwrap();
+        let test_circuit = Qap::new_test_qap();
+        let r6 = Qap::test_qap_r6();
         assert_eq!(test_circuit.w_mid()[0].evaluate(r6), FE::one());
     }
 
     #[test]
     fn y_mid_test_circuit_on_r5_is_1() {
-        let test_circuit = Qap::new_test_circuit();
-        let r5 = FE::new(1).unwrap();
+        let test_circuit = Qap::new_test_qap();
+        let r5 = Qap::test_qap_r5();
         assert_eq!(test_circuit.y_mid()[0].evaluate(r5), FE::one());
     }
 
     #[test]
     fn y_mid_test_circuit_on_r6_is_0() {
-        let test_circuit = Qap::new_test_circuit();
-        let r6 = FE::new(2).unwrap();
+        let test_circuit = Qap::new_test_qap();
+        let r6 = Qap::test_qap_r6();
         assert_eq!(test_circuit.y_mid()[0].evaluate(r6), FE::zero());
     }
 
     #[test]
     fn v_input_test_circuit_has_length_4() {
-        let test_circuit = Qap::new_test_circuit();
+        let test_circuit = Qap::new_test_qap();
         assert_eq!(test_circuit.v_input().len(), 4);
     }
 
     #[test]
     fn w_input_test_circuit_has_length_4() {
-        let test_circuit = Qap::new_test_circuit();
+        let test_circuit = Qap::new_test_qap();
         assert_eq!(test_circuit.w_input().len(), 4);
     }
     #[test]
     fn y_input_test_circuit_has_length_4() {
-        let test_circuit = Qap::new_test_circuit();
+        let test_circuit = Qap::new_test_qap();
         assert_eq!(test_circuit.y_input().len(), 4);
     }
 
     #[test]
     fn v_output_test_circuit_has_length_1() {
-        let test_circuit = Qap::new_test_circuit();
+        let test_circuit = Qap::new_test_qap();
         assert_eq!(test_circuit.v_output().len(), 1);
     }
 
     #[test]
     fn w_output_test_circuit_has_length_1() {
-        let test_circuit = Qap::new_test_circuit();
+        let test_circuit = Qap::new_test_qap();
         assert_eq!(test_circuit.w_output().len(), 1);
     }
 
     #[test]
     fn y_output_test_circuit_has_length_1() {
-        let test_circuit = Qap::new_test_circuit();
+        let test_circuit = Qap::new_test_qap();
         assert_eq!(test_circuit.y_output().len(), 1);
+    }
+
+    #[test]
+    /// This test runs multiple cases calculated in paper
+    /// t polynomial is tested implicitly by calculating h = p / t
+    fn test_polynomial_h_cases() {
+        let test_circuit = Qap::new_test_qap();
+
+        let inputs = [
+            FE::new(1).unwrap(),
+            FE::new(2).unwrap(),
+            FE::new(3).unwrap(),
+            FE::new(4).unwrap(),
+        ];
+
+        let (c5, c6) = Qap::test_qap_solver(inputs);
+
+        let mut c_vector = inputs.to_vec();
+        c_vector.append(&mut vec![c5, c6]);
+
+        assert_eq!(
+            test_circuit.h_polynomial(&c_vector),
+            Polynomial::new_monomial(FE::zero(), 0)
+        );
+
+        let inputs = [
+            FE::new(2).unwrap(),
+            FE::new(2).unwrap(),
+            FE::new(2).unwrap(),
+            FE::new(2).unwrap(),
+        ];
+
+        let (c5, c6) = Qap::test_qap_solver(inputs);
+
+        let mut c_vector = inputs.to_vec();
+        c_vector.append(&mut vec![c5, c6]);
+
+        assert_eq!(
+            test_circuit.h_polynomial(&c_vector),
+            Polynomial::new_monomial(FE::new(4).unwrap(), 0)
+        );
+
+        let inputs = [
+            FE::new(3).unwrap(),
+            FE::new(3).unwrap(),
+            FE::new(3).unwrap(),
+            FE::new(3).unwrap(),
+        ];
+
+        let (c5, c6) = Qap::test_qap_solver(inputs);
+
+        let mut c_vector = inputs.to_vec();
+        c_vector.append(&mut vec![c5, c6]);
+
+        assert_eq!(
+            test_circuit.h_polynomial(&c_vector),
+            Polynomial::new_monomial(FE::new(18).unwrap(), 0)
+        );
+
+        let inputs = [
+            FE::new(4).unwrap(),
+            FE::new(3).unwrap(),
+            FE::new(2).unwrap(),
+            FE::new(1).unwrap(),
+        ];
+
+        let (c5, c6) = Qap::test_qap_solver(inputs);
+
+        let mut c_vector = inputs.to_vec();
+        c_vector.append(&mut vec![c5, c6]);
+
+        assert_eq!(
+            test_circuit.h_polynomial(&c_vector),
+            Polynomial::new_monomial(FE::new(5).unwrap(), 0)
+        );
+    }
+
+    #[test]
+    fn test_circuit_solver_on_2_2_2_2_outputs_4_and_16() {
+        let inputs = [
+            FE::new(2).unwrap(),
+            FE::new(2).unwrap(),
+            FE::new(2).unwrap(),
+            FE::new(2).unwrap(),
+        ];
+
+        let (c5, c6) = Qap::test_qap_solver(inputs);
+        assert_eq!(c5, FE::new(4).unwrap());
+        assert_eq!(c6, FE::new(16).unwrap());
+    }
+
+    #[test]
+    fn test_circuit_solver_on_1_2_3_4_outputs_12_and_36() {
+        let inputs = [
+            FE::new(1).unwrap(),
+            FE::new(2).unwrap(),
+            FE::new(3).unwrap(),
+            FE::new(4).unwrap(),
+        ];
+
+        let (c5, c6) = Qap::test_qap_solver(inputs);
+        assert_eq!(c5, FE::new(12).unwrap());
+        assert_eq!(c6, FE::new(36).unwrap());
     }
 }
