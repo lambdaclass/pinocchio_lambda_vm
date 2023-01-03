@@ -1,8 +1,8 @@
+use super::prover::Proof;
+use super::setup::VerifyingKey;
 use crate::math::{self, group::Group};
 use math::field_element::FieldElement as FE;
-
-use super::prover::Proof;
-use super::{prover::msm, setup::VerifyingKey};
+use math::msm::msm;
 
 pub fn verify(verifying_key: &VerifyingKey, proof: &Proof, c_input_output: &[FE]) -> bool {
     let b1 = check_divisibility(verifying_key, proof, c_input_output);
