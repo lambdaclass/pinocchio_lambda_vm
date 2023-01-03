@@ -94,11 +94,11 @@ impl Qap {
     }
 
     pub fn v_input(&'_ self) -> &[Polynomial] {
-        &self.y[1..self.number_of_inputs + 1]
+        &self.v[1..self.number_of_inputs + 1]
     }
 
     pub fn w_input(&'_ self) -> &[Polynomial] {
-        &self.y[1..self.number_of_inputs + 1]
+        &self.w[1..self.number_of_inputs + 1]
     }
 
     pub fn y_input(&'_ self) -> &[Polynomial] {
@@ -118,7 +118,7 @@ impl Qap {
     }
 
     pub fn v_output(&'_ self) -> &[Polynomial] {
-        &self.y[(self.v.len() - self.number_of_outputs)..]
+        &self.v[(self.v.len() - self.number_of_outputs)..]
     }
     pub fn w_output(&'_ self) -> &[Polynomial] {
         &self.w[(self.w.len() - self.number_of_outputs)..]
@@ -134,7 +134,7 @@ impl Qap {
     /// Test qap based on pinocchios paper example
     pub fn new_test_qap() -> Self {
         let r5: FE = Self::test_qap_r5();
-        let r6: FE = FE::new(1).unwrap();
+        let r6: FE = Self::test_qap_r6();
 
         let t: Polynomial = Polynomial::new(vec![-r5, FE::new(1).unwrap()])
             * Polynomial::new(vec![-r6, FE::new(1).unwrap()]);
@@ -184,7 +184,6 @@ impl Qap {
         FE::new(0).unwrap()
     }
 
-    #[cfg(test)]
     pub fn test_qap_r6() -> FE {
         FE::new(1).unwrap()
     }

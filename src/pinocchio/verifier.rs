@@ -8,9 +8,6 @@ pub fn verify(verifying_key: &VerifyingKey, proof: &Proof, c_input_output: &[FE]
     let b1 = check_divisibility(verifying_key, proof, c_input_output);
     let b2 = check_appropiate_spans(verifying_key, proof);
     let b3 = check_same_linear_combinations(verifying_key, proof);
-    println!("b1: {:?}", b1);
-    println!("b2: {:?}", b2);
-    println!("b3: {:?}", b3);
     b1 && b2 && b3
 }
 
@@ -20,9 +17,6 @@ pub fn check_divisibility(
     input_output: &[FE],
 ) -> bool {
     let vk = verifying_key;
-
-    println!("Gvs len: {:?}", vk.gv_ks[1..].len());
-    println!("Input output len: {:?}", input_output.len());
 
     let hiding_v = vk.gv_ks[0]
         .mul_by_group_element(msm(input_output, &vk.gv_ks[1..]))
@@ -37,10 +31,6 @@ pub fn check_divisibility(
     let lhs = hiding_v.pairing(hiding_w);
     let rhs_1 = verifying_key.gy_target_on_s.pairing(proof.g_hs);
     let rhs_2 = hiding_y.pairing(vk.g_1);
-
-    println!("rhs {:?}", rhs_1.mul_by_group_element(rhs_2));
-
-    println!("lhs {:?}", lhs);
 
     lhs == rhs_1.mul_by_group_element(rhs_2)
 }

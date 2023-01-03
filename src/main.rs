@@ -14,10 +14,10 @@ fn main() {
     let (evaluation_key, verifying_key) = setup(&test_qap, &toxic_waste);
 
     let inputs = [
+        FE::new(1).unwrap(),
+        FE::new(2).unwrap(),
         FE::new(3).unwrap(),
-        FE::new(3).unwrap(),
-        FE::new(3).unwrap(),
-        FE::new(3).unwrap(),
+        FE::new(4).unwrap(),
     ];
 
     // For the test circuit c_mid and c_output has only one element
