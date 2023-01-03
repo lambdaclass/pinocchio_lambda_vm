@@ -6,6 +6,7 @@ use circuits::qap::Qap;
 use math::field_element::FieldElement as FE;
 use pinocchio::prover;
 use pinocchio::setup::{setup, ToxicWaste};
+use pinocchio::verifier;
 
 fn main() {
     let test_qap = Qap::new_test_qap();
@@ -28,7 +29,13 @@ fn main() {
 
     let proof = prover::generate_proof(&evaluation_key, &test_qap, &c_vector);
 
+    let mut c_io_vector = inputs.to_vec();
+    c_io_vector.push(c_output);
+
+    let accepted = verifier::verify(&verifying_key, &proof, &c_io_vector);
+
     println!("Evaluation key: {:?}", evaluation_key);
     println!("Verifying key: {:?}", verifying_key);
     println!("Proof: {:?}", proof);
+    println!("Verified ?: {:?}", accepted);
 }

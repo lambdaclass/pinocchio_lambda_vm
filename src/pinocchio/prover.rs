@@ -11,16 +11,14 @@ pub type GroupType = FE;
 /// All but hs are the mid related elements
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Proof {
-    g_vs: GroupType,
-    g_ws: GroupType,
-    g_ys: GroupType,
-    g_alpha_vs: GroupType,
-    g_alpha_ws: GroupType,
-    g_alpha_ys: GroupType,
-    g_beta_vwy: GroupType,
-    //h may be the nil polynomial
-    //and so g_hs will be empty
-    g_hs: GroupType,
+    pub g_vs: GroupType,
+    pub g_ws: GroupType,
+    pub g_ys: GroupType,
+    pub g_alpha_vs: GroupType,
+    pub g_alpha_ws: GroupType,
+    pub g_alpha_ys: GroupType,
+    pub g_beta_vwy: GroupType,
+    pub g_hs: GroupType,
 }
 /// Calculates msm for C and hidings
 /// if either array is empty, returns zero

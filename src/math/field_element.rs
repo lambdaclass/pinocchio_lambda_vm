@@ -123,6 +123,10 @@ impl Group for FieldElement {
     fn pairing(self, other: Self) -> Self {
         self * other
     }
+
+    fn mul_by_group_element(self, other: Self) -> Self {
+        self + other
+    }
 }
 
 #[cfg(test)]

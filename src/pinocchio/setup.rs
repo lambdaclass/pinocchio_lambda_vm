@@ -19,18 +19,18 @@ pub struct EvaluationKey {
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// Evaluation key for Pinocchio
-/// All the k are k_io + k_0
+/// All the k are k_0 + k_io
 pub struct VerifyingKey {
-    g_1: GroupType,
-    g_alpha_v: GroupType,
-    g_alpha_w: GroupType,
-    g_alpha_y: GroupType,
-    g_gamma: GroupType,
-    g_beta_gamma: GroupType,
-    gy_target_on_s: GroupType,
-    gv_ks: Vec<GroupType>,
-    gw_ks: Vec<GroupType>,
-    gy_ks: Vec<GroupType>,
+    pub g_1: GroupType,
+    pub g_alpha_v: GroupType,
+    pub g_alpha_w: GroupType,
+    pub g_alpha_y: GroupType,
+    pub g_gamma: GroupType,
+    pub g_beta_gamma: GroupType,
+    pub gy_target_on_s: GroupType,
+    pub gv_ks: Vec<GroupType>,
+    pub gw_ks: Vec<GroupType>,
+    pub gy_ks: Vec<GroupType>,
 }
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct ToxicWaste {
