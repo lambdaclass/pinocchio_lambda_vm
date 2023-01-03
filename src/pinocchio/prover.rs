@@ -3,20 +3,20 @@ use crate::math::field_element::FieldElement as FE;
 use crate::math::msm::msm;
 
 use super::setup::EvaluationKey;
-pub type GroupType = FE;
+pub type CyclicGroupType = FE;
 
 /// Proof for Pinocchio
 /// All but hs are the mid related elements
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Proof {
-    pub g_vs: GroupType,
-    pub g_ws: GroupType,
-    pub g_ys: GroupType,
-    pub g_alpha_vs: GroupType,
-    pub g_alpha_ws: GroupType,
-    pub g_alpha_ys: GroupType,
-    pub g_beta_vwy: GroupType,
-    pub g_hs: GroupType,
+    pub g_vs: CyclicGroupType,
+    pub g_ws: CyclicGroupType,
+    pub g_ys: CyclicGroupType,
+    pub g_alpha_vs: CyclicGroupType,
+    pub g_alpha_ws: CyclicGroupType,
+    pub g_alpha_ys: CyclicGroupType,
+    pub g_beta_vwy: CyclicGroupType,
+    pub g_hs: CyclicGroupType,
 }
 
 /// Generates a proof from an evaluation_key,
@@ -59,7 +59,7 @@ mod tests {
     // This test runs the proof algorithms with some easy inputs
     // to check operations are made correctly
     // Eval key and polynomials don't mean anything
-    // It only works with FE as the GroupType
+    // It only works with FE as the CyclicGroupType
     #[test]
     fn proof_test() {
         // This eval key is the identity

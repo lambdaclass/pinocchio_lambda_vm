@@ -1,4 +1,4 @@
-use super::group::Group;
+use super::cyclic_group::CyclicGroup;
 use rand::prelude::*;
 use std::ops;
 
@@ -111,12 +111,12 @@ impl ops::Div for FieldElement {
     }
 }
 
-impl Group for FieldElement {
+impl CyclicGroup for FieldElement {
     fn generator() -> FieldElement {
         FieldElement::one()
     }
 
-    fn mul_by_scalar(self, other: FieldElement) -> Self {
+    fn operate_with_self(self, other: FieldElement) -> Self {
         self * other
     }
 
@@ -124,7 +124,7 @@ impl Group for FieldElement {
         self * other
     }
 
-    fn add_group_element(self, other: Self) -> Self {
+    fn operate_with(self, other: Self) -> Self {
         self + other
     }
 }
@@ -288,7 +288,7 @@ mod tests {
     ) {
         let a = FieldElement::new(3).unwrap();
         let b = FieldElement::new(12).unwrap();
-        assert_eq!(a * b, a.mul_by_scalar(b));
+        assert_eq!(a * b, a.operate_with_self(b));
     }
 
     #[test]

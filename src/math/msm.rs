@@ -1,24 +1,24 @@
 use crate::math::field_element::FieldElement as FE;
 
-use crate::math::group::Group;
+use crate::math::cyclic_group::CyclicGroup;
 
-pub type GroupType = FE;
+pub type CyclicGroupType = FE;
 
 /// Calculates msm for C and hidings
 /// if either array is empty, returns zero
-pub fn msm(c: &[FE], hidings: &[GroupType]) -> GroupType {
+pub fn msm(c: &[FE], hidings: &[CyclicGroupType]) -> CyclicGroupType {
     c.iter()
         .zip(hidings.iter())
-        .map(|(&c, &h)| h.mul_by_scalar(c))
+        .map(|(&c, &h)| h.operate_with_self(c))
         .reduce(|acc, x| acc + x)
-        .unwrap_or_else(GroupType::zero)
+        .unwrap_or_else(CyclicGroupType::zero)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    //MSM tests require the GroupType to be a FieldElement
+    //MSM tests require the CyclicGroupType to be a FieldElement
     #[test]
     fn msm_11_is_1() {
         let c = [FE::one()];
