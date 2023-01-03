@@ -19,20 +19,20 @@ pub fn check_divisibility(
     let vk = verifying_key;
 
     let hiding_v = vk.gv_ks[0]
-        .mul_by_group_element(msm(input_output, &vk.gv_ks[1..]))
-        .mul_by_group_element(proof.g_vs);
+        .add_group_element(msm(input_output, &vk.gv_ks[1..]))
+        .add_group_element(proof.g_vs);
     let hiding_w = vk.gw_ks[0]
-        .mul_by_group_element(msm(input_output, &vk.gw_ks[1..]))
-        .mul_by_group_element(proof.g_ws);
+        .add_group_element(msm(input_output, &vk.gw_ks[1..]))
+        .add_group_element(proof.g_ws);
     let hiding_y = vk.gy_ks[0]
-        .mul_by_group_element(msm(input_output, &vk.gy_ks[1..]))
-        .mul_by_group_element(proof.g_ys);
+        .add_group_element(msm(input_output, &vk.gy_ks[1..]))
+        .add_group_element(proof.g_ys);
 
     let lhs = hiding_v.pairing(hiding_w);
     let rhs_1 = verifying_key.gy_target_on_s.pairing(proof.g_hs);
     let rhs_2 = hiding_y.pairing(vk.g_1);
 
-    lhs == rhs_1.mul_by_group_element(rhs_2)
+    lhs == rhs_1.add_group_element(rhs_2)
 }
 
 pub fn check_appropiate_spans(verifying_key: &VerifyingKey, proof: &Proof) -> bool {
@@ -49,7 +49,7 @@ pub fn check_same_linear_combinations(verifying_key: &VerifyingKey, proof: &Proo
     proof.g_beta_vwy.pairing(vk.g_gamma)
         == (proof
             .g_vs
-            .mul_by_group_element(proof.g_ws)
-            .mul_by_group_element(proof.g_ys))
+            .add_group_element(proof.g_ws)
+            .add_group_element(proof.g_ys))
         .pairing(vk.g_beta_gamma)
 }
