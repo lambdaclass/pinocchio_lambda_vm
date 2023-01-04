@@ -1,6 +1,10 @@
 # ErgodicVM
 Zero Knowledge Virtual Machine from scratch implementing Pinocchio
 
+To run all tests:
+
+```make test```
+
 To start a shell in docker to develop:
 
 ```make docker-shell```

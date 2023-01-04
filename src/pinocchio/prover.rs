@@ -1,35 +1,22 @@
-use crate::{
-    circuits::qap::Qap,
-    math::{self, group::Group},
-};
-use math::field_element::FieldElement as FE;
+use crate::circuits::qap::Qap;
+use crate::math::field_element::FieldElement as FE;
+use crate::math::msm::msm;
 
 use super::setup::EvaluationKey;
-pub type GroupType = FE;
+pub type CyclicGroupType = FE;
 
 /// Proof for Pinocchio
 /// All but hs are the mid related elements
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Proof {
-    g_vs: GroupType,
-    g_ws: GroupType,
-    g_ys: GroupType,
-    g_alpha_vs: GroupType,
-    g_alpha_ws: GroupType,
-    g_alpha_ys: GroupType,
-    g_beta_vwy: GroupType,
-    //h may be the nil polynomial
-    //and so g_hs will be empty
-    g_hs: GroupType,
-}
-/// Calculates msm for C and hidings
-/// if either array is empty, returns zero
-pub fn msm(c: &[FE], hidings: &[GroupType]) -> GroupType {
-    c.iter()
-        .zip(hidings.iter())
-        .map(|(&c, &h)| h.mul_by_scalar(c))
-        .reduce(|acc, x| acc + x)
-        .unwrap_or_else(GroupType::zero)
+    pub g_vs: CyclicGroupType,
+    pub g_ws: CyclicGroupType,
+    pub g_ys: CyclicGroupType,
+    pub g_alpha_vs: CyclicGroupType,
+    pub g_alpha_ws: CyclicGroupType,
+    pub g_alpha_ys: CyclicGroupType,
+    pub g_beta_vwy: CyclicGroupType,
+    pub g_hs: CyclicGroupType,
 }
 
 /// Generates a proof from an evaluation_key,
@@ -69,53 +56,10 @@ mod tests {
 
     use super::*;
 
-    //MSM tests require the GroupType to be a FieldElement
-    #[test]
-    fn msm_11_is_1() {
-        let c = [FE::one()];
-        let hiding = [FE::one()];
-        assert_eq!(msm(&c, &hiding), FE::one());
-    }
-
-    #[test]
-    fn msm_23_is_6() {
-        let c = [FE::new(3).unwrap()];
-        let hiding = [FE::new(2).unwrap()];
-        assert_eq!(msm(&c, &hiding), FE::new(6).unwrap());
-    }
-
-    #[test]
-    fn msm_with_c_2_3_hiding_3_4_is_18() {
-        let c = [FE::new(2).unwrap(), FE::new(3).unwrap()];
-        let hiding = [FE::new(3).unwrap(), FE::new(4).unwrap()];
-        assert_eq!(msm(&c, &hiding), FE::new(18).unwrap());
-    }
-
-    #[test]
-    fn msm_with_empty_c_is_none() {
-        let c = [];
-        let hiding = [FE::new(3).unwrap(), FE::new(4).unwrap()];
-        assert_eq!(msm(&c, &hiding), FE::zero());
-    }
-
-    #[test]
-    fn msm_with_emtpy_hiding_is_none() {
-        let c = [FE::zero()];
-        let hiding = [];
-        assert_eq!(msm(&c, &hiding), FE::zero());
-    }
-
-    #[test]
-    fn msm_with_empty_arguments_is_none() {
-        let c = [];
-        let hiding = [];
-        assert_eq!(msm(&c, &hiding), FE::zero());
-    }
-
     // This test runs the proof algorithms with some easy inputs
     // to check operations are made correctly
     // Eval key and polynomials don't mean anything
-    // It only works with FE as the GroupType
+    // It only works with FE as the CyclicGroupType
     #[test]
     fn proof_test() {
         // This eval key is the identity

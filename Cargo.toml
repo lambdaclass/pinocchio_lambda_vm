@@ -1,5 +1,5 @@
 [package]
-name = "ergodic_vm"
+name = "pinocchio_vm"
 version = "0.1.0"
 edition = "2021"
 

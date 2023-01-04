@@ -1,5 +1,5 @@
-run:
-	cargo run --release
+test:
+	cargo test
 
 docker-shell:
 	docker build -t cuda118 .
@@ -14,6 +14,3 @@ nix-shell:
 
 nix-cuda-shell:
 	NIXPKGS_ALLOW_UNFREE=1 nix-shell --impure cuda-shell.nix
-
-test:
-	cargo test

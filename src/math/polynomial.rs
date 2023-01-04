@@ -388,6 +388,14 @@ mod tests {
     }
 
     #[test]
+    fn zero_poly_evals_0_in_3() {
+        assert_eq!(
+            Polynomial::new_monomial(FE::new(0).unwrap(), 0).evaluate(FE::new(3).unwrap()),
+            FE::zero()
+        );
+    }
+
+    #[test]
     fn evaluate_degree_1_new_monomial() {
         let two = FE::new(2).unwrap();
         let four = FE::new(4).unwrap();

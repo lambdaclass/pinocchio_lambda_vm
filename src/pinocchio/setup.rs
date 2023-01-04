@@ -1,36 +1,36 @@
 use crate::circuits::qap::Qap;
 use crate::math;
+use math::cyclic_group::CyclicGroup;
 use math::field_element::FieldElement as FE;
-use math::group::Group;
-pub type GroupType = FE;
+pub type CyclicGroupType = FE;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// Evaluation key for Pinocchio
 /// All the k are k_mid
 pub struct EvaluationKey {
-    pub gv_ks: Vec<GroupType>,
-    pub gw_ks: Vec<GroupType>,
-    pub gy_ks: Vec<GroupType>,
-    pub gv_alphaks: Vec<GroupType>,
-    pub gw_alphaks: Vec<GroupType>,
-    pub gy_alphaks: Vec<GroupType>,
-    pub g_s_i: Vec<GroupType>,
-    pub g_beta: Vec<GroupType>,
+    pub gv_ks: Vec<CyclicGroupType>,
+    pub gw_ks: Vec<CyclicGroupType>,
+    pub gy_ks: Vec<CyclicGroupType>,
+    pub gv_alphaks: Vec<CyclicGroupType>,
+    pub gw_alphaks: Vec<CyclicGroupType>,
+    pub gy_alphaks: Vec<CyclicGroupType>,
+    pub g_s_i: Vec<CyclicGroupType>,
+    pub g_beta: Vec<CyclicGroupType>,
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// Evaluation key for Pinocchio
-/// All the k are k_io + k_0
+/// All the k are k_0 + k_io
 pub struct VerifyingKey {
-    g_1: GroupType,
-    g_alpha_v: GroupType,
-    g_alpha_w: GroupType,
-    g_alpha_y: GroupType,
-    g_gamma: GroupType,
-    g_beta_gamma: GroupType,
-    gy_target_on_s: GroupType,
-    gv_ks: Vec<GroupType>,
-    gw_ks: Vec<GroupType>,
-    gy_ks: Vec<GroupType>,
+    pub g_1: CyclicGroupType,
+    pub g_alpha_v: CyclicGroupType,
+    pub g_alpha_w: CyclicGroupType,
+    pub g_alpha_y: CyclicGroupType,
+    pub g_gamma: CyclicGroupType,
+    pub g_beta_gamma: CyclicGroupType,
+    pub gy_target_on_s: CyclicGroupType,
+    pub gv_ks: Vec<CyclicGroupType>,
+    pub gw_ks: Vec<CyclicGroupType>,
+    pub gy_ks: Vec<CyclicGroupType>,
 }
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct ToxicWaste {
@@ -66,7 +66,7 @@ impl ToxicWaste {
 fn generate_verifying_key(
     qap: &Qap,
     toxic_waste: &ToxicWaste,
-    generator: GroupType,
+    generator: CyclicGroupType,
 ) -> VerifyingKey {
     let s = toxic_waste.s;
     let alpha_v = toxic_waste.alpha_v;
@@ -81,28 +81,28 @@ fn generate_verifying_key(
     let g = generator;
 
     let vector_capacity = qap.number_of_inputs + qap.number_of_inputs + 1;
-    let mut gv_ks_io: Vec<GroupType> = Vec::with_capacity(vector_capacity);
-    let mut gw_ks_io: Vec<GroupType> = Vec::with_capacity(vector_capacity);
-    let mut gy_ks_io: Vec<GroupType> = Vec::with_capacity(vector_capacity);
+    let mut gv_ks_io: Vec<CyclicGroupType> = Vec::with_capacity(vector_capacity);
+    let mut gw_ks_io: Vec<CyclicGroupType> = Vec::with_capacity(vector_capacity);
+    let mut gy_ks_io: Vec<CyclicGroupType> = Vec::with_capacity(vector_capacity);
 
-    gv_ks_io.push(g.mul_by_scalar(rv * qap.v0().evaluate(s)));
-    gw_ks_io.push(g.mul_by_scalar(rw * qap.w0().evaluate(s)));
-    gy_ks_io.push(g.mul_by_scalar(ry * qap.y0().evaluate(s)));
+    gv_ks_io.push(g.operate_with_self(rv * qap.v0().evaluate(s)));
+    gw_ks_io.push(g.operate_with_self(rw * qap.w0().evaluate(s)));
+    gy_ks_io.push(g.operate_with_self(ry * qap.y0().evaluate(s)));
 
     for k in 0..qap.v_input().len() {
-        gv_ks_io.push(g.mul_by_scalar(rv * qap.v_input()[k].evaluate(s)));
-        gw_ks_io.push(g.mul_by_scalar(rw * qap.w_input()[k].evaluate(s)));
-        gy_ks_io.push(g.mul_by_scalar(ry * qap.y_input()[k].evaluate(s)));
+        gv_ks_io.push(g.operate_with_self(rv * qap.v_input()[k].evaluate(s)));
+        gw_ks_io.push(g.operate_with_self(rw * qap.w_input()[k].evaluate(s)));
+        gy_ks_io.push(g.operate_with_self(ry * qap.y_input()[k].evaluate(s)));
     }
 
     for k in 0..qap.v_output().len() {
-        gv_ks_io.push(g.mul_by_scalar(rv * qap.v_output()[k].evaluate(s)));
-        gw_ks_io.push(g.mul_by_scalar(rw * qap.w_output()[k].evaluate(s)));
-        gy_ks_io.push(g.mul_by_scalar(ry * qap.y_output()[k].evaluate(s)));
+        gv_ks_io.push(g.operate_with_self(rv * qap.v_output()[k].evaluate(s)));
+        gw_ks_io.push(g.operate_with_self(rw * qap.w_output()[k].evaluate(s)));
+        gy_ks_io.push(g.operate_with_self(ry * qap.y_output()[k].evaluate(s)));
     }
 
     VerifyingKey {
-        g_1: g * GroupType::one(),
+        g_1: g * CyclicGroupType::one(),
         g_alpha_v: g * alpha_v,
         g_alpha_w: g * alpha_w,
         g_alpha_y: g * alpha_y,
@@ -118,7 +118,7 @@ fn generate_verifying_key(
 fn generate_evaluation_key(
     qap: &Qap,
     toxic_waste: &ToxicWaste,
-    generator: GroupType,
+    generator: CyclicGroupType,
 ) -> EvaluationKey {
     let (vs_mid, ws_mid, ys_mid) = (qap.v_mid(), qap.w_mid(), qap.y_mid());
 
@@ -135,25 +135,25 @@ fn generate_evaluation_key(
 
     let degree = qap.target.degree();
 
-    let mut gv_ks_mid: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
-    let mut gw_ks_mid: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
-    let mut gy_ks_mid: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
-    let mut gv_alphaks_mid: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
-    let mut gw_alphaks_mid: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
-    let mut gy_alphaks_mid: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
-    let mut g_beta_mid: Vec<GroupType> = Vec::with_capacity(vs_mid.len());
+    let mut gv_ks_mid: Vec<CyclicGroupType> = Vec::with_capacity(vs_mid.len());
+    let mut gw_ks_mid: Vec<CyclicGroupType> = Vec::with_capacity(vs_mid.len());
+    let mut gy_ks_mid: Vec<CyclicGroupType> = Vec::with_capacity(vs_mid.len());
+    let mut gv_alphaks_mid: Vec<CyclicGroupType> = Vec::with_capacity(vs_mid.len());
+    let mut gw_alphaks_mid: Vec<CyclicGroupType> = Vec::with_capacity(vs_mid.len());
+    let mut gy_alphaks_mid: Vec<CyclicGroupType> = Vec::with_capacity(vs_mid.len());
+    let mut g_beta_mid: Vec<CyclicGroupType> = Vec::with_capacity(vs_mid.len());
     // g_s_i is the only paramater to depend on the degree of the qap
     // This is an upper bound, it could be smaller
-    let mut g_s_i: Vec<GroupType> = Vec::with_capacity(degree);
+    let mut g_s_i: Vec<CyclicGroupType> = Vec::with_capacity(degree);
 
     // Set evaluation keys for each of their respective k mid element
     for k in 0..vs_mid.len() {
-        gv_ks_mid.push(g.mul_by_scalar(rv * vs_mid[k].evaluate(s)));
-        gw_ks_mid.push(g.mul_by_scalar(rw * ws_mid[k].evaluate(s)));
-        gy_ks_mid.push(g.mul_by_scalar(ry * ys_mid[k].evaluate(s)));
-        gv_alphaks_mid.push(g.mul_by_scalar(ry * alpha_v * vs_mid[k].evaluate(s)));
-        gw_alphaks_mid.push(g.mul_by_scalar(rw * alpha_w * ws_mid[k].evaluate(s)));
-        gy_alphaks_mid.push(g.mul_by_scalar(ry * alpha_y * ys_mid[k].evaluate(s)));
+        gv_ks_mid.push(g.operate_with_self(rv * vs_mid[k].evaluate(s)));
+        gw_ks_mid.push(g.operate_with_self(rw * ws_mid[k].evaluate(s)));
+        gy_ks_mid.push(g.operate_with_self(ry * ys_mid[k].evaluate(s)));
+        gv_alphaks_mid.push(g.operate_with_self(ry * alpha_v * vs_mid[k].evaluate(s)));
+        gw_alphaks_mid.push(g.operate_with_self(rw * alpha_w * ws_mid[k].evaluate(s)));
+        gy_alphaks_mid.push(g.operate_with_self(ry * alpha_y * ys_mid[k].evaluate(s)));
         g_beta_mid.push(
             rv * beta * vs_mid[k].evaluate(s)
                 + rw * beta * ws_mid[k].evaluate(s)
@@ -164,7 +164,7 @@ fn generate_evaluation_key(
     for i in 0..qap.target.degree() {
         // This unwrap would only fail in an OS
         // with 256 bits pointer, which doesn't exist
-        g_s_i.push(g.mul_by_scalar(s.pow(i.try_into().unwrap())));
+        g_s_i.push(g.operate_with_self(s.pow(i.try_into().unwrap())));
     }
 
     EvaluationKey {
@@ -180,7 +180,7 @@ fn generate_evaluation_key(
 }
 
 pub fn setup(qap: &Qap, toxic_waste: &ToxicWaste) -> (EvaluationKey, VerifyingKey) {
-    let generator = GroupType::generator();
+    let generator = CyclicGroupType::generator();
     (
         generate_evaluation_key(qap, toxic_waste, generator),
         generate_verifying_key(qap, toxic_waste, generator),
@@ -190,7 +190,7 @@ pub fn setup(qap: &Qap, toxic_waste: &ToxicWaste) -> (EvaluationKey, VerifyingKe
 #[cfg(test)]
 mod tests {
     use super::{setup, ToxicWaste};
-    use crate::{circuits::qap::Qap, math};
+    use crate::{circuits::qap::new_test_qap, math};
     use math::field_element::FieldElement as FE;
 
     fn identity_toxic_waste() -> ToxicWaste {
@@ -208,7 +208,7 @@ mod tests {
 
     #[test]
     fn evaluation_keys_size_for_test_circuit_is_1_for_each_key() {
-        let (eval_key, _) = setup(&Qap::new_test_qap(), &identity_toxic_waste());
+        let (eval_key, _) = setup(&new_test_qap(), &identity_toxic_waste());
         assert_eq!(eval_key.gv_ks.len(), 1);
         assert_eq!(eval_key.gw_ks.len(), 1);
         assert_eq!(eval_key.gy_ks.len(), 1);
@@ -234,7 +234,7 @@ mod tests {
             gamma: FE::one(),
         };
 
-        let test_circuit = Qap::new_test_qap();
+        let test_circuit = new_test_qap();
 
         let (eval_key, _) = setup(&test_circuit, &tw);
 
@@ -281,7 +281,7 @@ mod tests {
 
     #[test]
     fn verification_key_gvks_has_length_6_for_test_circuit() {
-        let (_, vk) = setup(&Qap::new_test_qap(), &identity_toxic_waste());
+        let (_, vk) = setup(&new_test_qap(), &identity_toxic_waste());
         assert_eq!(vk.gv_ks.len(), 6);
         assert_eq!(vk.gw_ks.len(), 6);
         assert_eq!(vk.gy_ks.len(), 6);
