@@ -1,15 +1,12 @@
-mod circuits;
-mod math;
-mod pinocchio;
+use pinocchio_vm::circuits::qap::{new_test_qap, Qap};
+use pinocchio_vm::math::field_element::FieldElement as FE;
+use pinocchio_vm::pinocchio::prover;
+use pinocchio_vm::pinocchio::setup::{setup, ToxicWaste};
+use pinocchio_vm::pinocchio::verifier;
 
-use circuits::qap::Qap;
-use math::field_element::FieldElement as FE;
-use pinocchio::prover;
-use pinocchio::setup::{setup, ToxicWaste};
-use pinocchio::verifier;
-
-fn main() {
-    let test_qap = Qap::new_test_qap();
+#[test]
+fn test_pinocchio() {
+    let test_qap = new_test_qap();
     let toxic_waste = ToxicWaste::sample();
     let (evaluation_key, verifying_key) = setup(&test_qap, &toxic_waste);
 
@@ -34,8 +31,5 @@ fn main() {
 
     let accepted = verifier::verify(&verifying_key, &proof, &c_io_vector);
 
-    println!("Evaluation key: {:?}", evaluation_key);
-    println!("Verifying key: {:?}", verifying_key);
-    println!("Proof: {:?}", proof);
-    println!("Verified ?: {:?}", accepted);
+    assert!(accepted);
 }
