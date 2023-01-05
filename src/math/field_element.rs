@@ -2,7 +2,7 @@ use super::cyclic_group::CyclicGroup;
 use rand::prelude::*;
 use std::ops;
 
-pub const ORDER: u128 = 18446744073709551359;
+pub const ORDER: u128 = 1021;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum FieldElementError {
