@@ -56,11 +56,11 @@ impl CyclicGroup for EllipticCurveElement {
         let mut base = self;
 
         while times > 0 {
-            // exponent % 2 == 1
+            // times % 2 == 1
             if times & 1 == 1 {
                 result = result.operate_with(base);
             }
-            // exponent = exponent / 2
+            // times = times / 2
             times >>= 1;
             base = base.operate_with(base);
         }
