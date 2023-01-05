@@ -380,7 +380,6 @@ mod tests {
 
     #[test]
     fn create_degree_0_new_monomial() {
-        println!("{:?}", Polynomial::new_monomial(FE::new(3).unwrap(), 0));
         assert_eq!(
             Polynomial::new_monomial(FE::new(3).unwrap(), 0),
             Polynomial::new(vec![FE::new(3).unwrap()])
