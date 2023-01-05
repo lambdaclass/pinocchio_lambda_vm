@@ -16,6 +16,7 @@ pub struct FieldElement {
 }
 
 impl FieldElement {
+    /// Creates a new field element with `value` modulo order of the field
     pub fn new(value: u128) -> Self {
         Self {
             value: value % ORDER,
