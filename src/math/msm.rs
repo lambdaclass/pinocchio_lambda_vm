@@ -28,22 +28,22 @@ mod tests {
 
     #[test]
     fn msm_23_is_6() {
-        let c = [FE::new(3).unwrap()];
-        let hiding = [FE::new(2).unwrap()];
-        assert_eq!(msm(&c, &hiding), FE::new(6).unwrap());
+        let c = [FE::new(3)];
+        let hiding = [FE::new(2)];
+        assert_eq!(msm(&c, &hiding), FE::new(6));
     }
 
     #[test]
     fn msm_with_c_2_3_hiding_3_4_is_18() {
-        let c = [FE::new(2).unwrap(), FE::new(3).unwrap()];
-        let hiding = [FE::new(3).unwrap(), FE::new(4).unwrap()];
-        assert_eq!(msm(&c, &hiding), FE::new(18).unwrap());
+        let c = [FE::new(2), FE::new(3)];
+        let hiding = [FE::new(3), FE::new(4)];
+        assert_eq!(msm(&c, &hiding), FE::new(18));
     }
 
     #[test]
     fn msm_with_empty_c_is_none() {
         let c = [];
-        let hiding = [FE::new(3).unwrap(), FE::new(4).unwrap()];
+        let hiding = [FE::new(3), FE::new(4)];
         assert_eq!(msm(&c, &hiding), FE::zero());
     }
 

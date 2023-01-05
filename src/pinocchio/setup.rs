@@ -222,15 +222,15 @@ mod tests {
     // with the given values of the eval key
     #[test]
     fn eval_key_returns_appropiate_values() {
-        let r5 = FE::new(2).unwrap();
+        let r5 = FE::new(2);
         let tw = ToxicWaste {
-            s: FE::new(2).unwrap(),
-            alpha_v: FE::new(2).unwrap(),
-            alpha_w: FE::new(2).unwrap(),
-            alpha_y: FE::new(2).unwrap(),
-            beta: FE::new(2).unwrap(),
-            rv: FE::new(2).unwrap(),
-            rw: FE::new(2).unwrap(),
+            s: FE::new(2),
+            alpha_v: FE::new(2),
+            alpha_w: FE::new(2),
+            alpha_y: FE::new(2),
+            beta: FE::new(2),
+            rv: FE::new(2),
+            rw: FE::new(2),
             gamma: FE::one(),
         };
 
@@ -241,41 +241,41 @@ mod tests {
         // These keys should be the same evaluation * rv, which is two
         assert_eq!(
             eval_key.gv_ks[0],
-            test_circuit.v_mid()[0].evaluate(r5) * FE::new(2).unwrap()
+            test_circuit.v_mid()[0].evaluate(r5) * FE::new(2)
         );
         assert_eq!(
             eval_key.gw_ks[0],
-            test_circuit.w_mid()[0].evaluate(r5) * FE::new(2).unwrap()
+            test_circuit.w_mid()[0].evaluate(r5) * FE::new(2)
         );
         // These keys should be the same evaluation * ys, which is two
         // Since the whole thing is 0
         assert_eq!(
             eval_key.gy_ks[0],
-            test_circuit.y_mid()[0].evaluate(r5) * FE::new(4).unwrap()
+            test_circuit.y_mid()[0].evaluate(r5) * FE::new(4)
         );
 
         // alpha * rv and alpha * rw is 4
         assert_eq!(
             eval_key.gv_alphaks[0],
-            test_circuit.v_mid()[0].evaluate(r5) * FE::new(4).unwrap()
+            test_circuit.v_mid()[0].evaluate(r5) * FE::new(4)
         );
         assert_eq!(
             eval_key.gv_alphaks[0],
-            test_circuit.v_mid()[0].evaluate(r5) * FE::new(4).unwrap()
+            test_circuit.v_mid()[0].evaluate(r5) * FE::new(4)
         );
         // alpha * ry and alpha * rw is 8
         assert_eq!(
             eval_key.gv_alphaks[0],
-            test_circuit.v_mid()[0].evaluate(r5) * FE::new(8).unwrap()
+            test_circuit.v_mid()[0].evaluate(r5) * FE::new(8)
         );
 
         assert_eq!(
             eval_key.g_beta[0],
             // beta * rv is 4
-            test_circuit.v_mid()[0].evaluate(r5) * FE::new(4).unwrap() +
-            test_circuit.w_mid()[0].evaluate(r5) * FE::new(4).unwrap() +
+            test_circuit.v_mid()[0].evaluate(r5) * FE::new(4) +
+            test_circuit.w_mid()[0].evaluate(r5) * FE::new(4) +
             // beta * ry is 8
-            test_circuit.y_mid()[0].evaluate(r5) * FE::new(8).unwrap()
+            test_circuit.y_mid()[0].evaluate(r5) * FE::new(8)
         )
     }
 

@@ -10,12 +10,7 @@ fn test_pinocchio() {
     let toxic_waste = ToxicWaste::sample();
     let (evaluation_key, verifying_key) = setup(&test_qap, &toxic_waste);
 
-    let inputs = [
-        FE::new(1).unwrap(),
-        FE::new(2).unwrap(),
-        FE::new(3).unwrap(),
-        FE::new(4).unwrap(),
-    ];
+    let inputs = [FE::new(1), FE::new(2), FE::new(3), FE::new(4)];
 
     // For the test circuit c_mid and c_output has only one element
     let (c_mid, c_output) = Qap::test_qap_solver(inputs);

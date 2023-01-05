@@ -67,9 +67,9 @@ mod tests {
             gv_ks: vec![FE::one(), FE::one()],
             gw_ks: vec![FE::one(), FE::one()],
             gy_ks: vec![FE::one(), FE::one()],
-            gv_alphaks: vec![FE::new(2).unwrap(), FE::new(2).unwrap()],
-            gw_alphaks: vec![FE::new(2).unwrap(), FE::new(2).unwrap()],
-            gy_alphaks: vec![FE::new(2).unwrap(), FE::new(2).unwrap()],
+            gv_alphaks: vec![FE::new(2), FE::new(2)],
+            gw_alphaks: vec![FE::new(2), FE::new(2)],
+            gy_alphaks: vec![FE::new(2), FE::new(2)],
             g_s_i: vec![FE::one(), FE::one()],
             g_beta: vec![FE::one(), FE::one()],
         };
@@ -91,14 +91,14 @@ mod tests {
         // so results shouldn't change
         let y_polynomial = vec![
             // x0
-            Polynomial::new(vec![FE::new(32).unwrap()]),
+            Polynomial::new(vec![FE::new(32)]),
             //x1 = xinput
-            Polynomial::new(vec![FE::new(123).unwrap(), FE::new(123).unwrap()]),
+            Polynomial::new(vec![FE::new(123), FE::new(123)]),
             //xmid
             Polynomial::new(vec![FE::one(), FE::one()]),
             Polynomial::new(vec![FE::one(), FE::one()]),
             //xoutput
-            Polynomial::new(vec![FE::new(321).unwrap(), FE::new(321).unwrap()]),
+            Polynomial::new(vec![FE::new(321), FE::new(321)]),
         ];
 
         // 1 input, and 1 output, so there are 2 values in the middle
@@ -115,16 +115,16 @@ mod tests {
             //c1
             FE::one(),
             //c_mids
-            FE::new(2).unwrap(),
-            FE::new(3).unwrap(),
+            FE::new(2),
+            FE::new(3),
             //c4 = c_output
             FE::one(),
         ];
 
         let proof = generate_proof(&easy_eval_key, &easy_qap, &c_coefficients);
 
-        assert_eq!(proof.g_vs, FE::new(5).unwrap());
-        assert_eq!(proof.g_ys, FE::new(5).unwrap());
-        assert_eq!(proof.g_alpha_vs, FE::new(10).unwrap());
+        assert_eq!(proof.g_vs, FE::new(5));
+        assert_eq!(proof.g_ys, FE::new(5));
+        assert_eq!(proof.g_alpha_vs, FE::new(10));
     }
 }
