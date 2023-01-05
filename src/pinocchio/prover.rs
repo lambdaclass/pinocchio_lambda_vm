@@ -64,27 +64,27 @@ mod tests {
     fn proof_test() {
         // This eval key is the identity
         let easy_eval_key = EvaluationKey {
-            gv_ks: vec![FE::one(), FE::one()],
-            gw_ks: vec![FE::one(), FE::one()],
-            gy_ks: vec![FE::one(), FE::one()],
+            gv_ks: vec![FE::new(1), FE::new(1)],
+            gw_ks: vec![FE::new(1), FE::new(1)],
+            gy_ks: vec![FE::new(1), FE::new(1)],
             gv_alphaks: vec![FE::new(2), FE::new(2)],
             gw_alphaks: vec![FE::new(2), FE::new(2)],
             gy_alphaks: vec![FE::new(2), FE::new(2)],
-            g_s_i: vec![FE::one(), FE::one()],
-            g_beta: vec![FE::one(), FE::one()],
+            g_s_i: vec![FE::new(1), FE::new(1)],
+            g_beta: vec![FE::new(1), FE::new(1)],
         };
 
         // vwy are all equals, the 0 element is 0, the rest are ones
         let vw_polynomial = vec![
             // x0
-            Polynomial::new(vec![FE::zero()]),
+            Polynomial::new(vec![FE::new(0)]),
             //x1 = xinput
-            Polynomial::new(vec![FE::one(), FE::one()]),
+            Polynomial::new(vec![FE::new(1), FE::new(1)]),
             //xmid
-            Polynomial::new(vec![FE::one(), FE::one()]),
-            Polynomial::new(vec![FE::one(), FE::one()]),
+            Polynomial::new(vec![FE::new(1), FE::new(1)]),
+            Polynomial::new(vec![FE::new(1), FE::new(1)]),
             //xoutput
-            Polynomial::new(vec![FE::one(), FE::one()]),
+            Polynomial::new(vec![FE::new(1), FE::new(1)]),
         ];
 
         // y is different than vw, but only in values not in the middle
@@ -95,8 +95,8 @@ mod tests {
             //x1 = xinput
             Polynomial::new(vec![FE::new(123), FE::new(123)]),
             //xmid
-            Polynomial::new(vec![FE::one(), FE::one()]),
-            Polynomial::new(vec![FE::one(), FE::one()]),
+            Polynomial::new(vec![FE::new(1), FE::new(1)]),
+            Polynomial::new(vec![FE::new(1), FE::new(1)]),
             //xoutput
             Polynomial::new(vec![FE::new(321), FE::new(321)]),
         ];
@@ -106,19 +106,19 @@ mod tests {
             v: vw_polynomial.clone(),
             w: vw_polynomial,
             y: y_polynomial,
-            target: Polynomial::new(vec![FE::one(), FE::one()]),
+            target: Polynomial::new(vec![FE::new(1), FE::new(1)]),
             number_of_inputs: 1,
             number_of_outputs: 1,
         };
 
         let c_coefficients = vec![
             //c1
-            FE::one(),
+            FE::new(1),
             //c_mids
             FE::new(2),
             FE::new(3),
             //c4 = c_output
-            FE::one(),
+            FE::new(1),
         ];
 
         let proof = generate_proof(&easy_eval_key, &easy_qap, &c_coefficients);

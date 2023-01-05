@@ -158,38 +158,38 @@ pub fn new_test_qap() -> Qap {
     let vs = &[
         // v0 is 0 for everypoint for the circuit, since it has no constants
         // in the paper they don't write it
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::zero()]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
         // v1..v6 are the ones explicitly written in the paper
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::one()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::one()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::one(), FE::zero()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::zero()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::zero()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::zero()]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(1)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(1)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(1), FE::new(0)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
     ];
 
     let ws = &[
         //w0
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::zero()]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
         //w1
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::zero()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::zero()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::zero()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::one(), FE::zero()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::one()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::zero()]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(1), FE::new(0)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(1)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
     ];
 
     let ys = &[
         //y0
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::zero()]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
         //y1
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::zero()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::zero()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::zero()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::zero()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::one(), FE::zero()]),
-        Polynomial::interpolate(&[r5, r6], &[FE::zero(), FE::one()]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(1), FE::new(0)]),
+        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(1)]),
     ];
 
     Qap::new(vs.to_vec(), ws.to_vec(), ys.to_vec(), t, 4, 1).unwrap()
@@ -227,7 +227,7 @@ mod tests {
     fn v_mid_test_circuit_on_r6_is_0() {
         let test_circuit = new_test_qap();
         let r6 = Qap::test_qap_r6();
-        assert_eq!(test_circuit.y_mid()[0].evaluate(r6), FE::zero());
+        assert_eq!(test_circuit.y_mid()[0].evaluate(r6), FE::new(0));
     }
 
     #[test]
@@ -240,28 +240,28 @@ mod tests {
     fn w_mid_test_circuit_on_r5_is_0() {
         let test_circuit = new_test_qap();
         let r5 = Qap::test_qap_r5();
-        assert_eq!(test_circuit.w_mid()[0].evaluate(r5), FE::zero());
+        assert_eq!(test_circuit.w_mid()[0].evaluate(r5), FE::new(0));
     }
 
     #[test]
     fn w_mid_test_circuit_on_r6_is_1() {
         let test_circuit = new_test_qap();
         let r6 = Qap::test_qap_r6();
-        assert_eq!(test_circuit.w_mid()[0].evaluate(r6), FE::one());
+        assert_eq!(test_circuit.w_mid()[0].evaluate(r6), FE::new(1));
     }
 
     #[test]
     fn y_mid_test_circuit_on_r5_is_1() {
         let test_circuit = new_test_qap();
         let r5 = Qap::test_qap_r5();
-        assert_eq!(test_circuit.y_mid()[0].evaluate(r5), FE::one());
+        assert_eq!(test_circuit.y_mid()[0].evaluate(r5), FE::new(1));
     }
 
     #[test]
     fn y_mid_test_circuit_on_r6_is_0() {
         let test_circuit = new_test_qap();
         let r6 = Qap::test_qap_r6();
-        assert_eq!(test_circuit.y_mid()[0].evaluate(r6), FE::zero());
+        assert_eq!(test_circuit.y_mid()[0].evaluate(r6), FE::new(0));
     }
 
     #[test]
@@ -314,7 +314,7 @@ mod tests {
 
         assert_eq!(
             test_circuit.h_polynomial(&c_vector),
-            Polynomial::new_monomial(FE::zero(), 0)
+            Polynomial::new_monomial(FE::new(0), 0)
         );
 
         let inputs = [FE::new(2), FE::new(2), FE::new(2), FE::new(2)];

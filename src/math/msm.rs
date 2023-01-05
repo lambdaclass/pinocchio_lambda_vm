@@ -11,7 +11,7 @@ pub fn msm(c: &[FE], hidings: &[CyclicGroupType]) -> CyclicGroupType {
         .zip(hidings.iter())
         .map(|(&c, &h)| h.operate_with_self(c))
         .reduce(|acc, x| acc + x)
-        .unwrap_or_else(CyclicGroupType::zero)
+        .unwrap_or_else(CyclicGroupType::neutral_element)
 }
 
 #[cfg(test)]
@@ -21,9 +21,9 @@ mod tests {
     //MSM tests require the CyclicGroupType to be a FieldElement
     #[test]
     fn msm_11_is_1() {
-        let c = [FE::one()];
-        let hiding = [FE::one()];
-        assert_eq!(msm(&c, &hiding), FE::one());
+        let c = [FE::new(1)];
+        let hiding = [FE::new(1)];
+        assert_eq!(msm(&c, &hiding), FE::new(1));
     }
 
     #[test]
@@ -44,20 +44,20 @@ mod tests {
     fn msm_with_empty_c_is_none() {
         let c = [];
         let hiding = [FE::new(3), FE::new(4)];
-        assert_eq!(msm(&c, &hiding), FE::zero());
+        assert_eq!(msm(&c, &hiding), FE::new(0));
     }
 
     #[test]
     fn msm_with_emtpy_hiding_is_none() {
-        let c = [FE::zero()];
+        let c = [FE::new(0)];
         let hiding = [];
-        assert_eq!(msm(&c, &hiding), FE::zero());
+        assert_eq!(msm(&c, &hiding), FE::new(0));
     }
 
     #[test]
     fn msm_with_empty_arguments_is_none() {
         let c = [];
         let hiding = [];
-        assert_eq!(msm(&c, &hiding), FE::zero());
+        assert_eq!(msm(&c, &hiding), FE::new(0));
     }
 }

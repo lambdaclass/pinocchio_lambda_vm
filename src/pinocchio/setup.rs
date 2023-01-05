@@ -102,7 +102,7 @@ fn generate_verifying_key(
     }
 
     VerifyingKey {
-        g_1: g * CyclicGroupType::one(),
+        g_1: g,
         g_alpha_v: g * alpha_v,
         g_alpha_w: g * alpha_w,
         g_alpha_y: g * alpha_y,
@@ -195,14 +195,14 @@ mod tests {
 
     fn identity_toxic_waste() -> ToxicWaste {
         ToxicWaste {
-            s: FE::one(),
-            alpha_v: FE::one(),
-            alpha_w: FE::one(),
-            alpha_y: FE::one(),
-            beta: FE::one(),
-            rv: FE::one(),
-            rw: FE::one(),
-            gamma: FE::one(),
+            s: FE::new(1),
+            alpha_v: FE::new(1),
+            alpha_w: FE::new(1),
+            alpha_y: FE::new(1),
+            beta: FE::new(1),
+            rv: FE::new(1),
+            rw: FE::new(1),
+            gamma: FE::new(1),
         }
     }
 
@@ -231,7 +231,7 @@ mod tests {
             beta: FE::new(2),
             rv: FE::new(2),
             rw: FE::new(2),
-            gamma: FE::one(),
+            gamma: FE::new(1),
         };
 
         let test_circuit = new_test_qap();

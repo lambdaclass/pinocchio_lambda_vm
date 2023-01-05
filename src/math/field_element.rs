@@ -16,15 +16,6 @@ pub struct FieldElement {
 }
 
 impl FieldElement {
-    pub fn zero() -> Self {
-        FieldElement { value: 0 }
-    }
-
-    //This is used in functions that are necessary for the next steps
-    pub fn one() -> Self {
-        FieldElement { value: 1 }
-    }
-
     pub fn new(value: u128) -> Self {
         Self {
             value: value % ORDER,
@@ -111,7 +102,11 @@ impl ops::Div for FieldElement {
 
 impl CyclicGroup for FieldElement {
     fn generator() -> FieldElement {
-        FieldElement::one()
+        FieldElement::new(1)
+    }
+
+    fn neutral_element() -> FieldElement {
+        FieldElement::new(0)
     }
 
     fn operate_with_self(self, other: FieldElement) -> Self {
@@ -266,12 +261,12 @@ mod tests {
 
     #[test]
     fn zero_constructor_returns_zero() {
-        assert_eq!(FieldElement::zero(), FieldElement::new(0));
+        assert_eq!(FieldElement::new(0), FieldElement::new(0));
     }
 
     #[test]
     fn field_element_as_group_element_generator_returns_one() {
-        assert_eq!(FieldElement::generator(), FieldElement::one());
+        assert_eq!(FieldElement::generator(), FieldElement::new(1));
     }
 
     #[test]
