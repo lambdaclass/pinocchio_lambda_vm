@@ -79,7 +79,7 @@ impl ops::Neg for FieldElement {
     type Output = FieldElement;
 
     fn neg(self) -> FieldElement {
-        FieldElement::new((ORDER - self.value) % ORDER)
+        FieldElement::new(ORDER - self.value)
     }
 }
 
