@@ -1,7 +1,8 @@
-use crate::math::field_element::FieldElement as FE;
+use crate::math::field_element::FieldElement;
 
 use crate::math::cyclic_group::CyclicGroup;
 
+type FE = FieldElement<13>;
 pub type CyclicGroupType = FE;
 
 /// Calculates msm for C and hidings
@@ -9,7 +10,7 @@ pub type CyclicGroupType = FE;
 pub fn msm(c: &[FE], hidings: &[CyclicGroupType]) -> CyclicGroupType {
     c.iter()
         .zip(hidings.iter())
-        .map(|(&c, &h)| h.operate_with_self(c))
+        .map(|(&c, &h)| h.operate_with_self(c.representative()))
         .reduce(|acc, x| acc + x)
         .unwrap_or_else(CyclicGroupType::neutral_element)
 }

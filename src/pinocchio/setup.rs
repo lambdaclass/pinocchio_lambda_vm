@@ -1,7 +1,10 @@
 use crate::circuits::qap::Qap;
 use crate::math;
 use math::cyclic_group::CyclicGroup;
-use math::field_element::FieldElement as FE;
+use math::field_element::FieldElement;
+
+const ORDER: u128 = 13;
+type FE = FieldElement<ORDER>;
 pub type CyclicGroupType = FE;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -85,20 +88,20 @@ fn generate_verifying_key(
     let mut gw_ks_io: Vec<CyclicGroupType> = Vec::with_capacity(vector_capacity);
     let mut gy_ks_io: Vec<CyclicGroupType> = Vec::with_capacity(vector_capacity);
 
-    gv_ks_io.push(g.operate_with_self(rv * qap.v0().evaluate(s)));
-    gw_ks_io.push(g.operate_with_self(rw * qap.w0().evaluate(s)));
-    gy_ks_io.push(g.operate_with_self(ry * qap.y0().evaluate(s)));
+    gv_ks_io.push(g.operate_with_self((rv * qap.v0().evaluate(s)).representative()));
+    gw_ks_io.push(g.operate_with_self((rw * qap.w0().evaluate(s)).representative()));
+    gy_ks_io.push(g.operate_with_self((ry * qap.y0().evaluate(s)).representative()));
 
     for k in 0..qap.v_input().len() {
-        gv_ks_io.push(g.operate_with_self(rv * qap.v_input()[k].evaluate(s)));
-        gw_ks_io.push(g.operate_with_self(rw * qap.w_input()[k].evaluate(s)));
-        gy_ks_io.push(g.operate_with_self(ry * qap.y_input()[k].evaluate(s)));
+        gv_ks_io.push(g.operate_with_self((rv * qap.v_input()[k].evaluate(s)).representative()));
+        gw_ks_io.push(g.operate_with_self((rw * qap.w_input()[k].evaluate(s)).representative()));
+        gy_ks_io.push(g.operate_with_self((ry * qap.y_input()[k].evaluate(s)).representative()));
     }
 
     for k in 0..qap.v_output().len() {
-        gv_ks_io.push(g.operate_with_self(rv * qap.v_output()[k].evaluate(s)));
-        gw_ks_io.push(g.operate_with_self(rw * qap.w_output()[k].evaluate(s)));
-        gy_ks_io.push(g.operate_with_self(ry * qap.y_output()[k].evaluate(s)));
+        gv_ks_io.push(g.operate_with_self((rv * qap.v_output()[k].evaluate(s)).representative()));
+        gw_ks_io.push(g.operate_with_self((rw * qap.w_output()[k].evaluate(s)).representative()));
+        gy_ks_io.push(g.operate_with_self((ry * qap.y_output()[k].evaluate(s)).representative()));
     }
 
     VerifyingKey {
@@ -148,12 +151,15 @@ fn generate_evaluation_key(
 
     // Set evaluation keys for each of their respective k mid element
     for k in 0..vs_mid.len() {
-        gv_ks_mid.push(g.operate_with_self(rv * vs_mid[k].evaluate(s)));
-        gw_ks_mid.push(g.operate_with_self(rw * ws_mid[k].evaluate(s)));
-        gy_ks_mid.push(g.operate_with_self(ry * ys_mid[k].evaluate(s)));
-        gv_alphaks_mid.push(g.operate_with_self(ry * alpha_v * vs_mid[k].evaluate(s)));
-        gw_alphaks_mid.push(g.operate_with_self(rw * alpha_w * ws_mid[k].evaluate(s)));
-        gy_alphaks_mid.push(g.operate_with_self(ry * alpha_y * ys_mid[k].evaluate(s)));
+        gv_ks_mid.push(g.operate_with_self((rv * vs_mid[k].evaluate(s)).representative()));
+        gw_ks_mid.push(g.operate_with_self((rw * ws_mid[k].evaluate(s)).representative()));
+        gy_ks_mid.push(g.operate_with_self((ry * ys_mid[k].evaluate(s)).representative()));
+        gv_alphaks_mid
+            .push(g.operate_with_self((ry * alpha_v * vs_mid[k].evaluate(s)).representative()));
+        gw_alphaks_mid
+            .push(g.operate_with_self((rw * alpha_w * ws_mid[k].evaluate(s)).representative()));
+        gy_alphaks_mid
+            .push(g.operate_with_self((ry * alpha_y * ys_mid[k].evaluate(s)).representative()));
         g_beta_mid.push(
             rv * beta * vs_mid[k].evaluate(s)
                 + rw * beta * ws_mid[k].evaluate(s)
@@ -164,7 +170,7 @@ fn generate_evaluation_key(
     for i in 0..qap.target.degree() {
         // This unwrap would only fail in an OS
         // with 256 bits pointer, which doesn't exist
-        g_s_i.push(g.operate_with_self(s.pow(i.try_into().unwrap())));
+        g_s_i.push(g.operate_with_self(s.pow(i.try_into().unwrap()).representative()));
     }
 
     EvaluationKey {

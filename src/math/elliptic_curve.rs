@@ -1,4 +1,6 @@
-use super::{cyclic_group::CyclicGroup, field_element::FieldElement as FE};
+use super::{cyclic_group::CyclicGroup, field_element::FieldElement};
+
+type FE = FieldElement<1021>;
 
 // Projective Short Weierstrass form
 #[derive(Debug, Copy, Clone)]
@@ -48,7 +50,7 @@ impl CyclicGroup for EllipticCurveElement {
         Self::new(FE::new(0), FE::new(1), FE::new(0))
     }
 
-    fn operate_with_self(self, _times: FE) -> Self {
+    fn operate_with_self(self, _times: u128) -> Self {
         todo!()
     }
 
@@ -121,6 +123,11 @@ mod tests {
         assert_eq!(
             EllipticCurveElement::new(FE::new(0), FE::new(1), FE::new(0)),
             EllipticCurveElement::new(FE::new(0), -FE::new(1), FE::new(0)),
+        );
+
+        assert_ne!(
+            EllipticCurveElement::new(FE::new(1006), FE::new(416), FE::new(1)),
+            EllipticCurveElement::new(FE::new(0), FE::new(1), FE::new(0)),
         );
     }
 

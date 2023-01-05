@@ -1,5 +1,8 @@
-use super::field_element::FieldElement as FE;
+use super::field_element::FieldElement;
 use std::ops;
+
+const ORDER: u128 = 13;
+type FE = FieldElement<ORDER>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Polynomial {
@@ -179,7 +182,6 @@ mod tests {
     /*
         Some of these tests work when the finite field has order greater than 2.
     */
-    use super::super::field_element::ORDER;
     use super::*;
 
     fn polynomial_a() -> Polynomial {

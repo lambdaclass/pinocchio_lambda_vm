@@ -2,8 +2,6 @@ use super::cyclic_group::CyclicGroup;
 use rand::prelude::*;
 use std::ops;
 
-pub const ORDER: u128 = 1021;
-
 #[derive(Debug, PartialEq, Eq)]
 pub enum FieldElementError {
     OutOfRangeValue,
@@ -11,16 +9,20 @@ pub enum FieldElementError {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct FieldElement {
+pub struct FieldElement<const ORDER: u128> {
     value: u128,
 }
 
-impl FieldElement {
+impl<const ORDER: u128> FieldElement<ORDER> {
     /// Creates a new field element with `value` modulo order of the field
     pub fn new(value: u128) -> Self {
         Self {
             value: value % ORDER,
         }
+    }
+
+    pub fn representative(&self) -> u128 {
+        self.value
     }
 
     pub fn random() -> Self {
@@ -53,47 +55,47 @@ impl FieldElement {
     }
 }
 
-impl ops::Add<FieldElement> for FieldElement {
-    type Output = FieldElement;
+impl<const ORDER: u128> ops::Add<FieldElement<ORDER>> for FieldElement<ORDER> {
+    type Output = FieldElement<ORDER>;
 
-    fn add(self, a_field_element: FieldElement) -> FieldElement {
+    fn add(self, a_field_element: FieldElement<ORDER>) -> FieldElement<ORDER> {
         FieldElement::new(self.value + a_field_element.value)
     }
 }
 
-impl ops::AddAssign for FieldElement {
+impl<const ORDER: u128> ops::AddAssign for FieldElement<ORDER> {
     fn add_assign(&mut self, other: Self) {
         *self = *self + other;
     }
 }
 
-impl ops::Neg for FieldElement {
-    type Output = FieldElement;
+impl<const ORDER: u128> ops::Neg for FieldElement<ORDER> {
+    type Output = FieldElement<ORDER>;
 
-    fn neg(self) -> FieldElement {
+    fn neg(self) -> FieldElement<ORDER> {
         FieldElement::new(ORDER - self.value)
     }
 }
 
-impl ops::Sub<FieldElement> for FieldElement {
-    type Output = FieldElement;
+impl<const ORDER: u128> ops::Sub<FieldElement<ORDER>> for FieldElement<ORDER> {
+    type Output = FieldElement<ORDER>;
 
-    fn sub(self, substrahend: FieldElement) -> FieldElement {
+    fn sub(self, substrahend: FieldElement<ORDER>) -> FieldElement<ORDER> {
         let neg_substrahend = -substrahend;
         self + neg_substrahend
     }
 }
 
-impl ops::Mul for FieldElement {
-    type Output = FieldElement;
+impl<const ORDER: u128> ops::Mul for FieldElement<ORDER> {
+    type Output = FieldElement<ORDER>;
 
     fn mul(self, a_field_element: Self) -> Self {
         FieldElement::new(self.value * a_field_element.value)
     }
 }
 
-impl ops::Div for FieldElement {
-    type Output = FieldElement;
+impl<const ORDER: u128> ops::Div for FieldElement<ORDER> {
+    type Output = FieldElement<ORDER>;
 
     #[allow(clippy::suspicious_arithmetic_impl)]
     fn div(self, dividend: Self) -> Self {
@@ -101,17 +103,17 @@ impl ops::Div for FieldElement {
     }
 }
 
-impl CyclicGroup for FieldElement {
-    fn generator() -> FieldElement {
+impl<const ORDER: u128> CyclicGroup for FieldElement<ORDER> {
+    fn generator() -> FieldElement<ORDER> {
         FieldElement::new(1)
     }
 
-    fn neutral_element() -> FieldElement {
+    fn neutral_element() -> FieldElement<ORDER> {
         FieldElement::new(0)
     }
 
-    fn operate_with_self(self, other: FieldElement) -> Self {
-        self * other
+    fn operate_with_self(self, times: u128) -> Self {
+        FieldElement::new(times) * self
     }
 
     fn pairing(self, other: Self) -> Self {
@@ -126,6 +128,8 @@ impl CyclicGroup for FieldElement {
 #[cfg(test)]
 mod tests {
     use super::*;
+    const ORDER: u128 = 13;
+    type FE = FieldElement<ORDER>;
 
     #[test]
     fn order_must_small_as_to_not_allow_overflows() {
@@ -135,153 +139,138 @@ mod tests {
 
     #[test]
     fn two_plus_one_is_three() {
-        assert_eq!(
-            FieldElement::new(2) + FieldElement::new(1),
-            FieldElement::new(3)
-        );
+        assert_eq!(FE::new(2) + FE::new(1), FE::new(3));
     }
 
     #[test]
     fn max_order_plus_1_is_0() {
-        assert_eq!(
-            FieldElement::new(ORDER - 1) + FieldElement::new(1),
-            FieldElement::new(0)
-        );
+        assert_eq!(FE::new(ORDER - 1) + FE::new(1), FE::new(0));
     }
 
     #[test]
     fn when_comparing_13_and_13_they_are_equal() {
-        let a: FieldElement = FieldElement::new(13);
-        let b: FieldElement = FieldElement::new(13);
+        let a: FE = FE::new(13);
+        let b: FE = FE::new(13);
         assert_eq!(a, b);
     }
 
     #[test]
     fn when_comparing_13_and_8_they_are_different() {
-        let a: FieldElement = FieldElement::new(13);
-        let b: FieldElement = FieldElement::new(8);
+        let a: FE = FE::new(13);
+        let b: FE = FE::new(8);
         assert_ne!(a, b);
     }
 
     #[test]
     fn mul_neutral_element() {
-        let a: FieldElement = FieldElement::new(1);
-        let b: FieldElement = FieldElement::new(2);
-        assert_eq!(a * b, FieldElement::new(2));
+        let a: FE = FE::new(1);
+        let b: FE = FE::new(2);
+        assert_eq!(a * b, FE::new(2));
     }
 
     #[test]
     fn mul_2_3_is_6() {
-        let a: FieldElement = FieldElement::new(2);
-        let b: FieldElement = FieldElement::new(3);
-        assert_eq!(a * b, FieldElement::new(6));
+        let a: FE = FE::new(2);
+        let b: FE = FE::new(3);
+        assert_eq!(a * b, FE::new(6));
     }
 
     #[test]
     fn mul_order_minus_1() {
-        let a: FieldElement = FieldElement::new(ORDER - 1);
-        let b: FieldElement = FieldElement::new(ORDER - 1);
-        assert_eq!(a * b, FieldElement::new(1));
+        let a: FE = FE::new(ORDER - 1);
+        let b: FE = FE::new(ORDER - 1);
+        assert_eq!(a * b, FE::new(1));
     }
 
     #[test]
     fn inv_0_error() {
-        let a: FieldElement = FieldElement::new(0);
+        let a: FE = FE::new(0);
         assert_eq!(a.inv().unwrap_err(), FieldElementError::DivisionByZero);
     }
 
     #[test]
     fn inv_2() {
-        let a: FieldElement = FieldElement::new(2);
-        assert_eq!(a * a.inv().unwrap(), FieldElement::new(1));
+        let a: FE = FE::new(2);
+        assert_eq!(a * a.inv().unwrap(), FE::new(1));
     }
 
     #[test]
     fn pow_2_3() {
-        assert_eq!(FieldElement::new(2).pow(3), FieldElement::new(8))
+        assert_eq!(FE::new(2).pow(3), FE::new(8))
     }
 
     #[test]
     fn pow_p_minus_1() {
-        assert_eq!(FieldElement::new(2).pow(ORDER - 1), FieldElement::new(1))
+        assert_eq!(FE::new(2).pow(ORDER - 1), FE::new(1))
     }
 
     #[test]
     fn div_1() {
-        assert_eq!(
-            FieldElement::new(2) / FieldElement::new(1),
-            FieldElement::new(2)
-        )
+        assert_eq!(FE::new(2) / FE::new(1), FE::new(2))
     }
 
     #[test]
     fn div_4_2() {
-        assert_eq!(
-            FieldElement::new(4) / FieldElement::new(2),
-            FieldElement::new(2)
-        )
+        assert_eq!(FE::new(4) / FE::new(2), FE::new(2))
     }
 
     #[test]
     fn div_4_3() {
-        assert_eq!(
-            FieldElement::new(4) / FieldElement::new(3) * FieldElement::new(3),
-            FieldElement::new(4)
-        )
+        assert_eq!(FE::new(4) / FE::new(3) * FE::new(3), FE::new(4))
     }
 
     #[test]
     fn two_plus_its_additive_inv_is_0() {
-        let two = FieldElement::new(2);
+        let two = FE::new(2);
 
-        assert_eq!(two + (-two), FieldElement::new(0))
+        assert_eq!(two + (-two), FE::new(0))
     }
 
     #[test]
     fn four_minus_three_is_1() {
-        let four = FieldElement::new(4);
-        let three = FieldElement::new(3);
+        let four = FE::new(4);
+        let three = FE::new(3);
 
-        assert_eq!(four - three, FieldElement::new(1))
+        assert_eq!(four - three, FE::new(1))
     }
 
     #[test]
     fn zero_minus_1_is_order_minus_1() {
-        let zero = FieldElement::new(0);
-        let one = FieldElement::new(1);
+        let zero = FE::new(0);
+        let one = FE::new(1);
 
-        assert_eq!(zero - one, FieldElement::new(ORDER - 1))
+        assert_eq!(zero - one, FE::new(ORDER - 1))
     }
 
     #[test]
     fn neg_zero_is_zero() {
-        let zero = FieldElement::new(0);
+        let zero = FE::new(0);
 
         assert_eq!(-zero, zero);
     }
 
     #[test]
     fn zero_constructor_returns_zero() {
-        assert_eq!(FieldElement::new(0), FieldElement::new(0));
+        assert_eq!(FE::new(0), FE::new(0));
     }
 
     #[test]
     fn field_element_as_group_element_generator_returns_one() {
-        assert_eq!(FieldElement::generator(), FieldElement::new(1));
+        assert_eq!(FE::generator(), FE::new(1));
     }
 
     #[test]
     fn field_element_as_group_element_multiplication_by_scalar_works_as_multiplication_in_finite_fields(
     ) {
-        let a = FieldElement::new(3);
-        let b = FieldElement::new(12);
-        assert_eq!(a * b, a.operate_with_self(b));
+        let a = FE::new(3);
+        let b = FE::new(12);
+        assert_eq!(a * b, a.operate_with_self(12));
     }
 
     #[test]
     fn field_element_as_group_element_pairing_works_as_multiplication_in_finite_fields() {
-        let a = FieldElement::new(3);
-        let b = FieldElement::new(12);
+        let a = FE::new(3);
+        let b = FE::new(12);
         assert_eq!(a * b, a.pairing(b));
     }
 }

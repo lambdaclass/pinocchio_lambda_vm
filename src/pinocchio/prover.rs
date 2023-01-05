@@ -1,8 +1,11 @@
 use crate::circuits::qap::Qap;
-use crate::math::field_element::FieldElement as FE;
+use crate::math::field_element::FieldElement;
 use crate::math::msm::msm;
 
 use super::setup::EvaluationKey;
+
+const ORDER: u128 = 13;
+type FE = FieldElement<ORDER>;
 pub type CyclicGroupType = FE;
 
 /// Proof for Pinocchio

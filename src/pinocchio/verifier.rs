@@ -1,8 +1,11 @@
 use super::prover::Proof;
 use super::setup::VerifyingKey;
 use crate::math::{self, cyclic_group::CyclicGroup};
-use math::field_element::FieldElement as FE;
+use math::field_element::FieldElement;
 use math::msm::msm;
+
+const ORDER: u128 = 13;
+type FE = FieldElement<ORDER>;
 
 pub fn verify(verifying_key: &VerifyingKey, proof: &Proof, c_input_output: &[FE]) -> bool {
     let b1 = check_divisibility(verifying_key, proof, c_input_output);
