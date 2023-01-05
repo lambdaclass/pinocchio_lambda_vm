@@ -50,8 +50,21 @@ impl CyclicGroup for EllipticCurveElement {
         Self::new(FE::new(0), FE::new(1), FE::new(0))
     }
 
-    fn operate_with_self(self, _times: u128) -> Self {
-        todo!()
+    fn operate_with_self(self, times: u128) -> Self {
+        let mut times = times;
+        let mut result = Self::neutral_element();
+        let mut base = self;
+
+        while times > 0 {
+            // exponent % 2 == 1
+            if times & 1 == 1 {
+                result = result.operate_with(base);
+            }
+            // exponent = exponent / 2
+            times >>= 1;
+            base = base.operate_with(base);
+        }
+        result
     }
 
     /// Taken from moonmath (Algorithm 7, page 89)
@@ -132,14 +145,10 @@ mod tests {
     }
 
     #[test]
-    fn operation_on_elliptic_curve_works() {
-        let point_1 = EllipticCurveElement::generator();
-        let mut res = EllipticCurveElement::neutral_element();
-
-        for _ in 0..23 {
-            res = res.operate_with(point_1);
-        }
-        assert_eq!(res, EllipticCurveElement::neutral_element());
+    fn operate_with_self_works() {
+        let mut point_1 = EllipticCurveElement::generator();
+        point_1 = point_1.operate_with_self(23);
+        assert_eq!(point_1, EllipticCurveElement::neutral_element());
     }
 
     #[test]
