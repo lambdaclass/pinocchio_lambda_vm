@@ -16,20 +16,10 @@ pub struct FieldElement {
 }
 
 impl FieldElement {
-    pub fn zero() -> Self {
-        FieldElement { value: 0 }
-    }
-
-    //This is used in functions that are necessary for the next steps
-    pub fn one() -> Self {
-        FieldElement { value: 1 }
-    }
-
-    pub fn new(value: u128) -> Result<Self, FieldElementError> {
-        if value < ORDER {
-            Ok(Self { value })
-        } else {
-            Err(FieldElementError::OutOfRangeValue)
+    /// Creates a new field element with `value` modulo order of the field
+    pub fn new(value: u128) -> Self {
+        Self {
+            value: value % ORDER,
         }
     }
 
@@ -39,7 +29,7 @@ impl FieldElement {
     }
 
     pub fn pow(self, mut exponent: u128) -> Self {
-        let mut result = Self::new(1).unwrap();
+        let mut result = Self::new(1);
         let mut base = self;
 
         while exponent > 0 {
@@ -67,7 +57,7 @@ impl ops::Add<FieldElement> for FieldElement {
     type Output = FieldElement;
 
     fn add(self, a_field_element: FieldElement) -> FieldElement {
-        FieldElement::new((self.value + a_field_element.value) % ORDER).unwrap()
+        FieldElement::new(self.value + a_field_element.value)
     }
 }
 
@@ -81,7 +71,7 @@ impl ops::Neg for FieldElement {
     type Output = FieldElement;
 
     fn neg(self) -> FieldElement {
-        FieldElement::new((ORDER - self.value) % ORDER).unwrap()
+        FieldElement::new(ORDER - self.value)
     }
 }
 
@@ -98,7 +88,7 @@ impl ops::Mul for FieldElement {
     type Output = FieldElement;
 
     fn mul(self, a_field_element: Self) -> Self {
-        FieldElement::new(self.value * a_field_element.value % ORDER).unwrap()
+        FieldElement::new(self.value * a_field_element.value)
     }
 }
 
@@ -113,7 +103,11 @@ impl ops::Div for FieldElement {
 
 impl CyclicGroup for FieldElement {
     fn generator() -> FieldElement {
-        FieldElement::one()
+        FieldElement::new(1)
+    }
+
+    fn neutral_element() -> FieldElement {
+        FieldElement::new(0)
     }
 
     fn operate_with_self(self, other: FieldElement) -> Self {
@@ -142,159 +136,152 @@ mod tests {
     #[test]
     fn two_plus_one_is_three() {
         assert_eq!(
-            FieldElement::new(2).unwrap() + FieldElement::new(1).unwrap(),
-            FieldElement::new(3).unwrap()
+            FieldElement::new(2) + FieldElement::new(1),
+            FieldElement::new(3)
         );
     }
 
     #[test]
     fn max_order_plus_1_is_0() {
         assert_eq!(
-            FieldElement::new(ORDER - 1).unwrap() + FieldElement::new(1).unwrap(),
-            FieldElement::new(0).unwrap()
+            FieldElement::new(ORDER - 1) + FieldElement::new(1),
+            FieldElement::new(0)
         );
     }
 
     #[test]
     fn when_comparing_13_and_13_they_are_equal() {
-        let a: FieldElement = FieldElement::new(13).unwrap();
-        let b: FieldElement = FieldElement::new(13).unwrap();
+        let a: FieldElement = FieldElement::new(13);
+        let b: FieldElement = FieldElement::new(13);
         assert_eq!(a, b);
     }
 
     #[test]
     fn when_comparing_13_and_8_they_are_different() {
-        let a: FieldElement = FieldElement::new(13).unwrap();
-        let b: FieldElement = FieldElement::new(8).unwrap();
+        let a: FieldElement = FieldElement::new(13);
+        let b: FieldElement = FieldElement::new(8);
         assert_ne!(a, b);
     }
 
     #[test]
     fn mul_neutral_element() {
-        let a: FieldElement = FieldElement::new(1).unwrap();
-        let b: FieldElement = FieldElement::new(2).unwrap();
-        assert_eq!(a * b, FieldElement::new(2).unwrap());
+        let a: FieldElement = FieldElement::new(1);
+        let b: FieldElement = FieldElement::new(2);
+        assert_eq!(a * b, FieldElement::new(2));
     }
 
     #[test]
     fn mul_2_3_is_6() {
-        let a: FieldElement = FieldElement::new(2).unwrap();
-        let b: FieldElement = FieldElement::new(3).unwrap();
-        assert_eq!(a * b, FieldElement::new(6).unwrap());
+        let a: FieldElement = FieldElement::new(2);
+        let b: FieldElement = FieldElement::new(3);
+        assert_eq!(a * b, FieldElement::new(6));
     }
 
     #[test]
     fn mul_order_minus_1() {
-        let a: FieldElement = FieldElement::new(ORDER - 1).unwrap();
-        let b: FieldElement = FieldElement::new(ORDER - 1).unwrap();
-        assert_eq!(a * b, FieldElement::new(1).unwrap());
+        let a: FieldElement = FieldElement::new(ORDER - 1);
+        let b: FieldElement = FieldElement::new(ORDER - 1);
+        assert_eq!(a * b, FieldElement::new(1));
     }
 
     #[test]
     fn inv_0_error() {
-        let a: FieldElement = FieldElement::new(0).unwrap();
+        let a: FieldElement = FieldElement::new(0);
         assert_eq!(a.inv().unwrap_err(), FieldElementError::DivisionByZero);
     }
 
     #[test]
     fn inv_2() {
-        let a: FieldElement = FieldElement::new(2).unwrap();
-        assert_eq!(a * a.inv().unwrap(), FieldElement::new(1).unwrap());
+        let a: FieldElement = FieldElement::new(2);
+        assert_eq!(a * a.inv().unwrap(), FieldElement::new(1));
     }
 
     #[test]
     fn pow_2_3() {
-        assert_eq!(
-            FieldElement::new(2).unwrap().pow(3),
-            FieldElement::new(8).unwrap()
-        )
+        assert_eq!(FieldElement::new(2).pow(3), FieldElement::new(8))
     }
 
     #[test]
     fn pow_p_minus_1() {
-        assert_eq!(
-            FieldElement::new(2).unwrap().pow(ORDER - 1),
-            FieldElement::new(1).unwrap()
-        )
+        assert_eq!(FieldElement::new(2).pow(ORDER - 1), FieldElement::new(1))
     }
 
     #[test]
     fn div_1() {
         assert_eq!(
-            FieldElement::new(2).unwrap() / FieldElement::new(1).unwrap(),
-            FieldElement::new(2).unwrap()
+            FieldElement::new(2) / FieldElement::new(1),
+            FieldElement::new(2)
         )
     }
 
     #[test]
     fn div_4_2() {
         assert_eq!(
-            FieldElement::new(4).unwrap() / FieldElement::new(2).unwrap(),
-            FieldElement::new(2).unwrap()
+            FieldElement::new(4) / FieldElement::new(2),
+            FieldElement::new(2)
         )
     }
 
     #[test]
     fn div_4_3() {
         assert_eq!(
-            FieldElement::new(4).unwrap() / FieldElement::new(3).unwrap()
-                * FieldElement::new(3).unwrap(),
-            FieldElement::new(4).unwrap()
+            FieldElement::new(4) / FieldElement::new(3) * FieldElement::new(3),
+            FieldElement::new(4)
         )
     }
 
     #[test]
     fn two_plus_its_additive_inv_is_0() {
-        let two = FieldElement::new(2).unwrap();
+        let two = FieldElement::new(2);
 
-        assert_eq!(two + (-two), FieldElement::new(0).unwrap())
+        assert_eq!(two + (-two), FieldElement::new(0))
     }
 
     #[test]
     fn four_minus_three_is_1() {
-        let four = FieldElement::new(4).unwrap();
-        let three = FieldElement::new(3).unwrap();
+        let four = FieldElement::new(4);
+        let three = FieldElement::new(3);
 
-        assert_eq!(four - three, FieldElement::new(1).unwrap())
+        assert_eq!(four - three, FieldElement::new(1))
     }
 
     #[test]
     fn zero_minus_1_is_order_minus_1() {
-        let zero = FieldElement::new(0).unwrap();
-        let one = FieldElement::new(1).unwrap();
+        let zero = FieldElement::new(0);
+        let one = FieldElement::new(1);
 
-        assert_eq!(zero - one, FieldElement::new(ORDER - 1).unwrap())
+        assert_eq!(zero - one, FieldElement::new(ORDER - 1))
     }
 
     #[test]
     fn neg_zero_is_zero() {
-        let zero = FieldElement::new(0).unwrap();
+        let zero = FieldElement::new(0);
 
         assert_eq!(-zero, zero);
     }
 
     #[test]
     fn zero_constructor_returns_zero() {
-        assert_eq!(FieldElement::zero(), FieldElement::new(0).unwrap());
+        assert_eq!(FieldElement::new(0), FieldElement::new(0));
     }
 
     #[test]
     fn field_element_as_group_element_generator_returns_one() {
-        assert_eq!(FieldElement::generator(), FieldElement::one());
+        assert_eq!(FieldElement::generator(), FieldElement::new(1));
     }
 
     #[test]
     fn field_element_as_group_element_multiplication_by_scalar_works_as_multiplication_in_finite_fields(
     ) {
-        let a = FieldElement::new(3).unwrap();
-        let b = FieldElement::new(12).unwrap();
+        let a = FieldElement::new(3);
+        let b = FieldElement::new(12);
         assert_eq!(a * b, a.operate_with_self(b));
     }
 
     #[test]
     fn field_element_as_group_element_pairing_works_as_multiplication_in_finite_fields() {
-        let a = FieldElement::new(3).unwrap();
-        let b = FieldElement::new(12).unwrap();
+        let a = FieldElement::new(3);
+        let b = FieldElement::new(12);
         assert_eq!(a * b, a.pairing(b));
     }
 }
