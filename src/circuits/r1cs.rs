@@ -26,6 +26,16 @@ impl R1CS {
     pub fn new(constraints: Vec<Constraint>) -> Self {
         Self { constraints }
     }
+
+    #[allow(dead_code)]
+    pub fn verify_solution(self, s: &[FE]) -> bool {
+        for constraint in self.constraints {
+            if !constraint.verify_solution(s) {
+                return false;
+            }
+        }
+        true
+    }
 }
 
 impl Constraint {
@@ -74,12 +84,17 @@ mod tests {
     }
 
     #[test]
-    fn verify_solution_with_constraint() {
-        assert!(test_first_constraint().verify_solution(&test_solution()));
+    fn verify_solution_with_test_circuit_c5_constraints() {
+        assert!(test_second_constraint().verify_solution(&test_solution()));
     }
 
     #[test]
-    fn verify_bad_solution_with_constraint() {
+    fn verify_solution_with_test_circuit_c6_constraints() {
+        assert!(test_second_constraint().verify_solution(&test_solution()));
+    }
+
+    #[test]
+    fn verify_bad_solution_with_test_circuit_c5_constraints() {
         let solution = vec![
             FE::new(0),
             FE::new(0),
@@ -90,6 +105,68 @@ mod tests {
             FE::new(0),
         ];
         assert!(!test_first_constraint().verify_solution(&solution));
+    }
+
+    #[test]
+    fn verify_bad_solution_with_test_circuit_c6_constraints() {
+        let solution = vec![
+            FE::new(0),
+            FE::new(2),
+            FE::new(1),
+            FE::new(4),
+            FE::new(5),
+            FE::new(2),
+            FE::new(2),
+        ];
+        assert!(!test_second_constraint().verify_solution(&solution));
+    }
+
+    #[test]
+    fn verify_solution_with_test_r1cs() {
+        assert!(test_r1cs().verify_solution(&test_solution()))
+    }
+
+    #[test]
+    fn verify_bad_solution_with_test_r1cs() {
+        let solution = vec![
+            FE::new(0),
+            FE::new(2),
+            FE::new(1),
+            FE::new(4),
+            FE::new(5),
+            FE::new(2),
+            FE::new(2),
+        ];
+
+        assert!(!test_r1cs().verify_solution(&solution))
+    }
+
+    #[test]
+    fn verify_bad_solution_because_of_second_constraint_with_test_r1cs() {
+        let solution = vec![
+            FE::new(0),  // c0
+            FE::new(2),  // c1
+            FE::new(1),  // c2
+            FE::new(5),  // c3
+            FE::new(10), // c4
+            FE::new(50), // c5 = c4 * c3
+            FE::new(2),  // c6 != c5 * (c1+c2), so this should fail
+        ];
+        assert!(!test_r1cs().verify_solution(&solution))
+    }
+
+    #[test]
+    fn verify_bad_solution_because_of_first_constraint_with_test_r1cs() {
+        let solution = vec![
+            FE::new(0),  // c0
+            FE::new(1),  // c1
+            FE::new(1),  // c2
+            FE::new(5),  // c3
+            FE::new(10), // c4
+            FE::new(10), // c5 != c4 * c3
+            FE::new(20), // c6 = c5 * (c1+c2), so this should fail
+        ];
+        assert!(!test_r1cs().verify_solution(&solution))
     }
 
     fn test_solution() -> Vec<FE> {
@@ -104,6 +181,11 @@ mod tests {
         ]
     }
 
+    fn test_r1cs() -> R1CS {
+        let constraints = vec![test_first_constraint(), test_second_constraint()];
+
+        R1CS::new(constraints)
+    }
     fn test_first_constraint() -> Constraint {
         Constraint {
             a: vec![
@@ -132,6 +214,38 @@ mod tests {
                 FE::new(0),
                 FE::new(1),
                 FE::new(0),
+            ],
+        }
+    }
+
+    fn test_second_constraint() -> Constraint {
+        Constraint {
+            a: vec![
+                FE::new(0),
+                FE::new(1),
+                FE::new(1),
+                FE::new(0),
+                FE::new(0),
+                FE::new(0),
+                FE::new(0),
+            ],
+            b: vec![
+                FE::new(1),
+                FE::new(0),
+                FE::new(0),
+                FE::new(0),
+                FE::new(0),
+                FE::new(1),
+                FE::new(0),
+            ],
+            c: vec![
+                FE::new(0),
+                FE::new(0),
+                FE::new(0),
+                FE::new(0),
+                FE::new(0),
+                FE::new(0),
+                FE::new(1),
             ],
         }
     }
