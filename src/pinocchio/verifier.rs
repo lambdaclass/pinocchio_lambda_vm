@@ -4,7 +4,7 @@ use crate::math::{self, cyclic_group::CyclicGroup};
 use math::field_element::FieldElement;
 use math::msm::msm;
 
-const ORDER: u128 = 13;
+const ORDER: u128 = 23;
 type FE = FieldElement<ORDER>;
 
 pub fn verify(verifying_key: &VerifyingKey, proof: &Proof, c_input_output: &[FE]) -> bool {

@@ -3,7 +3,7 @@ use crate::math;
 use math::cyclic_group::CyclicGroup;
 use math::field_element::FieldElement;
 
-const ORDER: u128 = 13;
+const ORDER: u128 = 23;
 type FE = FieldElement<ORDER>;
 pub type CyclicGroupType = FE;
 

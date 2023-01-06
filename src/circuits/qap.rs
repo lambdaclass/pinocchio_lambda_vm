@@ -1,6 +1,6 @@
 use crate::math::{field_element::FieldElement, polynomial::Polynomial};
 
-const ORDER: u128 = 13;
+const ORDER: u128 = 23;
 type FE = FieldElement<ORDER>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]

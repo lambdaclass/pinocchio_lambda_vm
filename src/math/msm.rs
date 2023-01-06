@@ -2,7 +2,7 @@ use crate::math::field_element::FieldElement;
 
 use crate::math::cyclic_group::CyclicGroup;
 
-type FE = FieldElement<13>;
+type FE = FieldElement<23>;
 pub type CyclicGroupType = FE;
 
 /// Calculates msm for C and hidings

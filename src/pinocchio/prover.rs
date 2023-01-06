@@ -4,7 +4,7 @@ use crate::math::msm::msm;
 
 use super::setup::EvaluationKey;
 
-const ORDER: u128 = 13;
+const ORDER: u128 = 23;
 type FE = FieldElement<ORDER>;
 pub type CyclicGroupType = FE;
 

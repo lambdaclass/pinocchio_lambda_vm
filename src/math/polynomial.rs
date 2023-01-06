@@ -1,7 +1,7 @@
 use super::field_element::FieldElement;
 use std::ops;
 
-const ORDER: u128 = 13;
+const ORDER: u128 = 23;
 type FE = FieldElement<ORDER>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

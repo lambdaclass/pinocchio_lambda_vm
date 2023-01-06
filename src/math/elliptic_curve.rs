@@ -1,6 +1,9 @@
 use super::{cyclic_group::CyclicGroup, field_element::FieldElement};
 
 type FE = FieldElement<1021>;
+const ORDER: u128 = 23;
+// const EMBEDDING_DEGREE: u128 = 11;
+const TARGET_NORMALIZATION_FACTOR: u128 = 54645616122141467893743270250140; // (1021 ** EMBEDDING_DEGREE - 1) / ORDER
 
 // Projective Short Weierstrass form
 #[derive(Debug, Copy, Clone)]
@@ -21,7 +24,7 @@ impl EllipticCurveElement {
     /// Pairing for beginners (Ex. 2.2.2, page 23) (a=905, b=100, ORDER=1021)
     fn defining_equation(x: FE, y: FE, z: FE) -> FE {
         // println!("{:?} {:?} {:?}", x, y, z);
-        z * y.pow(2) - x.pow(3) - z.pow(2) * Self::a() * x - z.pow(3) * Self::b()
+        y.pow(2) * z - x.pow(3) - Self::a() * x * z.pow(2) - Self::b() * z.pow(3)
     }
 
     fn a() -> FE {
@@ -30,6 +33,46 @@ impl EllipticCurveElement {
 
     fn b() -> FE {
         FE::new(100)
+    }
+
+    /// Taken from moonmath (Algorithm 8, page 107)
+    fn _pairing(p: Self, q: Self) -> FE {
+        if p == Self::neutral_element() || q == Self::neutral_element() || p == q {
+            FE::new(1) // this is equal to [(-1)^r]^(q^k -1)
+        } else {
+            let (xp, yp) = (p.x / p.z, p.y / p.z);
+            let (xq, yq) = (q.x / q.z, q.y / q.z);
+            let (mut xt, mut yt) = (xp, yp);
+            let (mut f1, mut f2) = (FE::new(1), FE::new(1));
+
+            let mut r = ORDER;
+            let mut bs = vec![];
+            while r > 0 {
+                bs.insert(0, r & 1);
+                r >>= 1;
+            }
+            for b in bs[1..].iter() {
+                let m = (FE::new(3) * xt.pow(2) + Self::a()) / (FE::new(2) * yt);
+                f1 = f1.pow(2) * (yq - yt - m * (xq - xt));
+                f2 = f2.pow(2) * (xq + FE::new(2) * xt - m.pow(2));
+                let x2t = m.pow(2) - FE::new(2) * xt;
+                let y2t = -yt - m * (x2t - xt);
+                xt = x2t;
+                yt = y2t;
+                if *b == 1 {
+                    let m = (yt - yp) / (xt - xp);
+                    f1 = f1 * (yq - yt - m * (xq - xt));
+                    f2 = f2 * (xq + xp + xt - m.pow(2));
+                    println!("{:?}", f2);
+                    let xtp = m.pow(2) - xt - xp;
+                    let ytp = -yt - m * (xtp - xt);
+                    xt = xtp;
+                    yt = ytp;
+                }
+            }
+            f1 = f1 * (xq - xt);
+            (f1 / f2).pow(TARGET_NORMALIZATION_FACTOR)
+        }
     }
 }
 
