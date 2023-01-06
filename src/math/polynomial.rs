@@ -1,49 +1,52 @@
 use super::field_element::FieldElement;
 use std::ops;
 
-const ORDER: u128 = 23;
-type FE = FieldElement<ORDER>;
+//const ORDER: u128 = 23;
+//type FE = FieldElement<ORDER>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Polynomial {
+pub struct Polynomial<const ORDER: u128> {
     // coefficients[0] is the smallest coefficient
-    coefficients: Vec<FE>,
+    coefficients: Vec<FieldElement<ORDER>>,
 }
 
-impl Polynomial {
+impl<const ORDER: u128> Polynomial<ORDER> {
     /// Creates a new polynomial with the given coefficients
-    pub fn new(coefficients: Vec<FE>) -> Self {
+    pub fn new(coefficients: Vec<FieldElement<ORDER>>) -> Self {
         // Removes uneeded 0 coefficients at the end
         let mut unpadded_coefficients = coefficients
             .into_iter()
             .rev()
-            .skip_while(|x| *x == FE::new(0))
-            .collect::<Vec<FE>>();
+            .skip_while(|x| *x == FieldElement::new(0))
+            .collect::<Vec<FieldElement<ORDER>>>();
         unpadded_coefficients.reverse();
         Polynomial {
             coefficients: unpadded_coefficients,
         }
     }
 
-    pub fn new_monomial(coefficient: FE, degree: usize) -> Self {
-        let mut coefficients = vec![FE::new(0); degree];
+    pub fn new_monomial(coefficient: FieldElement<ORDER>, degree: usize) -> Self {
+        let mut coefficients = vec![FieldElement::new(0); degree];
         coefficients.push(coefficient);
         Self::new(coefficients)
     }
 
     pub fn zero() -> Self {
-        Self::new(Vec::<FE>::new())
+        Self::new(Vec::<FieldElement<ORDER>>::new())
     }
 
-    pub fn interpolate(xs: &[FE], ys: &[FE]) -> Polynomial {
+    pub fn interpolate(
+        xs: &[FieldElement<ORDER>],
+        ys: &[FieldElement<ORDER>],
+    ) -> Polynomial<ORDER> {
         let mut result = Polynomial::zero();
 
         for (i, y) in ys.iter().enumerate() {
             let mut y_term = Polynomial::new(vec![*y]);
             for (j, x) in xs.iter().enumerate() {
                 if i != j {
-                    let denominator = Polynomial::new(vec![FE::new(1) / (xs[i] - *x)]);
-                    let numerator = Polynomial::new(vec![-*x, FE::new(1)]);
+                    let denominator = Polynomial::new(vec![FieldElement::new(1) / (xs[i] - *x)]);
+                    let numerator = Polynomial::new(vec![-*x, FieldElement::new(1)]);
                     y_term = y_term.mul_with_ref(&(numerator * denominator));
                 }
             }
@@ -52,11 +55,13 @@ impl Polynomial {
         result
     }
 
-    pub fn evaluate(&self, x: FE) -> FE {
+    pub fn evaluate(&self, x: FieldElement<ORDER>) -> FieldElement<ORDER> {
         self.coefficients
             .iter()
             .enumerate()
-            .fold(FE::new(0), |acc, (i, &c)| acc + c * x.pow(i as u128))
+            .fold(FieldElement::new(0), |acc, (i, &c)| {
+                acc + c * x.pow(i as u128)
+            })
     }
 
     pub fn degree(&self) -> usize {
@@ -67,11 +72,11 @@ impl Polynomial {
         }
     }
 
-    pub fn last_coefficient(&self) -> FE {
+    pub fn last_coefficient(&self) -> FieldElement<ORDER> {
         if let Some(coefficient) = self.coefficients.last() {
             *coefficient
         } else {
-            FE::new(0)
+            FieldElement::new(0)
         }
     }
 
@@ -79,30 +84,35 @@ impl Polynomial {
     /// \[c0,c1,c2 .. cn\]
     /// that represents the polynomial
     /// c0 + c1*x + c2*x^2 ... cn
-    pub fn coefficients(&self) -> &[FE] {
+    pub fn coefficients(&self) -> &[FieldElement<ORDER>] {
         &self.coefficients
     }
 
     /// Returns two new polynomials with the same amount of coefficients
     /// for temporal use
-    fn pad_with_zero_coefficients(pa: &Polynomial, pb: &Polynomial) -> (Polynomial, Polynomial) {
+    fn pad_with_zero_coefficients(
+        pa: &Polynomial<ORDER>,
+        pb: &Polynomial<ORDER>,
+    ) -> (Polynomial<ORDER>, Polynomial<ORDER>) {
         let mut pa = pa.clone();
         let mut pb = pb.clone();
 
         if pa.coefficients.len() > pb.coefficients.len() {
-            pb.coefficients.resize(pa.coefficients.len(), FE::new(0));
+            pb.coefficients
+                .resize(pa.coefficients.len(), FieldElement::new(0));
         } else {
-            pa.coefficients.resize(pb.coefficients.len(), FE::new(0));
+            pa.coefficients
+                .resize(pb.coefficients.len(), FieldElement::new(0));
         }
         (pa, pb)
     }
 
-    pub fn div_with_ref(self, dividend: &Self) -> Self {
+    pub fn long_division_with_remainder(self, dividend: &Self) -> (Self, Self) {
         if dividend.degree() > self.degree() {
-            Polynomial::zero()
+            (Polynomial::zero(), self)
         } else {
             let mut n = self;
-            let mut q: Vec<FE> = vec![FE::new(0); n.degree() + 1];
+            let mut q: Vec<FieldElement<ORDER>> = vec![FieldElement::new(0); n.degree() + 1];
             while n != Polynomial::zero() && n.degree() >= dividend.degree() {
                 let new_coefficient = n.last_coefficient() / dividend.last_coefficient();
                 q[n.degree() - dividend.degree()] = new_coefficient;
@@ -112,16 +122,21 @@ impl Polynomial {
                 ));
                 n = n - d;
             }
-            Polynomial::new(q)
+            (Polynomial::new(q), n)
         }
+    }
+
+    pub fn div_with_ref(self, dividend: &Self) -> Self {
+        let (quotient, _remainder) = self.long_division_with_remainder(dividend);
+        quotient
     }
 
     pub fn mul_with_ref(&self, factor: &Self) -> Self {
         let degree = self.degree() + factor.degree();
-        let mut coefficients = vec![FE::new(0); degree + 1];
+        let mut coefficients = vec![FieldElement::new(0); degree + 1];
 
         if self.coefficients.is_empty() || factor.coefficients.is_empty() {
-            Polynomial::new(vec![FE::new(0)])
+            Polynomial::new(vec![FieldElement::new(0)])
         } else {
             for i in 0..=factor.degree() {
                 for j in 0..=self.degree() {
@@ -133,10 +148,10 @@ impl Polynomial {
     }
 }
 
-impl ops::Add<Polynomial> for Polynomial {
-    type Output = Polynomial;
+impl<const ORDER: u128> ops::Add<Polynomial<ORDER>> for Polynomial<ORDER> {
+    type Output = Polynomial<ORDER>;
 
-    fn add(self, a_polynomial: Polynomial) -> Polynomial {
+    fn add(self, a_polynomial: Polynomial<ORDER>) -> Polynomial<ORDER> {
         let (pa, pb) = Self::pad_with_zero_coefficients(&self, &a_polynomial);
         let iter_coeff_pa = pa.coefficients.iter();
         let iter_coeff_pb = pb.coefficients.iter();
@@ -146,33 +161,33 @@ impl ops::Add<Polynomial> for Polynomial {
     }
 }
 
-impl ops::Neg for Polynomial {
-    type Output = Polynomial;
+impl<const ORDER: u128> ops::Neg for Polynomial<ORDER> {
+    type Output = Polynomial<ORDER>;
 
-    fn neg(self) -> Polynomial {
+    fn neg(self) -> Polynomial<ORDER> {
         Polynomial::new(self.coefficients.iter().map(|&x| -x).collect())
     }
 }
 
-impl ops::Sub<Polynomial> for Polynomial {
-    type Output = Polynomial;
+impl<const ORDER: u128> ops::Sub<Polynomial<ORDER>> for Polynomial<ORDER> {
+    type Output = Polynomial<ORDER>;
 
-    fn sub(self, substrahend: Polynomial) -> Polynomial {
+    fn sub(self, substrahend: Polynomial<ORDER>) -> Polynomial<ORDER> {
         self + (-substrahend)
     }
 }
 
-impl ops::Div<Polynomial> for Polynomial {
-    type Output = Polynomial;
+impl<const ORDER: u128> ops::Div<Polynomial<ORDER>> for Polynomial<ORDER> {
+    type Output = Polynomial<ORDER>;
 
-    fn div(self, dividend: Polynomial) -> Polynomial {
+    fn div(self, dividend: Polynomial<ORDER>) -> Polynomial<ORDER> {
         self.div_with_ref(&dividend)
     }
 }
 
-impl ops::Mul<Polynomial> for Polynomial {
-    type Output = Polynomial;
-    fn mul(self, dividend: Polynomial) -> Polynomial {
+impl<const ORDER: u128> ops::Mul<Polynomial<ORDER>> for Polynomial<ORDER> {
+    type Output = Polynomial<ORDER>;
+    fn mul(self, dividend: Polynomial<ORDER>) -> Polynomial<ORDER> {
         self.mul_with_ref(&dividend)
     }
 }
@@ -183,12 +198,14 @@ mod tests {
         Some of these tests work when the finite field has order greater than 2.
     */
     use super::*;
+    const ORDER: u128 = 23;
+    type FE = FieldElement<ORDER>;
 
-    fn polynomial_a() -> Polynomial {
+    fn polynomial_a() -> Polynomial<ORDER> {
         Polynomial::new(vec![FE::new(1), FE::new(2), FE::new(3)])
     }
 
-    fn polynomial_minus_a() -> Polynomial {
+    fn polynomial_minus_a() -> Polynomial<ORDER> {
         Polynomial::new(vec![
             FE::new(ORDER - 1),
             FE::new(ORDER - 2),
@@ -196,15 +213,15 @@ mod tests {
         ])
     }
 
-    fn polynomial_b() -> Polynomial {
+    fn polynomial_b() -> Polynomial<ORDER> {
         Polynomial::new(vec![FE::new(3), FE::new(4), FE::new(5)])
     }
 
-    fn polynomial_a_plus_b() -> Polynomial {
+    fn polynomial_a_plus_b() -> Polynomial<ORDER> {
         Polynomial::new(vec![FE::new(4), FE::new(6), FE::new(8)])
     }
 
-    fn polynomial_b_minus_a() -> Polynomial {
+    fn polynomial_b_minus_a() -> Polynomial<ORDER> {
         Polynomial::new(vec![FE::new(2), FE::new(2), FE::new(2)])
     }
 

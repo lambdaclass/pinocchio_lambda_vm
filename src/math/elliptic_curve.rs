@@ -1,9 +1,102 @@
-use super::{cyclic_group::CyclicGroup, field_element::FieldElement};
+use super::{cyclic_group::CyclicGroup, field_element::FieldElement, polynomial::Polynomial};
+use std::ops;
 
-type FE = FieldElement<1021>;
-const ORDER: u128 = 23;
-// const EMBEDDING_DEGREE: u128 = 11;
-const TARGET_NORMALIZATION_FACTOR: u128 = 54645616122141467893743270250140; // (1021 ** EMBEDDING_DEGREE - 1) / ORDER
+const ORDER_R: u128 = 13; // Base coefficients for polynomials of the circuit (Also the other of the subgroup of the elliptic curve)
+const ORDER_P: u128 = 43; // Base coefficients for coordinates of points in elliptic curve
+const EMBEDDING_DEGREE: u32 = 6; // Degree to ensure that torsion group is contained in the elliptic curve over field extensions
+const ORDER_FIELD_EXTENSION: u128 = ORDER_P.pow(EMBEDDING_DEGREE);
+const TARGET_NORMALIZATION_FACTOR: u128 = (ORDER_P.pow(EMBEDDING_DEGREE) - 1) / ORDER_R;
+const ELLIPTIC_CURVE_A: u128 = 0;
+const ELLIPTIC_CURVE_B: u128 = 6;
+const GENERATOR_AFFINE_X: u128 = 13;
+const GENERATOR_AFFINE_Y: u128 = 15;
+
+type FE = FieldElement<ORDER_P>;
+
+struct FieldExtensionElement {
+    value: Polynomial<ORDER_P>,
+}
+
+// Taken from Moonmath BLS6_6 curve (Page 129)
+impl FieldExtensionElement {
+    pub fn new(value: Polynomial<ORDER_P>) -> Self {
+        Self { value }
+    }
+
+    pub fn defining_polynomial() -> Polynomial<ORDER_P> {
+        // t^6 + 6
+        let linear_term = Polynomial::new_monomial(FE::new(6), 0);
+        let higher_order_term = Polynomial::new_monomial(FE::new(1), 6);
+        linear_term + higher_order_term
+    }
+
+    pub fn pow(self, mut exponent: u128) -> Self {
+        let mut result = Self::new(Polynomial::new_monomial(FE::new(1), 0));
+        let mut base = self;
+
+        while exponent > 0 {
+            // exponent % 2 == 1
+            if exponent & 1 == 1 {
+                result = &result * &base;
+            }
+            // exponent = exponent / 2
+            exponent >>= 1;
+            base = &base * &base;
+        }
+        result
+    }
+
+    pub fn inv(self) -> Self {
+        assert_ne!(self.value, Polynomial::zero());
+        self.pow(ORDER_FIELD_EXTENSION - 2)
+    }
+}
+
+impl ops::Add<FieldExtensionElement> for FieldExtensionElement {
+    type Output = FieldExtensionElement;
+
+    fn add(self, a_field_element: FieldExtensionElement) -> FieldExtensionElement {
+        Self {
+            value: a_field_element.value + self.value,
+        }
+    }
+}
+
+impl ops::Neg for FieldExtensionElement {
+    type Output = FieldExtensionElement;
+
+    fn neg(self) -> FieldExtensionElement {
+        Self { value: -self.value }
+    }
+}
+
+impl ops::Sub<FieldExtensionElement> for FieldExtensionElement {
+    type Output = FieldExtensionElement;
+
+    fn sub(self, substrahend: FieldExtensionElement) -> FieldExtensionElement {
+        self + (-substrahend)
+    }
+}
+
+impl ops::Mul<&FieldExtensionElement> for &FieldExtensionElement {
+    type Output = FieldExtensionElement;
+
+    fn mul(self, a_field_extension_element: &FieldExtensionElement) -> FieldExtensionElement {
+        let p = self.value.mul_with_ref(&a_field_extension_element.value);
+        let (_quotient, remainder) =
+            p.long_division_with_remainder(&FieldExtensionElement::defining_polynomial());
+        FieldExtensionElement { value: remainder }
+    }
+}
+
+impl ops::Div for FieldExtensionElement {
+    type Output = FieldExtensionElement;
+    
+    #[allow(clippy::suspicious_arithmetic_impl)]
+    fn div(self, dividend: Self) -> Self {
+        &self * &dividend.inv()
+    }
+}
 
 // Projective Short Weierstrass form
 #[derive(Debug, Copy, Clone)]
@@ -28,11 +121,11 @@ impl EllipticCurveElement {
     }
 
     fn a() -> FE {
-        FE::new(905)
+        FE::new(ELLIPTIC_CURVE_A)
     }
 
     fn b() -> FE {
-        FE::new(100)
+        FE::new(ELLIPTIC_CURVE_B)
     }
 
     /// Taken from moonmath (Algorithm 8, page 107)
@@ -45,7 +138,7 @@ impl EllipticCurveElement {
             let (mut xt, mut yt) = (xp, yp);
             let (mut f1, mut f2) = (FE::new(1), FE::new(1));
 
-            let mut r = ORDER;
+            let mut r = ORDER_R;
             let mut bs = vec![];
             while r > 0 {
                 bs.insert(0, r & 1);
@@ -86,7 +179,11 @@ impl Eq for EllipticCurveElement {}
 
 impl CyclicGroup for EllipticCurveElement {
     fn generator() -> Self {
-        Self::new(FE::new(1006), FE::new(416), FE::new(1))
+        Self::new(
+            FE::new(GENERATOR_AFFINE_X),
+            FE::new(GENERATOR_AFFINE_Y),
+            FE::new(1),
+        )
     }
 
     fn neutral_element() -> Self {
@@ -158,22 +255,22 @@ mod tests {
 
     #[test]
     fn create_valid_point_works() {
-        let point = EllipticCurveElement::new(FE::new(1006), FE::new(416), FE::new(1));
-        assert_eq!(point.x, FE::new(1006));
-        assert_eq!(point.y, FE::new(416));
+        let point = EllipticCurveElement::new(FE::new(13), FE::new(15), FE::new(1));
+        assert_eq!(point.x, FE::new(13));
+        assert_eq!(point.y, FE::new(15));
         assert_eq!(point.z, FE::new(1));
     }
 
     #[test]
     fn equality_holds_only_for_points_that_are_multiple_of_each_other() {
         assert_eq!(
-            EllipticCurveElement::new(FE::new(1006), FE::new(416), FE::new(1)),
-            EllipticCurveElement::new(FE::new(1006), FE::new(416), FE::new(1)),
+            EllipticCurveElement::new(FE::new(26), FE::new(9), FE::new(1)),
+            EllipticCurveElement::new(FE::new(26), FE::new(9), FE::new(1)),
         );
 
         assert_eq!(
-            EllipticCurveElement::new(FE::new(1006), FE::new(416), FE::new(1)),
-            EllipticCurveElement::new(FE::new(1006 * 2), FE::new(416 * 2), FE::new(2)),
+            EllipticCurveElement::new(FE::new(26), FE::new(9), FE::new(1)),
+            EllipticCurveElement::new(FE::new(26 * 2), FE::new(9 * 2), FE::new(2)),
         );
 
         assert_eq!(
@@ -182,7 +279,7 @@ mod tests {
         );
 
         assert_ne!(
-            EllipticCurveElement::new(FE::new(1006), FE::new(416), FE::new(1)),
+            EllipticCurveElement::new(FE::new(26), FE::new(9), FE::new(1)),
             EllipticCurveElement::new(FE::new(0), FE::new(1), FE::new(0)),
         );
     }
@@ -190,7 +287,7 @@ mod tests {
     #[test]
     fn operate_with_self_works() {
         let mut point_1 = EllipticCurveElement::generator();
-        point_1 = point_1.operate_with_self(23);
+        point_1 = point_1.operate_with_self(ORDER_R);
         assert_eq!(point_1, EllipticCurveElement::neutral_element());
     }
 

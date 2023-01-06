@@ -1,7 +1,8 @@
-use crate::math::{field_element::FieldElement, polynomial::Polynomial};
+use crate::math::{field_element::FieldElement, polynomial::Polynomial as Poly};
 
 const ORDER: u128 = 23;
 type FE = FieldElement<ORDER>;
+type Polynomial = Poly<ORDER>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// QAP Representation of the circuits
