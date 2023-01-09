@@ -112,16 +112,16 @@ impl<const ORDER: u128> CyclicGroup for FieldElement<ORDER> {
         FieldElement::new(0)
     }
 
-    fn operate_with_self(self, times: u128) -> Self {
-        FieldElement::new(times) * self
+    fn operate_with_self(&self, times: u128) -> Self {
+        FieldElement::new(times) * *self
     }
 
-    fn pairing(self, other: Self) -> Self {
-        self * other
+    fn pairing(&self, other: &Self) -> Self {
+        *self * *other
     }
 
-    fn operate_with(self, other: Self) -> Self {
-        self + other
+    fn operate_with(&self, other: &Self) -> Self {
+        *self + *other
     }
 }
 
@@ -271,6 +271,6 @@ mod tests {
     fn field_element_as_group_element_pairing_works_as_multiplication_in_finite_fields() {
         let a = FE::new(3);
         let b = FE::new(12);
-        assert_eq!(a * b, a.pairing(b));
+        assert_eq!(a * b, a.pairing(&b));
     }
 }

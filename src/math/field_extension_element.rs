@@ -1,8 +1,8 @@
 use super::{field_element::FieldElement, polynomial::Polynomial};
 use std::ops;
 
-const ORDER_P: u128 = 43; // Base coefficients for coordinates of points in elliptic curve
-const EMBEDDING_DEGREE: u32 = 6; // Degree to ensure that torsion group is contained in the elliptic curve over field extensions
+const ORDER_P: u128 = 47; // Base coefficients for coordinates of points in elliptic curve
+const EMBEDDING_DEGREE: u32 = 4; // Degree to ensure that torsion group is contained in the elliptic curve over field extensions
 const ORDER_FIELD_EXTENSION: u128 = ORDER_P.pow(EMBEDDING_DEGREE);
 type FE = FieldElement<ORDER_P>;
 
@@ -14,7 +14,9 @@ pub struct FieldExtensionElement {
 // Taken from Moonmath BLS6_6 curve (Page 129)
 impl FieldExtensionElement {
     pub fn new(value: Polynomial<ORDER_P>) -> Self {
-        Self { value }
+        let (_quotient, remainder) =
+            value.long_division_with_remainder(&Self::defining_polynomial());
+        Self { value: remainder }
     }
 
     pub fn new_base(value: u128) -> Self {
@@ -23,9 +25,14 @@ impl FieldExtensionElement {
 
     pub fn defining_polynomial() -> Polynomial<ORDER_P> {
         // t^6 + 6
-        let linear_term = Polynomial::new_monomial(FE::new(6), 0);
-        let higher_order_term = Polynomial::new_monomial(FE::new(1), 6);
-        linear_term + higher_order_term
+        // let linear_term = Polynomial::new_monomial(FE::new(6), 0);
+        // let higher_order_term = Polynomial::new_monomial(FE::new(1), 6);
+        // linear_term + higher_order_term
+        // t^6 + 6
+        let linear_term = Polynomial::new_monomial(FE::new(5), 0);
+        let higher_order_term_a = Polynomial::new_monomial(FE::new(1), 4);
+        let higher_order_term_b = Polynomial::new_monomial(-FE::new(4), 2);
+        linear_term + higher_order_term_a + higher_order_term_b
     }
 
     pub fn pow(&self, mut exponent: u128) -> Self {
@@ -117,6 +124,14 @@ impl ops::Neg for &FieldExtensionElement {
     }
 }
 
+impl ops::Neg for FieldExtensionElement {
+    type Output = FieldExtensionElement;
+
+    fn neg(self) -> Self::Output {
+        -&self
+    }
+}
+
 impl ops::Sub<&FieldExtensionElement> for &FieldExtensionElement {
     type Output = FieldExtensionElement;
 
@@ -154,11 +169,7 @@ impl ops::Mul<&FieldExtensionElement> for &FieldExtensionElement {
 
     fn mul(self, a_field_extension_element: &FieldExtensionElement) -> Self::Output {
         let p = self.value.mul_with_ref(&a_field_extension_element.value);
-        let (_quotient, remainder) =
-            p.long_division_with_remainder(&FieldExtensionElement::defining_polynomial());
-        Self::Output {
-            value: remainder,
-        }
+        Self::Output::new(p)
     }
 }
 
@@ -216,5 +227,35 @@ impl ops::Div<&FieldExtensionElement> for FieldExtensionElement {
 
     fn div(self, dividend: &FieldExtensionElement) -> Self::Output {
         &self / dividend
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn division_works() {
+        let a = FieldExtensionElement::new(Polynomial::new(vec![
+            FE::new(4),
+            FE::new(9),
+            FE::new(21),
+            FE::new(20),
+        ]));
+        let b = FieldExtensionElement::new(Polynomial::new(vec![
+            FE::new(33),
+            FE::new(36),
+            FE::new(19),
+            FE::new(6),
+        ]));
+
+        let result = FieldExtensionElement::new(Polynomial::new(vec![
+            FE::new(21),
+            FE::new(2),
+            FE::new(32),
+            FE::new(41),
+        ]));
+
+        assert_eq!(a / b, result);
     }
 }
