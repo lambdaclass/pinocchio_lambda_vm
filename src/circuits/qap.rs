@@ -1,4 +1,7 @@
 use crate::math::{field_element::FieldElement as FE, polynomial::Polynomial};
+use std::convert::From;
+
+use super::r1cs::R1CS;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// QAP Representation of the circuits
@@ -195,6 +198,47 @@ pub fn new_test_qap() -> Qap {
     Qap::new(vs.to_vec(), ws.to_vec(), ys.to_vec(), t, 4, 1).unwrap()
 }
 
+impl From<R1CS> for Qap {
+    /// Transforms a R1CS to a QAP
+    fn from(r1cs: R1CS) -> Self {
+        // The r values for the qap polynomial can each be any number,
+        // as long as there are the right amount of rs
+        // In this case, it's set them to be 0,1,2..number_of_constraints(),
+        // number_of_constraints non inclusive
+        let rs: Vec<FE> = (0..r1cs.number_of_constraints() as u128)
+            .map(FE::new)
+            .collect();
+
+        let mut v: Vec<Polynomial> = Vec::with_capacity(r1cs.witness_size());
+        let mut w: Vec<Polynomial> = Vec::with_capacity(r1cs.witness_size());
+        let mut y: Vec<Polynomial> = Vec::with_capacity(r1cs.witness_size());
+        let mut t: Polynomial = Polynomial::new_monomial(FE::new(1), 0);
+
+        for r in &rs {
+            t = t * Polynomial::new(vec![-*r, FE::new(1)]);
+        }
+
+        for i in 0..r1cs.witness_size() {
+            let v_ys: Vec<FE> = r1cs.constraints.iter().map(|c| c.a[i]).collect();
+            let w_ys: Vec<FE> = r1cs.constraints.iter().map(|c| c.b[i]).collect();
+            let y_ys: Vec<FE> = r1cs.constraints.iter().map(|c| c.c[i]).collect();
+
+            v.push(Polynomial::interpolate(&rs, &v_ys));
+            w.push(Polynomial::interpolate(&rs, &w_ys));
+            y.push(Polynomial::interpolate(&rs, &y_ys));
+        }
+
+        Qap {
+            v,
+            w,
+            y,
+            target: t,
+            number_of_inputs: r1cs.number_of_inputs,
+            number_of_outputs: r1cs.number_of_outputs,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -370,5 +414,12 @@ mod tests {
         let (c5, c6) = Qap::test_qap_solver(inputs);
         assert_eq!(c5, FE::new(12));
         assert_eq!(c6, FE::new(36));
+    }
+    #[test]
+    fn test_r1cs_into_qap_is_test_qap() {
+        let qap = new_test_qap();
+        let r1cs = crate::circuits::r1cs::tests::test_r1cs();
+        let r1cs_as_qap: Qap = r1cs.into();
+        assert_eq!(qap, r1cs_as_qap);
     }
 }
