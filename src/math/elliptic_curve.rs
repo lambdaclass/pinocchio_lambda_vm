@@ -91,7 +91,7 @@ impl ops::Mul<&FieldExtensionElement> for &FieldExtensionElement {
 
 impl ops::Div for FieldExtensionElement {
     type Output = FieldExtensionElement;
-    
+
     #[allow(clippy::suspicious_arithmetic_impl)]
     fn div(self, dividend: Self) -> Self {
         &self * &dividend.inv()
