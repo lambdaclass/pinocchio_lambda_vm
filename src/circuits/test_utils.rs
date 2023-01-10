@@ -1,6 +1,4 @@
 use super::qap::Qap;
-/// Shared test_utils
-/// for integration tests and unit tests
 use crate::math::{field_element::FieldElement as FE, polynomial::Polynomial};
 
 // r5 and r6 are exposed to help testing
