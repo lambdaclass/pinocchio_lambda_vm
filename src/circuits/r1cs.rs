@@ -108,6 +108,8 @@ pub fn multiply_vectors(v1: &[FE], v2: &[FE]) -> FE {
 
 #[cfg(test)]
 pub mod tests {
+    use crate::circuits::test_utils::{test_first_constraint, test_r1cs, test_second_constraint};
+
     use super::*;
 
     #[test]
@@ -222,74 +224,5 @@ pub mod tests {
             FE::new(12),
             FE::new(36),
         ]
-    }
-
-    pub fn test_r1cs() -> R1CS {
-        let constraints = vec![test_first_constraint(), test_second_constraint()];
-        R1CS::new(constraints, 4, 1).unwrap()
-    }
-
-    fn test_first_constraint() -> Constraint {
-        Constraint {
-            a: vec![
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-                FE::new(1),
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-            ],
-            b: vec![
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-                FE::new(1),
-                FE::new(0),
-                FE::new(0),
-            ],
-            c: vec![
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-                FE::new(1),
-                FE::new(0),
-            ],
-        }
-    }
-
-    fn test_second_constraint() -> Constraint {
-        Constraint {
-            a: vec![
-                FE::new(0),
-                FE::new(1),
-                FE::new(1),
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-            ],
-            b: vec![
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-                FE::new(1),
-                FE::new(0),
-            ],
-            c: vec![
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-                FE::new(0),
-                FE::new(1),
-            ],
-        }
     }
 }
