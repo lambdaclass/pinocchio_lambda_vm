@@ -1,4 +1,4 @@
-use pinocchio_vm::circuits::test_utils::{new_test_qap, test_qap_solver};
+use pinocchio_vm::circuits::test_utils::{new_test_r1cs, test_qap_solver};
 use pinocchio_vm::math::field_element::FieldElement as FE;
 use pinocchio_vm::pinocchio::prover;
 use pinocchio_vm::pinocchio::setup::{setup, ToxicWaste};
@@ -6,7 +6,7 @@ use pinocchio_vm::pinocchio::verifier;
 
 #[test]
 fn test_pinocchio() {
-    let test_qap = new_test_qap();
+    let test_qap = new_test_r1cs().into();
     let toxic_waste = ToxicWaste::sample();
     let (evaluation_key, verifying_key) = setup(&test_qap, &toxic_waste);
 

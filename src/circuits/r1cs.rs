@@ -108,7 +108,7 @@ pub fn multiply_vectors(v1: &[FE], v2: &[FE]) -> FE {
 
 #[cfg(test)]
 pub mod tests {
-    use crate::circuits::test_utils::{test_first_constraint, test_r1cs, test_second_constraint};
+    use crate::circuits::test_utils::{new_test_first_constraint, new_test_r1cs, new_test_second_constraint};
 
     use super::*;
 
@@ -130,12 +130,12 @@ pub mod tests {
 
     #[test]
     fn verify_solution_with_test_circuit_c5_constraints() {
-        assert!(test_second_constraint().verify_solution(&test_solution()));
+        assert!(new_test_second_constraint().verify_solution(&test_solution()));
     }
 
     #[test]
     fn verify_solution_with_test_circuit_c6_constraints() {
-        assert!(test_second_constraint().verify_solution(&test_solution()));
+        assert!(new_test_second_constraint().verify_solution(&test_solution()));
     }
 
     #[test]
@@ -149,7 +149,7 @@ pub mod tests {
             FE::new(0),
             FE::new(0),
         ];
-        assert!(!test_first_constraint().verify_solution(&solution));
+        assert!(!new_test_first_constraint().verify_solution(&solution));
     }
 
     #[test]
@@ -163,16 +163,16 @@ pub mod tests {
             FE::new(2),
             FE::new(2),
         ];
-        assert!(!test_second_constraint().verify_solution(&solution));
+        assert!(!new_test_second_constraint().verify_solution(&solution));
     }
 
     #[test]
-    fn verify_solution_with_test_r1cs() {
-        assert!(test_r1cs().verify_solution(&test_solution()))
+    fn verify_solution_with_new_test_r1cs() {
+        assert!(new_test_r1cs().verify_solution(&test_solution()))
     }
 
     #[test]
-    fn verify_bad_solution_with_test_r1cs() {
+    fn verify_bad_solution_with_new_test_r1cs() {
         let solution = vec![
             FE::new(0),
             FE::new(2),
@@ -183,11 +183,11 @@ pub mod tests {
             FE::new(2),
         ];
 
-        assert!(!test_r1cs().verify_solution(&solution))
+        assert!(!new_test_r1cs().verify_solution(&solution))
     }
 
     #[test]
-    fn verify_bad_solution_because_of_second_constraint_with_test_r1cs() {
+    fn verify_bad_solution_because_of_second_constraint_with_new_test_r1cs() {
         let solution = vec![
             FE::new(0),  // c0
             FE::new(2),  // c1
@@ -197,11 +197,11 @@ pub mod tests {
             FE::new(50), // c5 = c4 * c3
             FE::new(2),  // c6 != c5 * (c1+c2), so this should fail
         ];
-        assert!(!test_r1cs().verify_solution(&solution))
+        assert!(!new_test_r1cs().verify_solution(&solution))
     }
 
     #[test]
-    fn verify_bad_solution_because_of_first_constraint_with_test_r1cs() {
+    fn verify_bad_solution_because_of_first_constraint_with_new_test_r1cs() {
         let solution = vec![
             FE::new(0),  // c0
             FE::new(1),  // c1
@@ -211,7 +211,7 @@ pub mod tests {
             FE::new(10), // c5 != c4 * c3
             FE::new(20), // c6 = c5 * (c1+c2), so this should fail
         ];
-        assert!(!test_r1cs().verify_solution(&solution))
+        assert!(!new_test_r1cs().verify_solution(&solution))
     }
 
     fn test_solution() -> Vec<FE> {

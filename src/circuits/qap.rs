@@ -176,7 +176,7 @@ impl From<R1CS> for Qap {
 #[cfg(test)]
 mod tests {
     use crate::circuits::test_utils::{
-        new_test_qap, test_qap_r5, test_qap_r6, test_qap_solver, test_r1cs,
+        new_test_qap, test_qap_r5, test_qap_r6, test_qap_solver, new_test_r1cs,
     };
 
     use super::*;
@@ -357,7 +357,7 @@ mod tests {
     #[test]
     fn test_r1cs_into_qap_is_test_qap() {
         let qap = new_test_qap();
-        let r1cs = test_r1cs();
+        let r1cs = new_test_r1cs();
         let r1cs_as_qap: Qap = r1cs.into();
         assert_eq!(qap, r1cs_as_qap);
     }

@@ -70,12 +70,12 @@ pub fn new_test_qap() -> Qap {
     Qap::new(vs.to_vec(), ws.to_vec(), ys.to_vec(), t, 4, 1).unwrap()
 }
 
-pub fn test_r1cs() -> R1CS {
-    let constraints = vec![test_first_constraint(), test_second_constraint()];
+pub fn new_test_r1cs() -> R1CS {
+    let constraints = vec![new_test_first_constraint(), new_test_second_constraint()];
     R1CS::new(constraints, 4, 1).unwrap()
 }
 
-pub fn test_first_constraint() -> Constraint {
+pub fn new_test_first_constraint() -> Constraint {
     Constraint {
         a: vec![
             FE::new(0),
@@ -107,7 +107,7 @@ pub fn test_first_constraint() -> Constraint {
     }
 }
 
-pub fn test_second_constraint() -> Constraint {
+pub fn new_test_second_constraint() -> Constraint {
     Constraint {
         a: vec![
             FE::new(0),
