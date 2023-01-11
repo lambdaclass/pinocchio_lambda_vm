@@ -176,7 +176,7 @@ impl From<R1CS> for Qap {
 #[cfg(test)]
 mod tests {
     use crate::circuits::test_utils::{
-        new_test_qap, test_qap_r5, test_qap_r6, test_qap_solver, new_test_r1cs,
+        new_test_qap, new_test_r1cs, test_qap_r5, test_qap_r6, test_qap_solver,
     };
 
     use super::*;

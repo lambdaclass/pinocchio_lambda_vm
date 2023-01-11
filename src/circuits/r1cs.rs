@@ -94,21 +94,23 @@ impl Constraint {
 
     #[allow(dead_code)]
     pub fn verify_solution(self, s: &[FE]) -> bool {
-        multiply_vectors(&self.a, s) * multiply_vectors(&self.b, s) == multiply_vectors(&self.c, s)
+        inner_product(&self.a, s) * inner_product(&self.b, s) == inner_product(&self.c, s)
     }
 }
 
-pub fn multiply_vectors(v1: &[FE], v2: &[FE]) -> FE {
-    let mut acc = FE::new(0);
-    for i in 0..v1.len() {
-        acc += v1[i] * v2[i]
-    }
-    acc
+pub fn inner_product(v1: &[FE], v2: &[FE]) -> FE {
+    v1.iter().zip(v2).map(|(x, y)| *x * *y).fold(
+        FE::new(0), |x,y| x +y)
 }
+
+
+// v1.iter().zip(v2).map(|(x, y)| *x * *y).fold(FE::new(0), |x,y| x + y)
 
 #[cfg(test)]
 pub mod tests {
-    use crate::circuits::test_utils::{new_test_first_constraint, new_test_r1cs, new_test_second_constraint};
+    use crate::circuits::test_utils::{
+        new_test_first_constraint, new_test_r1cs, new_test_second_constraint,
+    };
 
     use super::*;
 
@@ -117,7 +119,7 @@ pub mod tests {
         let v1 = &[FE::new(2), FE::new(2)];
         let v2 = &[FE::new(3), FE::new(3)];
 
-        assert_eq!(multiply_vectors(v1, v2), FE::new(12));
+        assert_eq!(inner_product(v1, v2), FE::new(12));
     }
 
     #[test]
@@ -125,7 +127,7 @@ pub mod tests {
         let v1 = &[FE::new(3)];
         let v2 = &[FE::new(5)];
 
-        assert_eq!(multiply_vectors(v1, v2), FE::new(15));
+        assert_eq!(inner_product(v1, v2), FE::new(15));
     }
 
     #[test]
