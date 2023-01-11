@@ -190,7 +190,7 @@ pub fn setup(qap: &Qap, toxic_waste: &ToxicWaste) -> (EvaluationKey, VerifyingKe
 #[cfg(test)]
 mod tests {
     use super::{setup, ToxicWaste};
-    use crate::{circuits::qap::new_test_qap, math};
+    use crate::{circuits::test_utils::new_test_qap, math};
     use math::field_element::FieldElement as FE;
 
     fn identity_toxic_waste() -> ToxicWaste {

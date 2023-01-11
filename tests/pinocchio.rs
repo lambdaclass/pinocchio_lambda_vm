@@ -1,4 +1,4 @@
-use pinocchio_vm::circuits::qap::{new_test_qap, Qap};
+use pinocchio_vm::circuits::test_utils::{new_test_qap, test_qap_solver};
 use pinocchio_vm::math::field_element::FieldElement as FE;
 use pinocchio_vm::pinocchio::prover;
 use pinocchio_vm::pinocchio::setup::{setup, ToxicWaste};
@@ -13,7 +13,7 @@ fn test_pinocchio() {
     let inputs = [FE::new(1), FE::new(2), FE::new(3), FE::new(4)];
 
     // For the test circuit c_mid and c_output has only one element
-    let (c_mid, c_output) = Qap::test_qap_solver(inputs);
+    let (c_mid, c_output) = test_qap_solver(inputs);
 
     let mut c_vector = inputs.to_vec();
     c_vector.push(c_mid);
