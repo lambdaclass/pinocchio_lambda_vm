@@ -99,10 +99,11 @@ impl Constraint {
 }
 
 pub fn inner_product(v1: &[FE], v2: &[FE]) -> FE {
-    v1.iter().zip(v2).map(|(x, y)| *x * *y).fold(
-        FE::new(0), |x,y| x +y)
+    v1.iter()
+        .zip(v2)
+        .map(|(x, y)| *x * *y)
+        .fold(FE::new(0), |x, y| x + y)
 }
-
 
 // v1.iter().zip(v2).map(|(x, y)| *x * *y).fold(FE::new(0), |x,y| x + y)
 
