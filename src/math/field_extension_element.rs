@@ -24,19 +24,6 @@ impl FieldExtensionElement {
     }
 
     pub fn defining_polynomial() -> Polynomial<ORDER_P> {
-        // t^6 + 6 (Moonmath)
-        //let linear_term = Polynomial::new_monomial(FE::new(6), 0);
-        //let higher_order_term = Polynomial::new_monomial(FE::new(1), 6);
-        //linear_term + higher_order_term
-        // Polynomial from "Pairing for beginners"
-        // let linear_term = Polynomial::new_monomial(FE::new(5), 0);
-        // let higher_order_term_a = Polynomial::new_monomial(FE::new(1), 4);
-        // let higher_order_term_b = Polynomial::new_monomial(-FE::new(4), 2);
-        // linear_term + higher_order_term_a + higher_order_term_b
-        // t^4 + 2 (Tiny JubJub, Moonmath)
-        //let linear_term = Polynomial::new_monomial(FE::new(2), 0);
-        //let higher_order_term = Polynomial::new_monomial(FE::new(1), 4);
-        //linear_term + higher_order_term
         let linear_term = Polynomial::new_monomial(FE::new(1), 0);
         let higher_order_term = Polynomial::new_monomial(FE::new(1), 2);
         linear_term + higher_order_term

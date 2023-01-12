@@ -4,38 +4,6 @@ use super::{
 };
 use std::ops;
 
-// Elliptic curve from "Pairing for beginners"
-//const ORDER_R: u128 = 17; // Base coefficients for polynomials of the circuit (Also the other of the subgroup of the elliptic curve)
-//const ORDER_P: u128 = 47; // Base coefficients for coordinates of points in elliptic curve
-//const EMBEDDING_DEGREE: u32 = 4; // Degree to ensure that torsion group is contained in the elliptic curve over field extensions
-//const ORDER_FIELD_EXTENSION: u128 = ORDER_P.pow(EMBEDDING_DEGREE);
-//const TARGET_NORMALIZATION_POWER: u128 = (ORDER_P.pow(EMBEDDING_DEGREE) - 1) / ORDER_R;
-//const ELLIPTIC_CURVE_A: u128 = 21;
-//const ELLIPTIC_CURVE_B: u128 = 15;
-//const GENERATOR_AFFINE_X: u128 = 45;
-//const GENERATOR_AFFINE_Y: u128 = 23;
-
-// Elliptic curve from "Moonmath"
-//const ORDER_R: u128 = 13; // Base coefficients for polynomials of the circuit (Also the other of the subgroup of the elliptic curve)
-//const ORDER_P: u128 = 43; // Base coefficients for coordinates of points in elliptic curve
-//const EMBEDDING_DEGREE: u32 = 6; // Degree to ensure that torsion group is contained in the elliptic curve over field extensions
-//const ORDER_FIELD_EXTENSION: u128 = ORDER_P.pow(EMBEDDING_DEGREE);
-//const TARGET_NORMALIZATION_POWER: u128 = (ORDER_P.pow(EMBEDDING_DEGREE) - 1) / ORDER_R;
-//const ELLIPTIC_CURVE_A: u128 = 0;
-//const ELLIPTIC_CURVE_B: u128 = 6;
-//const GENERATOR_AFFINE_X: u128 = 13;
-//const GENERATOR_AFFINE_Y: u128 = 15;
-
-// Tiny jub jub
-// const ORDER_R: u128 = 5; // Base coefficients for polynomials of the circuit (Also the other of the subgroup of the elliptic curve)
-// const ORDER_P: u128 = 13; // Base coefficients for coordinates of points in elliptic curve
-// const EMBEDDING_DEGREE: u32 = 4; // Degree to ensure that torsion group is contained in the elliptic curve over field extensions
-// const ORDER_FIELD_EXTENSION: u128 = ORDER_P.pow(EMBEDDING_DEGREE);
-// const TARGET_NORMALIZATION_POWER: u128 = (ORDER_P.pow(EMBEDDING_DEGREE) - 1) / ORDER_R;
-// const ELLIPTIC_CURVE_A: u128 = 8;
-// const ELLIPTIC_CURVE_B: u128 = 8;
-// const GENERATOR_AFFINE_X: u128 = 7;
-// const GENERATOR_AFFINE_Y: u128 = 2;
 
 // Curve ("Pairing for beginners", page 57)
 const ORDER_R: u128 = 5;
@@ -77,30 +45,6 @@ impl EllipticCurveElement {
         Self::new(&self.x / &self.z, &self.y / &self.z, FEE::new_base(1))
     }
 
-    /// Returns the slope and intercept of the line between p and q.
-    //fn line_between(p: &Self, q: &Self) -> (FEE, FEE) {
-    //    if p == q {
-    //        Self::tangent_line(p)
-    //    } else {
-    //        let slope = (&p.y - &q.y) / (&p.x - &q.x);
-    //        let intercept = &p.y - &slope * &p.x;
-    //        (slope, intercept)
-    //    }
-    //}
-
-    /// Returns the slope and intercept of the tangent line at p.
-    //fn tangent_line(p: &Self) -> (FEE, FEE) {
-    //    let slope = (FEE::new_base(3) * (&p.x).pow(2) + FEE::new_base(ELLIPTIC_CURVE_A)) / (FEE::new_base(2) * &p.y);
-    //    let intercept = &p.y - &slope * &p.x;
-    //    (slope, intercept)
-    //}
-    //
-    ///// Returns intercept of the vertical line at p.
-    //fn vertical_line(p: &Self) -> FEE {
-    //    let intercept = -&p.x;
-    //    intercept
-    //}
-
     fn line(&self, r: &Self, q: &Self) -> FEE {
         assert_ne!(*q, Self::neutral_element());
         if *self == Self::neutral_element() || *r == Self::neutral_element() {
@@ -131,55 +75,6 @@ impl EllipticCurveElement {
         }
     }
 
-    //fn divisor_evaluation(r: &Self, p: &Self, q: &Self) -> FEE {
-    //    let double_q = q.operate_with_self(2).affine();
-    //
-    //    if r.x == p.x && r.y != p.y {
-    //        let numerator = &double_q.x - &p.x;
-    //        let denominator = &q.x - &p.x;
-    //        //numerator / denominator
-    //        denominator
-    //    } else {
-    //        let (slope, intercept) = Self::line_between(&r, &p);
-    //        let vertical_intercept = Self::vertical_line(&r.operate_with(p).affine());
-    //        let numerator = (&double_q.y - &slope * &double_q.x - &intercept) / (&double_q.x + &vertical_intercept);
-    //        let denominator = (&q.y - slope * &q.x - intercept) / (&q.x + vertical_intercept);
-    //        //numerator / denominator
-    //        denominator
-    //    }
-    //}
-
-    ///// Taken from "Pairings for beginners" (Algorithm 5.1, page 79)
-    //fn miller(p: &Self, q: &Self) -> FEE {
-    //    if *p == Self::neutral_element() || *q == Self::neutral_element() {
-    //        //|| p == q {
-    //        FEE::new_base(1) // this is equal to [(-1)^r]^(q^k -1)
-    //    } else {
-    //        let mut order_r = ORDER_R;
-    //        let mut bs = vec![];
-    //        while order_r > 0 {
-    //            bs.insert(0, order_r & 1);
-    //            order_r >>= 1;
-    //        }
-    //
-    //        let mut f = FEE::new_base(1);
-    //        let mut r = p.clone();
-    //
-    //        for b in bs[1..].iter() {
-    //            f = f.pow(2) * Self::divisor_evaluation(&r, &r, q);
-    //            r = r.operate_with(&r).affine();
-    //            if *b == 1 {
-    //                f = f * Self::divisor_evaluation(&r, &p, q);
-    //                r = r.operate_with(p);
-    //                if r != Self::neutral_element() {
-    //                    r = r.affine();
-    //                }
-    //            }
-    //        }
-    //        f
-    //    }
-    //}
-    //
     /// Taken from "Pairings for beginners" (Algorithm 5.1, page 79)
     fn miller(p: &Self, q: &Self) -> FEE {
         if *p == Self::neutral_element() || *q == Self::neutral_element() {
@@ -354,83 +249,6 @@ impl CyclicGroup for EllipticCurveElement {
 mod tests {
     use super::*;
 
-    // #[test]
-    // fn create_valid_point_works() {
-    //     let point = EllipticCurveElement::new(FEE::new_base(13), FEE::new_base(15), FEE::new_base(1));
-    //     assert_eq!(point.x, FEE::new_base(13));
-    //     assert_eq!(point.y, FEE::new_base(15));
-    //     assert_eq!(point.z, FEE::new_base(1));
-    //
-    //     let point = EllipticCurveElement::new(
-    //         FEE::new(Polynomial::new_monomial(FE::new(7), 2)),
-    //         FEE::new(Polynomial::new_monomial(FE::new(16), 3)),
-    //         FEE::new_base(1)
-    //     );
-    //     assert_eq!(point.x, FEE::new(Polynomial::new_monomial(FE::new(7), 2)));
-    //     assert_eq!(point.y, FEE::new(Polynomial::new_monomial(FE::new(16), 3)));
-    //     assert_eq!(point.z, FEE::new_base(1));
-    //// }
-    //
-    //#[test]
-    //fn equality_holds_only_for_points_that_are_multiple_of_each_other() {
-    //    assert_eq!(
-    //        EllipticCurveElement::new(FEE::new_base(26), FEE::new_base(9), FEE::new_base(1)),
-    //        EllipticCurveElement::new(FEE::new_base(26), FEE::new_base(9), FEE::new_base(1)),
-    //    );
-    //
-    //    assert_eq!(
-    //        EllipticCurveElement::new(FEE::new_base(26), FEE::new_base(9), FEE::new_base(1)),
-    //        EllipticCurveElement::new(FEE::new_base(26 * 2), FEE::new_base(9 * 2), FEE::new_base(2)),
-    //    );
-    //
-    //    assert_eq!(
-    //        EllipticCurveElement::new(FEE::new_base(0), FEE::new_base(1), FEE::new_base(0)),
-    //        EllipticCurveElement::new(FEE::new_base(0), -FEE::new_base(1), FEE::new_base(0)),
-    //    );
-    //
-    //    assert_eq!(
-    //        EllipticCurveElement::new(
-    //            FEE::new(Polynomial::new_monomial(FE::new(10), 2)),
-    //            FEE::new(Polynomial::new_monomial(FE::new(28), 3)),
-    //            FEE::new_base(1)),
-    //        EllipticCurveElement::new(
-    //            FEE::new(Polynomial::new_monomial(FE::new(10), 2)),
-    //            FEE::new(Polynomial::new_monomial(FE::new(28), 3)),
-    //            FEE::new_base(1)
-    //        )
-    //    );
-    //
-    //    assert_ne!(
-    //        EllipticCurveElement::new(
-    //            FEE::new(Polynomial::new_monomial(FE::new(7), 2)),
-    //            FEE::new(Polynomial::new_monomial(FE::new(16), 3)),
-    //            FEE::new_base(1)),
-    //        EllipticCurveElement::new(
-    //            FEE::new(Polynomial::new_monomial(FE::new(10), 2)),
-    //            FEE::new(Polynomial::new_monomial(FE::new(28), 3)),
-    //            FEE::new_base(1)
-    //        )
-    //    );
-    //
-    //    assert_ne!(
-    //        EllipticCurveElement::new(FEE::new_base(26), FEE::new_base(9), FEE::new_base(1)),
-    //        EllipticCurveElement::new(FEE::new_base(0), FEE::new_base(1), FEE::new_base(0)),
-    //    );
-    //}
-    //
-
-    //#[test]
-    //fn operate_with_self_works_when_using_field_extensions() {
-    //    let mut point_1 = EllipticCurveElement::new(
-    //        FEE::new(Polynomial::new_monomial(FE::new(17), 2)),
-    //        FEE::new(Polynomial::new_monomial(FE::new(15), 3)),
-    //        FEE::new_base(1)
-    //    );
-    //    point_1 = point_1.operate_with_self(ORDER_R);
-    //    assert_eq!(point_1, EllipticCurveElement::neutral_element());
-    //}
-    //
-
     // Tiny Jub Jub
     #[test]
     fn create_valid_point_works() {
@@ -502,49 +320,4 @@ mod tests {
         let result_weil = EllipticCurveElement::tate_pairing(&pa, &pb);
         assert_eq!(result_weil, expected_result);
     }
-
-    //#[test]
-    //fn test_moonmath() {
-    //    let mut pa = EllipticCurveElement::new(
-    //        FEE::new_base(13),
-    //        FEE::new_base(15),
-    //        FEE::new_base(1)
-    //    );
-    //    let mut pb = EllipticCurveElement::new(
-    //        FEE::new(Polynomial::new(vec![FE::new(0), FE::new(0), FE::new(7)])),
-    //        FEE::new(Polynomial::new(vec![FE::new(0), FE::new(0), FE::new(0), FE::new(16)])),
-    //        FEE::new_base(1)
-    //    );
-    //    let expected_result = FEE::new(Polynomial::new(vec![
-    //        FE::new(39),
-    //        FE::new(45),
-    //        FE::new(43),
-    //        FE::new(33)
-    //    ]));
-    //
-    //    let result_weil = EllipticCurveElement::weil_pairing(&pa, &pb);
-    //    //let result_tate = EllipticCurveElement::tate_pairing(&pa, &pb);
-    //    println!("{:?}\n\n\n", &result_weil);
-    //    println!("{:?}\n\n\n", -&result_weil);
-    //    assert_eq!(result_weil, expected_result);
-    //}
-
-    //#[test]
-    //#[should_panic]
-    //fn create_invalid_points_with_field_extensions_panicks() {
-    //    EllipticCurveElement::new(
-    //        FEE::new(Polynomial::new_monomial(FE::new(1), 2)),
-    //        FEE::new(Polynomial::new_monomial(FE::new(1), 2)),
-    //        FEE::new_base(1),
-    //    );
-    //}
-
-    //#[test]
-    //fn doubling_a_point_works() {
-    //    println!(
-    //        "{:?}",
-    //        EllipticCurveElement::new(FEE::new_base(45), FEE::new_base(23), FEE::new_base(1))
-    //            .operate_with_self(4)
-    //    )
-    //}
 }
