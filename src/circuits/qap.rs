@@ -1,7 +1,10 @@
-use crate::math::{field_element::FieldElement as FE, polynomial::Polynomial};
+use super::r1cs::R1CS;
+use crate::math::{field_element::FieldElement, polynomial::Polynomial as Poly};
 use std::convert::From;
 
-use super::r1cs::R1CS;
+const ORDER: u128 = 5;
+type FE = FieldElement<ORDER>;
+type Polynomial = Poly<ORDER>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// QAP Representation of the circuits
