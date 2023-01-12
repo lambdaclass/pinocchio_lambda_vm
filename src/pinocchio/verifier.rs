@@ -51,7 +51,7 @@ pub fn check_appropiate_spans<T: CyclicGroup>(
     let b1 = proof.g_alpha_vs.pairing(&vk.g_1) == proof.g_vs.pairing(&vk.g_alpha_v);
     let b2 = proof.g_alpha_ws.pairing(&vk.g_1) == proof.g_ws.pairing(&vk.g_alpha_w);
     let b3 = proof.g_alpha_ys.pairing(&vk.g_1) == proof.g_ys.pairing(&vk.g_alpha_y);
-    return b1 && b2 && b3;
+    b1 && b2 && b3
 }
 
 pub fn check_same_linear_combinations<T: CyclicGroup>(

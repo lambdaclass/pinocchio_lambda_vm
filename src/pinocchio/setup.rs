@@ -51,6 +51,7 @@ impl ToxicWaste {
         self.rv * self.rw
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         s: FE,
         alpha_v: FE,
@@ -62,14 +63,14 @@ impl ToxicWaste {
         gamma: FE,
     ) -> Self {
         Self {
-            s: s,
-            alpha_v: alpha_v,
-            alpha_w: alpha_w,
-            alpha_y: alpha_y,
-            beta: beta,
-            rv: rv,
-            rw: rw,
-            gamma: gamma,
+            s,
+            alpha_v,
+            alpha_w,
+            alpha_y,
+            beta,
+            rv,
+            rw,
+            gamma,
         }
     }
 
@@ -223,7 +224,7 @@ pub fn setup<T: CyclicGroup>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{circuits::qap::new_test_qap, math};
+    use crate::circuits::qap::new_test_qap;
 
     fn identity_toxic_waste() -> ToxicWaste {
         ToxicWaste {

@@ -8,7 +8,6 @@ use std::ops;
 const ORDER_R: u128 = 5;
 const ORDER_P: u128 = 59;
 const EMBEDDING_DEGREE: u32 = 2; // Degree to ensure that torsion group is contained in the elliptic curve over field extensions
-const ORDER_FIELD_EXTENSION: u128 = ORDER_P.pow(EMBEDDING_DEGREE);
 const TARGET_NORMALIZATION_POWER: u128 = (ORDER_P.pow(EMBEDDING_DEGREE) - 1) / ORDER_R;
 const ELLIPTIC_CURVE_A: u128 = 1;
 const ELLIPTIC_CURVE_B: u128 = 0;
@@ -16,6 +15,7 @@ const GENERATOR_AFFINE_X: u128 = 35;
 const GENERATOR_AFFINE_Y: u128 = 31;
 
 type FE = FieldElement<ORDER_P>;
+#[allow(clippy::upper_case_acronyms)]
 type FEE = FieldExtensionElement;
 
 // Projective Short Weierstrass form
@@ -50,12 +50,12 @@ impl EllipticCurveElement {
                 return FEE::new_base(1);
             }
             if *self == Self::neutral_element() {
-                return &q.x - &r.x;
+                &q.x - &r.x
             } else {
-                return &q.x - &self.x;
+                &q.x - &self.x
             }
         } else if self != r {
-            if &self.x == &r.x {
+            if self.x == r.x {
                 return &q.x - &self.x;
             } else {
                 let l = (&r.y - &self.y) / (&r.x - &self.x);
@@ -95,11 +95,11 @@ impl EllipticCurveElement {
                 r = s;
 
                 if *b == 1 {
-                    let mut s = r.operate_with(&p);
+                    let mut s = r.operate_with(p);
                     if s != Self::neutral_element() {
                         s = s.affine();
                     }
-                    f = f * (r.line(&p, q) / s.line(&-(&s), q));
+                    f = f * (r.line(p, q) / s.line(&-(&s), q));
                     r = s;
                 }
             }
@@ -107,10 +107,11 @@ impl EllipticCurveElement {
         }
     }
 
+    #[allow(unused)]
     fn weil_pairing(p: &Self, q: &Self) -> FEE {
         let numerator = Self::miller(p, q);
         let denominator = Self::miller(q, p);
-        let result = (numerator / denominator);
+        let result = numerator / denominator;
         -result
     }
 
@@ -281,9 +282,8 @@ mod tests {
 
     #[test]
     fn test_weil_pairing() {
-        let mut pa =
-            EllipticCurveElement::new(FEE::new_base(35), FEE::new_base(31), FEE::new_base(1));
-        let mut pb = EllipticCurveElement::new(
+        let pa = EllipticCurveElement::new(FEE::new_base(35), FEE::new_base(31), FEE::new_base(1));
+        let pb = EllipticCurveElement::new(
             FEE::new(Polynomial::new(vec![FE::new(24)])),
             FEE::new(Polynomial::new(vec![FE::new(0), FE::new(31)])),
             FEE::new_base(1),
@@ -296,9 +296,8 @@ mod tests {
 
     #[test]
     fn test_tate_pairing() {
-        let mut pa =
-            EllipticCurveElement::new(FEE::new_base(35), FEE::new_base(31), FEE::new_base(1));
-        let mut pb = EllipticCurveElement::new(
+        let pa = EllipticCurveElement::new(FEE::new_base(35), FEE::new_base(31), FEE::new_base(1));
+        let pb = EllipticCurveElement::new(
             FEE::new(Polynomial::new(vec![FE::new(24)])),
             FEE::new(Polynomial::new(vec![FE::new(0), FE::new(31)])),
             FEE::new_base(1),
