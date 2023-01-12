@@ -1,4 +1,7 @@
-use super::qap::Qap;
+use super::{
+    qap::Qap,
+    r1cs::{Constraint, R1CS},
+};
 use crate::math::{field_element::FieldElement as FE, polynomial::Polynomial};
 
 // r5 and r6 are exposed to help testing
@@ -65,4 +68,73 @@ pub fn new_test_qap() -> Qap {
     ];
 
     Qap::new(vs.to_vec(), ws.to_vec(), ys.to_vec(), t, 4, 1).unwrap()
+}
+
+pub fn new_test_r1cs() -> R1CS {
+    let constraints = vec![new_test_first_constraint(), new_test_second_constraint()];
+    R1CS::new(constraints, 4, 1).unwrap()
+}
+
+pub fn new_test_first_constraint() -> Constraint {
+    Constraint {
+        a: vec![
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+            FE::new(1),
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+        ],
+        b: vec![
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+            FE::new(1),
+            FE::new(0),
+            FE::new(0),
+        ],
+        c: vec![
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+            FE::new(1),
+            FE::new(0),
+        ],
+    }
+}
+
+pub fn new_test_second_constraint() -> Constraint {
+    Constraint {
+        a: vec![
+            FE::new(0),
+            FE::new(1),
+            FE::new(1),
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+        ],
+        b: vec![
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+            FE::new(1),
+            FE::new(0),
+        ],
+        c: vec![
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+            FE::new(0),
+            FE::new(1),
+        ],
+    }
 }
