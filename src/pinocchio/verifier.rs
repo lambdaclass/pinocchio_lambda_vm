@@ -7,16 +7,16 @@ use math::msm::msm;
 const ORDER: u128 = 5;
 type FE = FieldElement<ORDER>;
 
-pub fn verify(verifying_key: &VerifyingKey, proof: &Proof, c_input_output: &[FE]) -> bool {
+pub fn verify<T: CyclicGroup>(verifying_key: &VerifyingKey<T>, proof: &Proof<T>, c_input_output: &[FE]) -> bool {
     let b1 = check_divisibility(verifying_key, proof, c_input_output);
     let b2 = check_appropiate_spans(verifying_key, proof);
     let b3 = check_same_linear_combinations(verifying_key, proof);
     b1 && b2 && b3
 }
 
-pub fn check_divisibility(
-    verifying_key: &VerifyingKey,
-    proof: &Proof,
+pub fn check_divisibility<T: CyclicGroup>(
+    verifying_key: &VerifyingKey<T>,
+    proof: &Proof<T>,
     input_output: &[FE],
 ) -> bool {
     let vk = verifying_key;
@@ -38,7 +38,7 @@ pub fn check_divisibility(
     lhs == rhs_1 * rhs_2
 }
 
-pub fn check_appropiate_spans(verifying_key: &VerifyingKey, proof: &Proof) -> bool {
+pub fn check_appropiate_spans<T: CyclicGroup>(verifying_key: &VerifyingKey<T>, proof: &Proof<T>) -> bool {
     let vk = verifying_key;
 
     let b1 = proof.g_alpha_vs.pairing(&vk.g_1) == proof.g_vs.pairing(&vk.g_alpha_v);
@@ -47,7 +47,7 @@ pub fn check_appropiate_spans(verifying_key: &VerifyingKey, proof: &Proof) -> bo
     return b1 && b2 && b3;
 }
 
-pub fn check_same_linear_combinations(verifying_key: &VerifyingKey, proof: &Proof) -> bool {
+pub fn check_same_linear_combinations<T: CyclicGroup>(verifying_key: &VerifyingKey<T>, proof: &Proof<T>) -> bool {
     let vk = verifying_key;
 
     proof.g_beta_vwy.pairing(&vk.g_gamma)

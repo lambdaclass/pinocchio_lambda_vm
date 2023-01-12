@@ -1,9 +1,9 @@
-use std::ops::Mul;
+use std::{ops::Mul};
 
 /// Cyclic group implementation for Pinocchio Implementation
 /// inverse function is not implemented since it's not needed for it
-pub trait CyclicGroup {
-    type PairingOutput: Mul<Output=Self::PairingOutput>;
+pub trait CyclicGroup: Clone {
+    type PairingOutput: Mul<Output=Self::PairingOutput> + PartialEq + Eq;
 
     fn generator() -> Self;
     fn neutral_element() -> Self;
