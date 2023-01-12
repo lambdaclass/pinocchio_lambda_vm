@@ -4,7 +4,7 @@ use crate::math::{self, cyclic_group::CyclicGroup};
 use math::field_element::FieldElement;
 use math::msm::msm;
 
-const ORDER: u128 = 23;
+const ORDER: u128 = 5;
 type FE = FieldElement<ORDER>;
 
 pub fn verify(verifying_key: &VerifyingKey, proof: &Proof, c_input_output: &[FE]) -> bool {
@@ -35,15 +35,16 @@ pub fn check_divisibility(
     let rhs_1 = verifying_key.gy_target_on_s.pairing(&proof.g_hs);
     let rhs_2 = hiding_y.pairing(&vk.g_1);
 
-    lhs == rhs_1.operate_with(&rhs_2)
+    lhs == rhs_1 * rhs_2
 }
 
 pub fn check_appropiate_spans(verifying_key: &VerifyingKey, proof: &Proof) -> bool {
     let vk = verifying_key;
 
-    proof.g_alpha_vs.pairing(&vk.g_1) == proof.g_vs.pairing(&vk.g_alpha_v)
-        && proof.g_alpha_ws.pairing(&vk.g_1) == proof.g_ws.pairing(&vk.g_alpha_w)
-        && proof.g_alpha_ys.pairing(&vk.g_1) == proof.g_ys.pairing(&vk.g_alpha_y)
+    let b1 = proof.g_alpha_vs.pairing(&vk.g_1) == proof.g_vs.pairing(&vk.g_alpha_v);
+    let b2 = proof.g_alpha_ws.pairing(&vk.g_1) == proof.g_ws.pairing(&vk.g_alpha_w);
+    let b3 = proof.g_alpha_ys.pairing(&vk.g_1) == proof.g_ys.pairing(&vk.g_alpha_y);
+    return b1 && b2 && b3;
 }
 
 pub fn check_same_linear_combinations(verifying_key: &VerifyingKey, proof: &Proof) -> bool {

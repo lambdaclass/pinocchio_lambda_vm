@@ -1,12 +1,13 @@
 use crate::circuits::qap::Qap;
 use crate::math::field_element::FieldElement;
 use crate::math::msm::msm;
+use crate::math::elliptic_curve::EllipticCurveElement;
 
 use super::setup::EvaluationKey;
 
-const ORDER: u128 = 23;
+const ORDER: u128 = 5;
 type FE = FieldElement<ORDER>;
-pub type CyclicGroupType = FE;
+pub type CyclicGroupType = EllipticCurveElement;
 
 /// Proof for Pinocchio
 /// All but hs are the mid related elements
@@ -55,7 +56,7 @@ pub fn generate_proof(
 
 #[cfg(test)]
 mod tests {
-    use crate::math::polynomial::Polynomial;
+    use crate::math::{polynomial::Polynomial, cyclic_group::CyclicGroup};
 
     use super::*;
 
@@ -65,16 +66,18 @@ mod tests {
     // It only works with FE as the CyclicGroupType
     #[test]
     fn proof_test() {
+        let g = CyclicGroupType::generator();
+
         // This eval key is the identity
         let easy_eval_key = EvaluationKey {
-            gv_ks: vec![FE::new(1), FE::new(1)],
-            gw_ks: vec![FE::new(1), FE::new(1)],
-            gy_ks: vec![FE::new(1), FE::new(1)],
-            gv_alphaks: vec![FE::new(2), FE::new(2)],
-            gw_alphaks: vec![FE::new(2), FE::new(2)],
-            gy_alphaks: vec![FE::new(2), FE::new(2)],
-            g_s_i: vec![FE::new(1), FE::new(1)],
-            g_beta: vec![FE::new(1), FE::new(1)],
+            gv_ks: vec![g.clone(), g.clone()],
+            gw_ks: vec![g.clone(), g.clone()],
+            gy_ks: vec![g.clone(), g.clone()],
+            gv_alphaks: vec![g.operate_with_self(2), g.operate_with_self(2)],
+            gw_alphaks: vec![g.operate_with_self(2), g.operate_with_self(2)],
+            gy_alphaks: vec![g.operate_with_self(2), g.operate_with_self(2)],
+            g_s_i: vec![g.clone(), g.clone()],
+            g_beta: vec![g.clone(), g.clone()],
         };
 
         // vwy are all equals, the 0 element is 0, the rest are ones
@@ -126,8 +129,8 @@ mod tests {
 
         let proof = generate_proof(&easy_eval_key, &easy_qap, &c_coefficients);
 
-        assert_eq!(proof.g_vs, FE::new(5));
-        assert_eq!(proof.g_ys, FE::new(5));
-        assert_eq!(proof.g_alpha_vs, FE::new(10));
+        assert_eq!(proof.g_vs, g.operate_with_self(5));
+        assert_eq!(proof.g_ys, g.operate_with_self(5));
+        assert_eq!(proof.g_alpha_vs, g.operate_with_self(5));
     }
 }

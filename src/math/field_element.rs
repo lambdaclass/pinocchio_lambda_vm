@@ -26,7 +26,7 @@ impl<const ORDER: u128> FieldElement<ORDER> {
     }
 
     pub fn random() -> Self {
-        let value: u128 = rand::thread_rng().gen_range(0..ORDER);
+        let value: u128 = rand::thread_rng().gen_range(1..ORDER);
         FieldElement { value }
     }
 
@@ -104,6 +104,8 @@ impl<const ORDER: u128> ops::Div for FieldElement<ORDER> {
 }
 
 impl<const ORDER: u128> CyclicGroup for FieldElement<ORDER> {
+    type PairingOutput = Self;
+    
     fn generator() -> FieldElement<ORDER> {
         FieldElement::new(1)
     }

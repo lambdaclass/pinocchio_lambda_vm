@@ -1,6 +1,6 @@
 use crate::math::{field_element::FieldElement, polynomial::Polynomial as Poly};
 
-const ORDER: u128 = 23;
+const ORDER: u128 = 5;
 type FE = FieldElement<ORDER>;
 type Polynomial = Poly<ORDER>;
 

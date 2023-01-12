@@ -2,10 +2,11 @@ use crate::circuits::qap::Qap;
 use crate::math;
 use math::cyclic_group::CyclicGroup;
 use math::field_element::FieldElement;
+use math::elliptic_curve::EllipticCurveElement;
 
-const ORDER: u128 = 23;
+const ORDER: u128 = 5;
 type FE = FieldElement<ORDER>;
-pub type CyclicGroupType = FE;
+pub type CyclicGroupType = EllipticCurveElement;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// Evaluation key for Pinocchio
@@ -52,6 +53,19 @@ impl ToxicWaste {
         self.rv * self.rw
     }
 
+    pub fn new(s: FE, alpha_v: FE, alpha_w: FE, alpha_y: FE, beta: FE, rv: FE, rw: FE, gamma: FE) -> Self {
+        Self {
+            s: s,
+            alpha_v: alpha_v,
+            alpha_w: alpha_w,
+            alpha_y: alpha_y,
+            beta: beta,
+            rv: rv,
+            rw: rw,
+            gamma: gamma
+        }
+    }
+
     pub fn sample() -> Self {
         Self {
             s: FE::random(),
@@ -69,7 +83,7 @@ impl ToxicWaste {
 fn generate_verifying_key(
     qap: &Qap,
     toxic_waste: &ToxicWaste,
-    generator: CyclicGroupType,
+    generator: &CyclicGroupType,
 ) -> VerifyingKey {
     let s = toxic_waste.s;
     let alpha_v = toxic_waste.alpha_v;
@@ -105,13 +119,13 @@ fn generate_verifying_key(
     }
 
     VerifyingKey {
-        g_1: g,
-        g_alpha_v: g * alpha_v,
-        g_alpha_w: g * alpha_w,
-        g_alpha_y: g * alpha_y,
-        g_gamma: g * gamma,
-        g_beta_gamma: g * beta * gamma,
-        gy_target_on_s: g * ry * qap.target.evaluate(s),
+        g_1: g.clone(),
+        g_alpha_v: g.operate_with_self(alpha_v.representative()),
+        g_alpha_w: g.operate_with_self(alpha_w.representative()),
+        g_alpha_y: g.operate_with_self(alpha_y.representative()),
+        g_gamma: g.operate_with_self(gamma.representative()),
+        g_beta_gamma: g.operate_with_self((beta * gamma).representative()),
+        gy_target_on_s: g.operate_with_self((ry * qap.target.evaluate(s)).representative()),
         gv_ks: gv_ks_io,
         gw_ks: gw_ks_io,
         gy_ks: gy_ks_io,
@@ -121,7 +135,7 @@ fn generate_verifying_key(
 fn generate_evaluation_key(
     qap: &Qap,
     toxic_waste: &ToxicWaste,
-    generator: CyclicGroupType,
+    generator: &CyclicGroupType,
 ) -> EvaluationKey {
     let (vs_mid, ws_mid, ys_mid) = (qap.v_mid(), qap.w_mid(), qap.y_mid());
 
@@ -160,10 +174,9 @@ fn generate_evaluation_key(
             .push(g.operate_with_self((rw * alpha_w * ws_mid[k].evaluate(s)).representative()));
         gy_alphaks_mid
             .push(g.operate_with_self((ry * alpha_y * ys_mid[k].evaluate(s)).representative()));
-        g_beta_mid.push(
-            rv * beta * vs_mid[k].evaluate(s)
-                + rw * beta * ws_mid[k].evaluate(s)
-                + ry * beta * ys_mid[k].evaluate(s),
+        g_beta_mid.push(g.operate_with_self((rv * beta * vs_mid[k].evaluate(s)
+        + rw * beta * ws_mid[k].evaluate(s)
+        + ry * beta * ys_mid[k].evaluate(s)).representative())
         )
     }
 
@@ -188,16 +201,19 @@ fn generate_evaluation_key(
 pub fn setup(qap: &Qap, toxic_waste: &ToxicWaste) -> (EvaluationKey, VerifyingKey) {
     let generator = CyclicGroupType::generator();
     (
-        generate_evaluation_key(qap, toxic_waste, generator),
-        generate_verifying_key(qap, toxic_waste, generator),
+        generate_evaluation_key(qap, toxic_waste, &generator),
+        generate_verifying_key(qap, toxic_waste, &generator),
     )
 }
 
 #[cfg(test)]
 mod tests {
     use super::{setup, ToxicWaste};
+    use crate::math::cyclic_group::CyclicGroup;
     use crate::{circuits::qap::new_test_qap, math};
     use math::field_element::FieldElement as FE;
+    use math::elliptic_curve::EllipticCurveElement;
+    pub type CyclicGroupType = EllipticCurveElement;
 
     fn identity_toxic_waste() -> ToxicWaste {
         ToxicWaste {
@@ -240,6 +256,7 @@ mod tests {
             gamma: FE::new(1),
         };
 
+        let g = CyclicGroupType::generator();
         let test_circuit = new_test_qap();
 
         let (eval_key, _) = setup(&test_circuit, &tw);
@@ -247,41 +264,41 @@ mod tests {
         // These keys should be the same evaluation * rv, which is two
         assert_eq!(
             eval_key.gv_ks[0],
-            test_circuit.v_mid()[0].evaluate(r5) * FE::new(2)
+            g.operate_with_self((test_circuit.v_mid()[0].evaluate(r5) * FE::new(2)).representative())
         );
         assert_eq!(
             eval_key.gw_ks[0],
-            test_circuit.w_mid()[0].evaluate(r5) * FE::new(2)
+            g.operate_with_self((test_circuit.w_mid()[0].evaluate(r5) * FE::new(2)).representative())
         );
         // These keys should be the same evaluation * ys, which is two
         // Since the whole thing is 0
         assert_eq!(
             eval_key.gy_ks[0],
-            test_circuit.y_mid()[0].evaluate(r5) * FE::new(4)
+            g.operate_with_self((test_circuit.y_mid()[0].evaluate(r5) * FE::new(4)).representative())
         );
 
         // alpha * rv and alpha * rw is 4
         assert_eq!(
             eval_key.gv_alphaks[0],
-            test_circuit.v_mid()[0].evaluate(r5) * FE::new(4)
+            g.operate_with_self((test_circuit.v_mid()[0].evaluate(r5) * FE::new(4)).representative())
         );
         assert_eq!(
             eval_key.gv_alphaks[0],
-            test_circuit.v_mid()[0].evaluate(r5) * FE::new(4)
+            g.operate_with_self((test_circuit.v_mid()[0].evaluate(r5) * FE::new(4)).representative())
         );
         // alpha * ry and alpha * rw is 8
         assert_eq!(
             eval_key.gv_alphaks[0],
-            test_circuit.v_mid()[0].evaluate(r5) * FE::new(8)
+            g.operate_with_self((test_circuit.v_mid()[0].evaluate(r5) * FE::new(8)).representative())
         );
 
         assert_eq!(
             eval_key.g_beta[0],
             // beta * rv is 4
-            test_circuit.v_mid()[0].evaluate(r5) * FE::new(4) +
+            g.operate_with_self((test_circuit.v_mid()[0].evaluate(r5) * FE::new(4) +
             test_circuit.w_mid()[0].evaluate(r5) * FE::new(4) +
             // beta * ry is 8
-            test_circuit.y_mid()[0].evaluate(r5) * FE::new(8)
+            test_circuit.y_mid()[0].evaluate(r5) * FE::new(8)).representative())
         )
     }
 

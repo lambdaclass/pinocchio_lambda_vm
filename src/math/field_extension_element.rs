@@ -1,8 +1,8 @@
 use super::{field_element::FieldElement, polynomial::Polynomial};
 use std::ops;
 
-const ORDER_P: u128 = 13; // Base coefficients for coordinates of points in elliptic curve
-const EMBEDDING_DEGREE: u32 = 4; // Degree to ensure that torsion group is contained in the elliptic curve over field extensions
+const ORDER_P: u128 = 59; // Base coefficients for coordinates of points in elliptic curve
+const EMBEDDING_DEGREE: u32 = 2; // Degree to ensure that torsion group is contained in the elliptic curve over field extensions
 const ORDER_FIELD_EXTENSION: u128 = ORDER_P.pow(EMBEDDING_DEGREE);
 type FE = FieldElement<ORDER_P>;
 
@@ -34,8 +34,11 @@ impl FieldExtensionElement {
         // let higher_order_term_b = Polynomial::new_monomial(-FE::new(4), 2);
         // linear_term + higher_order_term_a + higher_order_term_b
         // t^4 + 2 (Tiny JubJub, Moonmath)
-        let linear_term = Polynomial::new_monomial(FE::new(2), 0);
-        let higher_order_term = Polynomial::new_monomial(FE::new(1), 4);
+        //let linear_term = Polynomial::new_monomial(FE::new(2), 0);
+        //let higher_order_term = Polynomial::new_monomial(FE::new(1), 4);
+        //linear_term + higher_order_term
+        let linear_term = Polynomial::new_monomial(FE::new(1), 0);
+        let higher_order_term = Polynomial::new_monomial(FE::new(1), 2);
         linear_term + higher_order_term
     }
 
