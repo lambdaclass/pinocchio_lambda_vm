@@ -224,7 +224,8 @@ pub fn setup<T: CyclicGroup>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::circuits::qap::new_test_qap;
+    use super::{setup, ToxicWaste};
+    use crate::circuits::test_utils::new_test_qap;
 
     fn identity_toxic_waste() -> ToxicWaste {
         ToxicWaste {

@@ -1,4 +1,6 @@
+use super::r1cs::R1CS;
 use crate::math::{field_element::FieldElement, polynomial::Polynomial as Poly};
+use std::convert::From;
 
 const ORDER: u128 = 5;
 type FE = FieldElement<ORDER>;
@@ -131,77 +133,57 @@ impl Qap {
     pub fn y_output(&'_ self) -> &[Polynomial] {
         &self.y[(self.y.len() - self.number_of_outputs)..]
     }
-
-    // r5 and r6 are exposed to help testing
-    pub fn test_qap_r5() -> FE {
-        FE::new(0)
-    }
-
-    pub fn test_qap_r6() -> FE {
-        FE::new(1)
-    }
-
-    /// This is a solver for the test qap
-    /// Inputs: c1,c2,c3,c4 circuit inputs
-    /// Outputs: c5 intermediate result, c6 result
-    pub fn test_qap_solver(inputs: [FE; 4]) -> (FE, FE) {
-        let c5 = inputs[2] * inputs[3];
-        let c6 = (inputs[0] + inputs[1]) * c5;
-        (c5, c6)
-    }
 }
 
-/// Test qap based on pinocchios paper example
-pub fn new_test_qap() -> Qap {
-    let r5: FE = Qap::test_qap_r5();
-    let r6: FE = Qap::test_qap_r6();
+impl From<R1CS> for Qap {
+    /// Transforms a R1CS to a QAP
+    fn from(r1cs: R1CS) -> Self {
+        // The r values for the qap polynomial can each be any number,
+        // as long as there are the right amount of rs
+        // In this case, it's set them to be 0,1,2..number_of_constraints(),
+        // number_of_constraints non inclusive
+        let rs: Vec<FE> = (0..r1cs.number_of_constraints() as u128)
+            .map(FE::new)
+            .collect();
 
-    let t: Polynomial =
-        Polynomial::new(vec![-r5, FE::new(1)]) * Polynomial::new(vec![-r6, FE::new(1)]);
+        let mut v: Vec<Polynomial> = Vec::with_capacity(r1cs.witness_size());
+        let mut w: Vec<Polynomial> = Vec::with_capacity(r1cs.witness_size());
+        let mut y: Vec<Polynomial> = Vec::with_capacity(r1cs.witness_size());
+        let mut t: Polynomial = Polynomial::new_monomial(FE::new(1), 0);
 
-    let vs = &[
-        // v0 is 0 for everypoint for the circuit, since it has no constants
-        // in the paper they don't write it
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
-        // v1..v6 are the ones explicitly written in the paper
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(1)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(1)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(1), FE::new(0)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
-    ];
+        for r in &rs {
+            t = t * Polynomial::new(vec![-*r, FE::new(1)]);
+        }
 
-    let ws = &[
-        //w0
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
-        //w1
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(1), FE::new(0)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(1)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
-    ];
+        for i in 0..r1cs.witness_size() {
+            let v_ys: Vec<FE> = r1cs.constraints.iter().map(|c| c.a[i]).collect();
+            let w_ys: Vec<FE> = r1cs.constraints.iter().map(|c| c.b[i]).collect();
+            let y_ys: Vec<FE> = r1cs.constraints.iter().map(|c| c.c[i]).collect();
 
-    let ys = &[
-        //y0
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
-        //y1
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(0)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(1), FE::new(0)]),
-        Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(1)]),
-    ];
+            v.push(Polynomial::interpolate(&rs, &v_ys));
+            w.push(Polynomial::interpolate(&rs, &w_ys));
+            y.push(Polynomial::interpolate(&rs, &y_ys));
+        }
 
-    Qap::new(vs.to_vec(), ws.to_vec(), ys.to_vec(), t, 4, 1).unwrap()
+        Qap {
+            v,
+            w,
+            y,
+            target: t,
+            number_of_inputs: r1cs.number_of_inputs,
+            number_of_outputs: r1cs.number_of_outputs,
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::circuits::test_utils::{
+        new_test_qap, new_test_r1cs, test_qap_r5, test_qap_r6, test_qap_solver,
+    };
+
     use super::*;
+
     #[test]
     fn qap_with_different_amount_of_polynomials_should_error() {
         let v = vec![
@@ -230,7 +212,7 @@ mod tests {
     #[test]
     fn v_mid_test_circuit_on_r6_is_0() {
         let test_circuit = new_test_qap();
-        let r6 = Qap::test_qap_r6();
+        let r6 = test_qap_r6();
         assert_eq!(test_circuit.y_mid()[0].evaluate(r6), FE::new(0));
     }
 
@@ -243,28 +225,28 @@ mod tests {
     #[test]
     fn w_mid_test_circuit_on_r5_is_0() {
         let test_circuit = new_test_qap();
-        let r5 = Qap::test_qap_r5();
+        let r5 = test_qap_r5();
         assert_eq!(test_circuit.w_mid()[0].evaluate(r5), FE::new(0));
     }
 
     #[test]
     fn w_mid_test_circuit_on_r6_is_1() {
         let test_circuit = new_test_qap();
-        let r6 = Qap::test_qap_r6();
+        let r6 = test_qap_r6();
         assert_eq!(test_circuit.w_mid()[0].evaluate(r6), FE::new(1));
     }
 
     #[test]
     fn y_mid_test_circuit_on_r5_is_1() {
         let test_circuit = new_test_qap();
-        let r5 = Qap::test_qap_r5();
+        let r5 = test_qap_r5();
         assert_eq!(test_circuit.y_mid()[0].evaluate(r5), FE::new(1));
     }
 
     #[test]
     fn y_mid_test_circuit_on_r6_is_0() {
         let test_circuit = new_test_qap();
-        let r6 = Qap::test_qap_r6();
+        let r6 = test_qap_r6();
         assert_eq!(test_circuit.y_mid()[0].evaluate(r6), FE::new(0));
     }
 
@@ -311,7 +293,7 @@ mod tests {
 
         let inputs = [FE::new(1), FE::new(2), FE::new(3), FE::new(4)];
 
-        let (c5, c6) = Qap::test_qap_solver(inputs);
+        let (c5, c6) = test_qap_solver(inputs);
 
         let mut c_vector = inputs.to_vec();
         c_vector.append(&mut vec![c5, c6]);
@@ -323,7 +305,7 @@ mod tests {
 
         let inputs = [FE::new(2), FE::new(2), FE::new(2), FE::new(2)];
 
-        let (c5, c6) = Qap::test_qap_solver(inputs);
+        let (c5, c6) = test_qap_solver(inputs);
 
         let mut c_vector = inputs.to_vec();
         c_vector.append(&mut vec![c5, c6]);
@@ -335,7 +317,7 @@ mod tests {
 
         let inputs = [FE::new(3), FE::new(3), FE::new(3), FE::new(3)];
 
-        let (c5, c6) = Qap::test_qap_solver(inputs);
+        let (c5, c6) = test_qap_solver(inputs);
 
         let mut c_vector = inputs.to_vec();
         c_vector.append(&mut vec![c5, c6]);
@@ -347,7 +329,7 @@ mod tests {
 
         let inputs = [FE::new(4), FE::new(3), FE::new(2), FE::new(1)];
 
-        let (c5, c6) = Qap::test_qap_solver(inputs);
+        let (c5, c6) = test_qap_solver(inputs);
 
         let mut c_vector = inputs.to_vec();
         c_vector.append(&mut vec![c5, c6]);
@@ -362,7 +344,7 @@ mod tests {
     fn test_circuit_solver_on_2_2_2_2_outputs_4_and_16() {
         let inputs = [FE::new(2), FE::new(2), FE::new(2), FE::new(2)];
 
-        let (c5, c6) = Qap::test_qap_solver(inputs);
+        let (c5, c6) = test_qap_solver(inputs);
         assert_eq!(c5, FE::new(4));
         assert_eq!(c6, FE::new(16));
     }
@@ -371,8 +353,15 @@ mod tests {
     fn test_circuit_solver_on_1_2_3_4_outputs_12_and_36() {
         let inputs = [FE::new(1), FE::new(2), FE::new(3), FE::new(4)];
 
-        let (c5, c6) = Qap::test_qap_solver(inputs);
+        let (c5, c6) = test_qap_solver(inputs);
         assert_eq!(c5, FE::new(12));
         assert_eq!(c6, FE::new(36));
+    }
+    #[test]
+    fn test_r1cs_into_qap_is_test_qap() {
+        let qap = new_test_qap();
+        let r1cs = new_test_r1cs();
+        let r1cs_as_qap: Qap = r1cs.into();
+        assert_eq!(qap, r1cs_as_qap);
     }
 }
