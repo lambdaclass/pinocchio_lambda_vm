@@ -1,13 +1,16 @@
-use crate::math::field_element::FieldElement;
 use crate::math::cyclic_group::CyclicGroup;
 use crate::math::elliptic_curve::EllipticCurveElement;
+use crate::math::field_element::FieldElement;
 
 type FE = FieldElement<5>;
 pub type CyclicGroupType = EllipticCurveElement;
 
 /// Calculates msm for C and hidings
 /// if either array is empty, returns zero
-pub fn msm<T>(c: &[FE], hidings: &[T]) -> T where T: CyclicGroup {
+pub fn msm<T>(c: &[FE], hidings: &[T]) -> T
+where
+    T: CyclicGroup,
+{
     c.iter()
         .zip(hidings.iter())
         .map(|(&c, h)| h.operate_with_self(c.representative()))

@@ -51,7 +51,16 @@ impl ToxicWaste {
         self.rv * self.rw
     }
 
-    pub fn new(s: FE, alpha_v: FE, alpha_w: FE, alpha_y: FE, beta: FE, rv: FE, rw: FE, gamma: FE) -> Self {
+    pub fn new(
+        s: FE,
+        alpha_v: FE,
+        alpha_w: FE,
+        alpha_y: FE,
+        beta: FE,
+        rv: FE,
+        rw: FE,
+        gamma: FE,
+    ) -> Self {
         Self {
             s: s,
             alpha_v: alpha_v,
@@ -60,7 +69,7 @@ impl ToxicWaste {
             beta: beta,
             rv: rv,
             rw: rw,
-            gamma: gamma
+            gamma: gamma,
         }
     }
 
@@ -172,9 +181,13 @@ fn generate_evaluation_key<T: CyclicGroup>(
             .push(g.operate_with_self((rw * alpha_w * ws_mid[k].evaluate(s)).representative()));
         gy_alphaks_mid
             .push(g.operate_with_self((ry * alpha_y * ys_mid[k].evaluate(s)).representative()));
-        g_beta_mid.push(g.operate_with_self((rv * beta * vs_mid[k].evaluate(s)
-        + rw * beta * ws_mid[k].evaluate(s)
-        + ry * beta * ys_mid[k].evaluate(s)).representative())
+        g_beta_mid.push(
+            g.operate_with_self(
+                (rv * beta * vs_mid[k].evaluate(s)
+                    + rw * beta * ws_mid[k].evaluate(s)
+                    + ry * beta * ys_mid[k].evaluate(s))
+                .representative(),
+            ),
         )
     }
 
@@ -196,7 +209,10 @@ fn generate_evaluation_key<T: CyclicGroup>(
     }
 }
 
-pub fn setup<T: CyclicGroup>(qap: &Qap, toxic_waste: &ToxicWaste) -> (EvaluationKey<T>, VerifyingKey<T>) {
+pub fn setup<T: CyclicGroup>(
+    qap: &Qap,
+    toxic_waste: &ToxicWaste,
+) -> (EvaluationKey<T>, VerifyingKey<T>) {
     let generator = T::generator();
     (
         generate_evaluation_key(qap, toxic_waste, &generator),
@@ -224,7 +240,8 @@ mod tests {
 
     #[test]
     fn evaluation_keys_size_for_test_circuit_is_1_for_each_key() {
-        let (eval_key, _): (EvaluationKey<FE>, VerifyingKey<FE>) = setup(&new_test_qap(), &identity_toxic_waste());
+        let (eval_key, _): (EvaluationKey<FE>, VerifyingKey<FE>) =
+            setup(&new_test_qap(), &identity_toxic_waste());
         assert_eq!(eval_key.gv_ks.len(), 1);
         assert_eq!(eval_key.gw_ks.len(), 1);
         assert_eq!(eval_key.gy_ks.len(), 1);
@@ -258,47 +275,63 @@ mod tests {
         // These keys should be the same evaluation * rv, which is two
         assert_eq!(
             eval_key.gv_ks[0],
-            g.operate_with_self((test_circuit.v_mid()[0].evaluate(r5) * FE::new(2)).representative())
+            g.operate_with_self(
+                (test_circuit.v_mid()[0].evaluate(r5) * FE::new(2)).representative()
+            )
         );
         assert_eq!(
             eval_key.gw_ks[0],
-            g.operate_with_self((test_circuit.w_mid()[0].evaluate(r5) * FE::new(2)).representative())
+            g.operate_with_self(
+                (test_circuit.w_mid()[0].evaluate(r5) * FE::new(2)).representative()
+            )
         );
         // These keys should be the same evaluation * ys, which is two
         // Since the whole thing is 0
         assert_eq!(
             eval_key.gy_ks[0],
-            g.operate_with_self((test_circuit.y_mid()[0].evaluate(r5) * FE::new(4)).representative())
+            g.operate_with_self(
+                (test_circuit.y_mid()[0].evaluate(r5) * FE::new(4)).representative()
+            )
         );
 
         // alpha * rv and alpha * rw is 4
         assert_eq!(
             eval_key.gv_alphaks[0],
-            g.operate_with_self((test_circuit.v_mid()[0].evaluate(r5) * FE::new(4)).representative())
+            g.operate_with_self(
+                (test_circuit.v_mid()[0].evaluate(r5) * FE::new(4)).representative()
+            )
         );
         assert_eq!(
             eval_key.gv_alphaks[0],
-            g.operate_with_self((test_circuit.v_mid()[0].evaluate(r5) * FE::new(4)).representative())
+            g.operate_with_self(
+                (test_circuit.v_mid()[0].evaluate(r5) * FE::new(4)).representative()
+            )
         );
         // alpha * ry and alpha * rw is 8
         assert_eq!(
             eval_key.gv_alphaks[0],
-            g.operate_with_self((test_circuit.v_mid()[0].evaluate(r5) * FE::new(8)).representative())
+            g.operate_with_self(
+                (test_circuit.v_mid()[0].evaluate(r5) * FE::new(8)).representative()
+            )
         );
 
         assert_eq!(
             eval_key.g_beta[0],
             // beta * rv is 4
-            g.operate_with_self((test_circuit.v_mid()[0].evaluate(r5) * FE::new(4) +
+            g.operate_with_self(
+                (test_circuit.v_mid()[0].evaluate(r5) * FE::new(4) +
             test_circuit.w_mid()[0].evaluate(r5) * FE::new(4) +
             // beta * ry is 8
-            test_circuit.y_mid()[0].evaluate(r5) * FE::new(8)).representative())
+            test_circuit.y_mid()[0].evaluate(r5) * FE::new(8))
+                .representative()
+            )
         )
     }
 
     #[test]
     fn verification_key_gvks_has_length_6_for_test_circuit() {
-        let (_, vk): (EvaluationKey<FE>, VerifyingKey<FE>) = setup(&new_test_qap(), &identity_toxic_waste());
+        let (_, vk): (EvaluationKey<FE>, VerifyingKey<FE>) =
+            setup(&new_test_qap(), &identity_toxic_waste());
         assert_eq!(vk.gv_ks.len(), 6);
         assert_eq!(vk.gw_ks.len(), 6);
         assert_eq!(vk.gy_ks.len(), 6);

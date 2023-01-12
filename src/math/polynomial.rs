@@ -148,11 +148,11 @@ impl<const ORDER: u128> Polynomial<ORDER> {
     }
 }
 
-impl<const ORDER: u128> ops::Add<Polynomial<ORDER>> for Polynomial<ORDER> {
+impl<const ORDER: u128> ops::Add<&Polynomial<ORDER>> for &Polynomial<ORDER> {
     type Output = Polynomial<ORDER>;
 
-    fn add(self, a_polynomial: Polynomial<ORDER>) -> Polynomial<ORDER> {
-        let (pa, pb) = Self::pad_with_zero_coefficients(&self, &a_polynomial);
+    fn add(self, a_polynomial: &Polynomial<ORDER>) -> Self::Output {
+        let (pa, pb) = Polynomial::pad_with_zero_coefficients(self, a_polynomial);
         let iter_coeff_pa = pa.coefficients.iter();
         let iter_coeff_pb = pb.coefficients.iter();
         let new_coefficients = iter_coeff_pa.zip(iter_coeff_pb).map(|(&x, &y)| x + y);
@@ -161,6 +161,29 @@ impl<const ORDER: u128> ops::Add<Polynomial<ORDER>> for Polynomial<ORDER> {
     }
 }
 
+impl<const ORDER: u128> ops::Add<Polynomial<ORDER>> for Polynomial<ORDER> {
+    type Output = Polynomial<ORDER>;
+
+    fn add(self, a_polynomial: Polynomial<ORDER>) -> Polynomial<ORDER> {
+        &self + &a_polynomial
+    }
+}
+
+impl<const ORDER: u128> ops::Add<&Polynomial<ORDER>> for Polynomial<ORDER> {
+    type Output = Polynomial<ORDER>;
+
+    fn add(self, a_polynomial: &Polynomial<ORDER>) -> Polynomial<ORDER> {
+        &self + a_polynomial
+    }
+}
+
+impl<const ORDER: u128> ops::Add<Polynomial<ORDER>> for &Polynomial<ORDER> {
+    type Output = Polynomial<ORDER>;
+
+    fn add(self, a_polynomial: Polynomial<ORDER>) -> Polynomial<ORDER> {
+        self + &a_polynomial
+    }
+}
 impl<const ORDER: u128> ops::Neg for Polynomial<ORDER> {
     type Output = Polynomial<ORDER>;
 

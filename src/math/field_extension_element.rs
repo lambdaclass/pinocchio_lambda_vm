@@ -79,7 +79,7 @@ impl ops::Add<&FieldExtensionElement> for &FieldExtensionElement {
 
     fn add(self, a_field_element: &FieldExtensionElement) -> Self::Output {
         Self::Output {
-            value: a_field_element.value.clone() + self.value.clone(),
+            value: &a_field_element.value + &self.value,
         }
     }
 }

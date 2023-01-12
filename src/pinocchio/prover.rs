@@ -1,8 +1,8 @@
 use crate::circuits::qap::Qap;
 use crate::math::cyclic_group::CyclicGroup;
+use crate::math::elliptic_curve::EllipticCurveElement;
 use crate::math::field_element::FieldElement;
 use crate::math::msm::msm;
-use crate::math::elliptic_curve::EllipticCurveElement;
 
 use super::setup::EvaluationKey;
 
@@ -56,7 +56,7 @@ pub fn generate_proof<T: CyclicGroup>(
 
 #[cfg(test)]
 mod tests {
-    use crate::math::{polynomial::Polynomial, cyclic_group::CyclicGroup};
+    use crate::math::{cyclic_group::CyclicGroup, polynomial::Polynomial};
 
     use super::*;
 

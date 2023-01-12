@@ -2,14 +2,17 @@ use pinocchio_vm::circuits::qap::{new_test_qap, Qap};
 use pinocchio_vm::math::elliptic_curve::EllipticCurveElement;
 use pinocchio_vm::math::field_element::FieldElement as FE;
 use pinocchio_vm::pinocchio::prover;
-use pinocchio_vm::pinocchio::setup::{setup, ToxicWaste, EvaluationKey, VerifyingKey};
+use pinocchio_vm::pinocchio::setup::{setup, EvaluationKey, ToxicWaste, VerifyingKey};
 use pinocchio_vm::pinocchio::verifier;
 
 #[test]
 fn test_pinocchio() {
     let test_qap = new_test_qap();
     let toxic_waste = ToxicWaste::sample();
-    let (ek, verifying_key): (EvaluationKey<EllipticCurveElement>, VerifyingKey<EllipticCurveElement>) = setup(&test_qap, &toxic_waste);
+    let (ek, verifying_key): (
+        EvaluationKey<EllipticCurveElement>,
+        VerifyingKey<EllipticCurveElement>,
+    ) = setup(&test_qap, &toxic_waste);
 
     let inputs = [FE::new(1), FE::new(2), FE::new(3), FE::new(4)];
 
@@ -41,9 +44,12 @@ fn test_pinocchio_2() {
         FE::new(2),
         FE::new(3),
         FE::new(2),
-        FE::new(3)
+        FE::new(3),
     );
-    let (ek, vk): (EvaluationKey<EllipticCurveElement>, VerifyingKey<EllipticCurveElement>) = setup(&test_qap, &toxic_waste);
+    let (ek, vk): (
+        EvaluationKey<EllipticCurveElement>,
+        VerifyingKey<EllipticCurveElement>,
+    ) = setup(&test_qap, &toxic_waste);
 
     let inputs = [FE::new(1), FE::new(2), FE::new(3), FE::new(4)];
 

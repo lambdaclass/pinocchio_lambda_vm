@@ -4,7 +4,6 @@ use super::{
 };
 use std::ops;
 
-
 // Curve ("Pairing for beginners", page 57)
 const ORDER_R: u128 = 5;
 const ORDER_P: u128 = 59;
@@ -15,7 +14,6 @@ const ELLIPTIC_CURVE_A: u128 = 1;
 const ELLIPTIC_CURVE_B: u128 = 0;
 const GENERATOR_AFFINE_X: u128 = 35;
 const GENERATOR_AFFINE_Y: u128 = 31;
-
 
 type FE = FieldElement<ORDER_P>;
 type FEE = FieldExtensionElement;
@@ -119,7 +117,7 @@ impl EllipticCurveElement {
     fn tate_pairing(p: &Self, q: &Self) -> FEE {
         Self::miller(p, q).pow(TARGET_NORMALIZATION_POWER)
     }
-    
+
     fn distorsion_map(p: &Self) -> Self {
         //assert_eq!(Self::defining_equation(&p.x, &p.y, &p.z), FEE::new_base(0));
         //println!("x: {:?} y: {:?} z: {:?}", &p.x, &p.y, &p.z);
@@ -252,7 +250,8 @@ mod tests {
     // Tiny Jub Jub
     #[test]
     fn create_valid_point_works() {
-        let point = EllipticCurveElement::new(FEE::new_base(35), FEE::new_base(31), FEE::new_base(1));
+        let point =
+            EllipticCurveElement::new(FEE::new_base(35), FEE::new_base(31), FEE::new_base(1));
         assert_eq!(point.x, FEE::new_base(35));
         assert_eq!(point.y, FEE::new_base(31));
         assert_eq!(point.z, FEE::new_base(1));
@@ -273,7 +272,8 @@ mod tests {
 
     #[test]
     fn doubling_a_point_works() {
-        let point = EllipticCurveElement::new(FEE::new_base(35), FEE::new_base(31), FEE::new_base(1));
+        let point =
+            EllipticCurveElement::new(FEE::new_base(35), FEE::new_base(31), FEE::new_base(1));
         let expected_result =
             EllipticCurveElement::new(FEE::new_base(25), FEE::new_base(29), FEE::new_base(1));
         assert_eq!(point.operate_with_self(2).affine(), expected_result);
@@ -285,16 +285,10 @@ mod tests {
             EllipticCurveElement::new(FEE::new_base(35), FEE::new_base(31), FEE::new_base(1));
         let mut pb = EllipticCurveElement::new(
             FEE::new(Polynomial::new(vec![FE::new(24)])),
-            FEE::new(Polynomial::new(vec![
-                FE::new(0),
-                FE::new(31)
-            ])),
+            FEE::new(Polynomial::new(vec![FE::new(0), FE::new(31)])),
             FEE::new_base(1),
         );
-        let expected_result = FEE::new(Polynomial::new(vec![
-            FE::new(46),
-            FE::new(3),
-        ]));
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(46), FE::new(3)]));
 
         let result_weil = EllipticCurveElement::weil_pairing(&pa, &pb);
         assert_eq!(result_weil, expected_result);
@@ -303,19 +297,13 @@ mod tests {
     #[test]
     fn test_tate_pairing() {
         let mut pa =
-        EllipticCurveElement::new(FEE::new_base(35), FEE::new_base(31), FEE::new_base(1));
+            EllipticCurveElement::new(FEE::new_base(35), FEE::new_base(31), FEE::new_base(1));
         let mut pb = EllipticCurveElement::new(
             FEE::new(Polynomial::new(vec![FE::new(24)])),
-            FEE::new(Polynomial::new(vec![
-                FE::new(0),
-                FE::new(31)
-            ])),
+            FEE::new(Polynomial::new(vec![FE::new(0), FE::new(31)])),
             FEE::new_base(1),
         );
-        let expected_result = FEE::new(Polynomial::new(vec![
-            FE::new(42),
-            FE::new(19),
-        ]));
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(42), FE::new(19)]));
 
         let result_weil = EllipticCurveElement::tate_pairing(&pa, &pb);
         assert_eq!(result_weil, expected_result);

@@ -105,7 +105,7 @@ impl<const ORDER: u128> ops::Div for FieldElement<ORDER> {
 
 impl<const ORDER: u128> CyclicGroup for FieldElement<ORDER> {
     type PairingOutput = Self;
-    
+
     fn generator() -> FieldElement<ORDER> {
         FieldElement::new(1)
     }
