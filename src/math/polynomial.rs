@@ -198,7 +198,7 @@ mod tests {
         Some of these tests work when the finite field has order greater than 2.
     */
     use super::*;
-    const ORDER: u128 = 5;
+    const ORDER: u128 = 23;
     type FE = FieldElement<ORDER>;
 
     fn polynomial_a() -> Polynomial<ORDER> {
