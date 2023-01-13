@@ -1,17 +1,21 @@
-use crate::math::field_element::FieldElement as FE;
-
 use crate::math::cyclic_group::CyclicGroup;
+use crate::math::elliptic_curve::EllipticCurveElement;
+use crate::math::field_element::FieldElement;
 
-pub type CyclicGroupType = FE;
+type FE = FieldElement<5>;
+pub type CyclicGroupType = EllipticCurveElement;
 
 /// Calculates msm for C and hidings
 /// if either array is empty, returns zero
-pub fn msm(c: &[FE], hidings: &[CyclicGroupType]) -> CyclicGroupType {
+pub fn msm<T>(c: &[FE], hidings: &[T]) -> T
+where
+    T: CyclicGroup,
+{
     c.iter()
         .zip(hidings.iter())
-        .map(|(&c, &h)| h.operate_with_self(c))
-        .reduce(|acc, x| acc + x)
-        .unwrap_or_else(CyclicGroupType::neutral_element)
+        .map(|(&c, h)| h.operate_with_self(c.representative()))
+        .reduce(|acc, x| acc.operate_with(&x))
+        .unwrap_or_else(T::neutral_element)
 }
 
 #[cfg(test)]
@@ -22,8 +26,8 @@ mod tests {
     #[test]
     fn msm_11_is_1() {
         let c = [FE::new(1)];
-        let hiding = [FE::new(1)];
-        assert_eq!(msm(&c, &hiding), FE::new(1));
+        let hiding = [CyclicGroupType::generator()];
+        assert_eq!(msm(&c, &hiding), CyclicGroupType::generator());
     }
 
     #[test]
@@ -50,14 +54,14 @@ mod tests {
     #[test]
     fn msm_with_emtpy_hiding_is_none() {
         let c = [FE::new(0)];
-        let hiding = [];
+        let hiding: Vec<FE> = Vec::new();
         assert_eq!(msm(&c, &hiding), FE::new(0));
     }
 
     #[test]
     fn msm_with_empty_arguments_is_none() {
         let c = [];
-        let hiding = [];
+        let hiding: Vec<FE> = Vec::new();
         assert_eq!(msm(&c, &hiding), FE::new(0));
     }
 }

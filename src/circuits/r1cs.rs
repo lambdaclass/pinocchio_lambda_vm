@@ -1,4 +1,6 @@
-use crate::math::field_element::FieldElement as FE;
+use crate::math::field_element::FieldElement;
+
+type FE = FieldElement<5>;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum CreationError {
@@ -148,7 +150,7 @@ pub mod tests {
             FE::new(0),
             FE::new(0),
             FE::new(4),
-            FE::new(5),
+            FE::new(1),
             FE::new(0),
             FE::new(0),
         ];
@@ -212,7 +214,7 @@ pub mod tests {
             FE::new(5),  // c3
             FE::new(10), // c4
             FE::new(10), // c5 != c4 * c3
-            FE::new(20), // c6 = c5 * (c1+c2), so this should fail
+            FE::new(19), // c6 = c5 * (c1+c2), so this should fail
         ];
         assert!(!new_test_r1cs().verify_solution(&solution))
     }

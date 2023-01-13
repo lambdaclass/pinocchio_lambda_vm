@@ -2,7 +2,9 @@ use super::{
     qap::Qap,
     r1cs::{Constraint, R1CS},
 };
-use crate::math::{field_element::FieldElement as FE, polynomial::Polynomial};
+use crate::math::{field_element::FieldElement, polynomial::Polynomial};
+
+type FE = FieldElement<5>;
 
 // r5 and r6 are exposed to help testing
 pub fn test_qap_r5() -> FE {
@@ -27,7 +29,7 @@ pub fn new_test_qap() -> Qap {
     let r5: FE = test_qap_r5();
     let r6: FE = test_qap_r6();
 
-    let t: Polynomial =
+    let t: Polynomial<5> =
         Polynomial::new(vec![-r5, FE::new(1)]) * Polynomial::new(vec![-r6, FE::new(1)]);
 
     let vs = &[
