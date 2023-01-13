@@ -67,63 +67,59 @@ impl EllipticCurveElement {
         }
     }
 
-    /// Taken from "Pairings for beginners" (Algorithm 5.1, page 79)
     fn miller(p: &Self, q: &Self) -> FEE {
-        if *p == Self::neutral_element() || *q == Self::neutral_element() {
-            //|| p == q {
-            FEE::new_base(1) // this is equal to [(-1)^r]^(q^k -1)
-        } else {
-            let mut order_r = ORDER_R;
-            let mut bs = vec![];
-            while order_r > 0 {
-                bs.insert(0, order_r & 1);
-                order_r >>= 1;
-            }
-
-            let mut f = FEE::new_base(1);
-            let mut r = p.clone();
-
-            for b in bs[1..].iter() {
-                let s = r.operate_with(&r).affine();
-                f = f.pow(2) * (r.line(&r, q) / s.line(&-(&s), q));
-                r = s;
-
-                if *b == 1 {
-                    let mut s = r.operate_with(p);
-                    if s != Self::neutral_element() {
-                        s = s.affine();
-                    }
-                    f = f * (r.line(p, q) / s.line(&-(&s), q));
-                    r = s;
-                }
-            }
-            f
+        let p = p.affine();
+        let q = q.affine();
+        let mut order_r = ORDER_R;
+        let mut bs = vec![];
+        while order_r > 0 {
+            bs.insert(0, order_r & 1);
+            order_r >>= 1;
         }
+
+        let mut f = FEE::new_base(1);
+        let mut r = p.clone();
+
+        for b in bs[1..].iter() {
+            let s = r.operate_with(&r).affine();
+            f = f.pow(2) * (r.line(&r, &q) / s.line(&-(&s), &q));
+            r = s;
+
+            if *b == 1 {
+                let mut s = r.operate_with(&p);
+                if s != Self::neutral_element() {
+                    s = s.affine();
+                }
+                f = f * (r.line(&p, &q) / s.line(&-(&s), &q));
+                r = s;
+            }
+        }
+        f
     }
 
     #[allow(unused)]
     fn weil_pairing(p: &Self, q: &Self) -> FEE {
-        let numerator = Self::miller(p, q);
-        let denominator = Self::miller(q, p);
-        let result = numerator / denominator;
-        -result
+        if *p == Self::neutral_element() || *q == Self::neutral_element() || p == q {
+            FEE::new_base(1)
+        } else {
+            let numerator = Self::miller(p, q);
+            let denominator = Self::miller(q, p);
+            let result = numerator / denominator;
+            -result
+        }
     }
 
     fn tate_pairing(p: &Self, q: &Self) -> FEE {
-        Self::miller(p, q).pow(TARGET_NORMALIZATION_POWER)
+        if *p == Self::neutral_element() || *q == Self::neutral_element() || p == q {
+            FEE::new_base(1)
+        } else {
+            Self::miller(p, q).pow(TARGET_NORMALIZATION_POWER)
+        }
     }
 
     fn distorsion_map(p: &Self) -> Self {
-        //assert_eq!(Self::defining_equation(&p.x, &p.y, &p.z), FEE::new_base(0));
-        //println!("x: {:?} y: {:?} z: {:?}", &p.x, &p.y, &p.z);
-        if p == &Self::neutral_element() {
-            Self::neutral_element()
-        } else {
-            let t = FEE::new(Polynomial::new_monomial(FE::new(1), 1));
-            let p_affine = p.affine();
-            //println!("x: {:?} y: {:?} z: {:?}", -&p.x, &p.y * &t, 1);
-            Self::new(-&p_affine.x, &p_affine.y * t, FEE::new_base(1))
-        }
+        let t = FEE::new(Polynomial::new_monomial(FE::new(1), 1));
+        Self::new(-&p.x, &p.y * t, p.z.clone())
     }
 }
 
@@ -223,18 +219,7 @@ impl CyclicGroup for EllipticCurveElement {
     }
 
     fn pairing(&self, other: &Self) -> Self::PairingOutput {
-        let mut p = self.clone();
-        let mut q = other.clone();
-
-        if p != Self::neutral_element() {
-            p = p.affine();
-        }
-
-        if q != Self::neutral_element() {
-            q = q.affine();
-        }
-
-        Self::tate_pairing(&p, &Self::distorsion_map(&q))
+        Self::tate_pairing(self, &Self::distorsion_map(other))
     }
 }
 
