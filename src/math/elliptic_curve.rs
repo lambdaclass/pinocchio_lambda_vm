@@ -1,18 +1,12 @@
+use super::super::config::{
+    ELLIPTIC_CURVE_A, ELLIPTIC_CURVE_B, GENERATOR_AFFINE_X, GENERATOR_AFFINE_Y, ORDER_P, ORDER_R,
+    TARGET_NORMALIZATION_POWER,
+};
 use super::{
     cyclic_group::CyclicGroup, field_element::FieldElement,
     field_extension_element::FieldExtensionElement, polynomial::Polynomial,
 };
 use std::ops;
-
-// Curve ("Pairing for beginners", page 57)
-const ORDER_R: u128 = 5;
-const ORDER_P: u128 = 59;
-const EMBEDDING_DEGREE: u32 = 2; // Degree to ensure that torsion group is contained in the elliptic curve over field extensions
-const TARGET_NORMALIZATION_POWER: u128 = (ORDER_P.pow(EMBEDDING_DEGREE) - 1) / ORDER_R;
-const ELLIPTIC_CURVE_A: u128 = 1;
-const ELLIPTIC_CURVE_B: u128 = 0;
-const GENERATOR_AFFINE_X: u128 = 35;
-const GENERATOR_AFFINE_Y: u128 = 31;
 
 type FE = FieldElement<ORDER_P>;
 #[allow(clippy::upper_case_acronyms)]
