@@ -12,32 +12,29 @@ pub fn arcworks_cs_to_pinocchio_r1cs(cs: &ConstraintSystemRef<Fp256<FqParameters
 
     let r1cs_matrices = cs.to_matrices().unwrap();
 
-    println!("CS Wit vars: {:?}", cs.num_witness_variables());
-    println!("CS Inst vars: {:?}", cs.num_instance_variables());
-
     let A = arcworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
         &r1cs_matrices.a,
-        cs.num_instance_variables(),
+        cs.num_witness_variables() + cs.num_instance_variables() - 1,
     );
 
     let B = arcworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
         &r1cs_matrices.b,
-        cs.num_instance_variables(),
+        cs.num_witness_variables() + cs.num_instance_variables() - 1,
     );
 
     let C = arcworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
         &r1cs_matrices.c,
-        cs.num_instance_variables(),
+        cs.num_witness_variables() + cs.num_instance_variables() - 1,
     );
 
-    R1CS::new_with_matrixes(A,B,C, cs.num_instance_variables() - cs.num_witness_variables(),1)
+    R1CS::new_with_matrixes(A, B, C, cs.num_instance_variables() - 1, 0)
 }
 
 fn arcworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
     m: &Vec<Vec<(Fp256<FqParameters>, usize)>>,
-    num_instance_vars: usize,
+    total_variables: usize,
 ) -> Vec<Vec<FE>> {
-    sparse_matrix_to_dense(&arcworks_matrix_fps_to_pinocchio_fes(m), num_instance_vars)
+    sparse_matrix_to_dense(&arcworks_matrix_fps_to_pinocchio_fes(m), total_variables)
 }
 
 fn arcworks_matrix_fps_to_pinocchio_fes(
@@ -53,17 +50,22 @@ fn arcworks_matrix_fps_to_pinocchio_fes(
         .collect()
 }
 
-fn sparse_matrix_to_dense(m: &Vec<Vec<(FE, usize)>>, num_ins_vars: usize) -> Vec<Vec<FE>> {
+fn sparse_matrix_to_dense(m: &Vec<Vec<(FE, usize)>>, total_variables: usize) -> Vec<Vec<FE>> {
     m.iter()
-        .map(|row| sparse_row_to_dense(row, num_ins_vars))
+        .map(|row| sparse_row_to_dense(row, total_variables))
         .collect()
 }
 
-fn sparse_row_to_dense(row: &Vec<(FE, usize)>, num_instance_vars: usize) -> Vec<FE> {
+fn sparse_row_to_dense(row: &Vec<(FE, usize)>, total_variables: usize) -> Vec<FE> {
     //The first column of the r1cs is used for constants
     // TO DO: Check constants usage
-    let mut dense_row = vec![FE::new(0); num_instance_vars + 1];
+
+    let mut dense_row = vec![FE::new(0); total_variables + 1];
+
+    // TO DO: Check how constants are set
+    dense_row[0] = FE::new(0);
     for element in row {
+        println!("Assigned element: {:?}", element.1);
         dense_row[element.1] = element.0;
     }
     dense_row
@@ -82,11 +84,12 @@ fn biguint_to_u128(big: BigUint) -> u128 {
 #[cfg(test)]
 mod tests {
     use ark_bn254::Fq;
-    use ark_ff::BigInteger256;
+    use ark_r1cs_std::{fields::fp::FpVar, prelude::AllocVar};
     use ark_relations::{
         lc,
         r1cs::{ConstraintSynthesizer, ConstraintSystem, ConstraintSystemRef, SynthesisError},
     };
+    use pinocchio_vm::circuits::{r1cs::Constraint, test_utils};
 
     use super::*;
 
@@ -99,19 +102,148 @@ mod tests {
 
     impl ConstraintSynthesizer<Fq> for MulCircuit {
         fn generate_constraints(self, cs: ConstraintSystemRef<Fq>) -> Result<(), SynthesisError> {
-            let a = cs.new_input_variable(|| Ok(self.a))?;
+            /*
+                let a = FpVar::new_witness(cs, || Ok(self.a)).unwrap();
+                let b = FpVar::new_witness(cs, || Ok(self.b)).unwrap();
+                let c = a.mul(b);
+            */
+            let a = cs.new_witness_variable(|| Ok(self.a))?;
 
-            let b = cs.new_input_variable(|| Ok(self.b))?;
+            let b = cs.new_witness_variable(|| Ok(self.b))?;
 
-            let c = cs.new_witness_variable(|| Ok(self.b))?;
+            let c = cs.new_witness_variable(|| Ok(self.a * self.b))?;
 
-            //c = a.mul(b);
             cs.enforce_constraint(lc!() + a, lc!() + b, lc!() + c)?;
 
             Ok(())
         }
     }
 
+    pub struct TripleMulCircuit {
+        /// Public input
+        pub a: Fq,
+        /// Private input
+        pub b: Fq,
+        pub c: Fq,
+        pub d: Fq,
+    }
+
+    impl ConstraintSynthesizer<Fq> for TripleMulCircuit {
+        fn generate_constraints(self, cs: ConstraintSystemRef<Fq>) -> Result<(), SynthesisError> {
+            let a = FpVar::new_witness(cs.clone(), || Ok(self.a)).unwrap();
+            let b = FpVar::new_witness(cs.clone(), || Ok(self.b)).unwrap();
+            let c = FpVar::new_witness(cs.clone(), || Ok(self.c)).unwrap();
+            let d = FpVar::new_witness(cs.clone(), || Ok(self.d)).unwrap();
+
+            let e = a * b;
+            let f = c * d;
+
+            let _g = e * f;
+
+            Ok(())
+        }
+    }
+    pub struct PubMulCircuit {
+        /// Public input
+        pub a: Fq,
+        /// Private input
+        pub b: Fq,
+    }
+
+    impl ConstraintSynthesizer<Fq> for PubMulCircuit {
+        fn generate_constraints(self, cs: ConstraintSystemRef<Fq>) -> Result<(), SynthesisError> {
+            let a = cs.new_input_variable(|| Ok(self.a))?;
+
+            let b = cs.new_input_variable(|| Ok(self.b))?;
+
+            let c = cs.new_witness_variable(|| Ok(self.a * self.b))?;
+
+            cs.enforce_constraint(lc!() + a, lc!() + b, lc!() + c)?;
+
+            Ok(())
+        }
+    }
+    pub struct PinocchioPaperExampleCircuit {
+        /// Public input
+        pub a: Fq,
+        /// Private input
+        pub b: Fq,
+        pub c: Fq,
+        pub d: Fq,
+    }
+
+    impl ConstraintSynthesizer<Fq> for PinocchioPaperExampleCircuit {
+        fn generate_constraints(self, cs: ConstraintSystemRef<Fq>) -> Result<(), SynthesisError> {
+            let a = cs.new_input_variable(|| Ok(self.a))?;
+            let b = cs.new_input_variable(|| Ok(self.b))?;
+            let c = cs.new_input_variable(|| Ok(self.c))?;
+            let d = cs.new_input_variable(|| Ok(self.d))?;
+
+            let e = cs.new_witness_variable(|| Ok(self.c * self.d))?;
+            cs.enforce_constraint(lc!() + c, lc!() + d, lc!() + e)?;
+
+            let calculated_result = self.c * self.d * (self.a + self.d);
+            let result = cs.new_input_variable(|| Ok(calculated_result))?;
+
+            cs.enforce_constraint(lc!() + a + b, lc!() + e, lc!() + result)?;
+
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn pinocchio_paper_r1cs_from_arcworks_eq_r1cs_from_pinocchio_vm() {
+        let a = Fq::new(1.into());
+        let b = Fq::new(2.into());
+        let c = Fq::new(2.into());
+        let d = Fq::new(2.into());
+
+        let circuit = PinocchioPaperExampleCircuit { a, b, c, d };
+
+        let cs = ConstraintSystem::new_ref();
+        circuit.generate_constraints(cs.clone()).unwrap();
+
+        let is_satisfied = cs.is_satisfied().unwrap();
+        if !is_satisfied {
+            println!("{:?}", cs.which_is_unsatisfied().unwrap().unwrap());
+        }
+
+        let converted_r1cs = arcworks_cs_to_pinocchio_r1cs(&cs);
+
+        assert_eq!(
+            converted_r1cs.constraints,
+            swap_last_variables_test_circuit(&test_utils::new_test_r1cs()).constraints
+        );
+        assert_eq!(
+            converted_r1cs.number_of_inputs + converted_r1cs.number_of_outputs,
+            test_utils::new_test_r1cs().number_of_inputs
+                + test_utils::new_test_r1cs().number_of_outputs
+        );
+    }
+
+    /// This function changes variable 5 for 6
+    /// our current implementation of the paper r1cs and the arcworks
+    /// version utilizes a different index, but it is the same r1cs
+    fn swap_last_variables_test_circuit(r1cs: &R1CS) -> R1CS {
+        let mut updated_constraints: Vec<Constraint> = Vec::new();
+        for constraint in &r1cs.constraints {
+            let mut updated_constraint = constraint.clone();
+            updated_constraint.a.swap(5, 6);
+            updated_constraint.b.swap(5, 6);
+            updated_constraint.c.swap(5, 6);
+            updated_constraints.push(updated_constraint);
+        }
+
+        R1CS::new(
+            updated_constraints,
+            r1cs.number_of_inputs,
+            r1cs.number_of_outputs,
+        )
+        .unwrap()
+    }
+
+    // The following tests purposes is to see if the transformation
+    // is realized without panics
     #[test]
     fn mul_2_3() {
         let a = Fq::new(2.into());
@@ -126,7 +258,44 @@ mod tests {
         if !is_satisfied {
             println!("{:?}", cs.which_is_unsatisfied().unwrap().unwrap());
         }
-        let asd = arcworks_cs_to_pinocchio_r1cs(&cs);
-        println!("Pinocchio r1cs: {:?}", asd);
+        arcworks_cs_to_pinocchio_r1cs(&cs);
+    }
+
+    #[test]
+    fn mul_2_3_pub() {
+        let a = Fq::new(2.into());
+        let b = Fq::new(3.into());
+
+        let circuit = PubMulCircuit { a, b };
+
+        let cs = ConstraintSystem::new_ref();
+        circuit.generate_constraints(cs.clone()).unwrap();
+
+        let is_satisfied = cs.is_satisfied().unwrap();
+        if !is_satisfied {
+            println!("{:?}", cs.which_is_unsatisfied().unwrap().unwrap());
+        }
+
+        arcworks_cs_to_pinocchio_r1cs(&cs);
+    }
+
+    #[test]
+    fn triple_mul_1_2_2_2() {
+        let a = Fq::new(1.into());
+        let b = Fq::new(2.into());
+        let c = Fq::new(2.into());
+        let d = Fq::new(2.into());
+
+        let circuit = TripleMulCircuit { a, b, c, d };
+
+        let cs = ConstraintSystem::new_ref();
+        circuit.generate_constraints(cs.clone()).unwrap();
+
+        let is_satisfied = cs.is_satisfied().unwrap();
+        if !is_satisfied {
+            println!("{:?}", cs.which_is_unsatisfied().unwrap().unwrap());
+        }
+
+        arcworks_cs_to_pinocchio_r1cs(&cs);
     }
 }
