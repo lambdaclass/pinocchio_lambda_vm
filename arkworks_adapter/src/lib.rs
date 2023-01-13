@@ -27,7 +27,7 @@ pub fn arkworks_cs_to_pinocchio_r1cs(cs: &ConstraintSystemRef<Fp256<FqParameters
         cs.num_witness_variables() + cs.num_instance_variables() - 1,
     );
 
-    R1CS::new_with_matrixes(A, B, C, cs.num_instance_variables() - 1, 0)
+    R1CS::new_with_matrixes(a, b, c, cs.num_instance_variables() - 1, 0)
 }
 
 fn arkworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
