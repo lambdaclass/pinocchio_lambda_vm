@@ -59,6 +59,22 @@ impl R1CS {
         }
     }
 
+    pub fn new_with_matrixes(a: Vec<Vec<FE>>, b: Vec<Vec<FE>>, c: Vec<Vec<FE>>, 
+        num_inputs: usize, num_outputs: usize
+    ) -> Self {
+
+        let mut constraints: Vec<Constraint> = Vec::with_capacity(a.len());
+        // TO DO: 
+        // - Check if sizes match
+        // - Remove clones
+        for i in 0..a.len() {
+            constraints.push(
+                Constraint::new(a[i].clone(),b[i].clone(),c[i].clone()).unwrap()
+            )
+        }
+        R1CS::new(constraints,num_inputs,num_outputs).unwrap()
+    }
+
     #[allow(dead_code)]
     pub fn verify_solution(self, s: &[FE]) -> bool {
         for constraint in self.constraints {

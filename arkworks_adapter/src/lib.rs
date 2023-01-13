@@ -7,7 +7,7 @@ use pinocchio_vm::math::field_element::FieldElement;
 
 type FE = FieldElement<5>;
 
-pub fn arcworks_cs_to_pinocchio_r1cs(cs: &ConstraintSystemRef<Fp256<FqParameters>>) {
+pub fn arcworks_cs_to_pinocchio_r1cs(cs: &ConstraintSystemRef<Fp256<FqParameters>>) -> R1CS {
     cs.inline_all_lcs();
 
     let r1cs_matrices = cs.to_matrices().unwrap();
@@ -29,6 +29,8 @@ pub fn arcworks_cs_to_pinocchio_r1cs(cs: &ConstraintSystemRef<Fp256<FqParameters
         &r1cs_matrices.c,
         cs.num_instance_variables(),
     );
+
+    R1CS::new_with_matrixes(A,B,C, cs.num_instance_variables() - cs.num_witness_variables(),1)
 }
 
 fn arcworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
@@ -124,10 +126,7 @@ mod tests {
         if !is_satisfied {
             println!("{:?}", cs.which_is_unsatisfied().unwrap().unwrap());
         }
-        arcworks_cs_to_pinocchio_r1cs(&cs);
-        // con -
-        // CS A: [[(Fp256(BigInteger256([10157024534604021774, 16668528035959406606, 5322190058819395602, 387181115924875961])), 1)]]
-
-        //CS A: [[(Fp256(BigInteger256([9015221291577245683, 8239323489949974514, 1646089257421115374, 958099254763297437])), 1)]]
+        let asd = arcworks_cs_to_pinocchio_r1cs(&cs);
+        println!("Pinocchio r1cs: {:?}", asd);
     }
 }
