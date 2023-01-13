@@ -1,4 +1,4 @@
-# ErgodicVM
+# Pinocchio_Lambda_VM
 Zero Knowledge Virtual Machine from scratch implementing Pinocchio
 
 To run all tests:
