@@ -3,6 +3,10 @@ use ark_ff::{BigInteger256, Fp256, FpParameters, PrimeField};
 use ark_relations::r1cs::ConstraintSystemRef;
 use num_bigint::BigUint;
 use pinocchio_vm::circuits::r1cs::R1CS;
+use pinocchio_vm::math::field_element::FieldElement ;
+
+
+type FE = FieldElement<5>;
 
 pub fn arcworks_cs_to_pinocchio_r1cs(cs: &ConstraintSystemRef<Fp256<FqParameters>>) {
     cs.inline_all_lcs();
@@ -40,13 +44,14 @@ pub fn arcworks_cs_to_pinocchio_r1cs(cs: &ConstraintSystemRef<Fp256<FqParameters
     println!("Converted CS B: {:?}", c);
 }
 
-fn sparse_arcworks_matrix_fp_to_u128 (m: &Vec<Vec<(Fp256<FqParameters>,usize)>>) -> Vec<Vec<(u128, usize)>> 
+fn sparse_arcworks_matrix_fp_to_pinocchio_fe (m: &Vec<Vec<(Fp256<FqParameters>,usize)>>) -> Vec<Vec<(FE, usize)>> 
     {
     m.iter().map( |x| {
         x.iter()
         .map( |(x, y)| {
             (biguint_to_u128(x.into_repr().into()),*y)
         })
+        .map ( |x, y| (FE::new(x),y))
         .collect()
     }).collect()
 }
@@ -99,14 +104,11 @@ mod tests {
     }
 
     #[test]
-    fn mul_with_add() {
+    fn mul_2_3() {
         let a = Fq::new(2.into());
         let b = Fq::new(3.into());
 
         let circuit = MulCircuit { a, b };
-
-        let big: BigInteger256 = 7.into();
-        println!("Big: {:?}", big);
 
         let cs = ConstraintSystem::new_ref();
         circuit.generate_constraints(cs.clone()).unwrap();
