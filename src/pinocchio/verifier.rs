@@ -1,11 +1,11 @@
+use super::super::config::ORDER_R;
 use super::prover::Proof;
 use super::setup::VerifyingKey;
 use crate::math::{self, cyclic_group::CyclicGroup};
 use math::field_element::FieldElement;
 use math::msm::msm;
 
-const ORDER: u128 = 5;
-type FE = FieldElement<ORDER>;
+type FE = FieldElement<ORDER_R>;
 
 pub fn verify<T: CyclicGroup>(
     verifying_key: &VerifyingKey<T>,

@@ -1,6 +1,7 @@
+use super::super::config::ORDER_R;
 use crate::math::field_element::FieldElement;
 
-type FE = FieldElement<5>;
+type FE = FieldElement<ORDER_R>;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum CreationError {

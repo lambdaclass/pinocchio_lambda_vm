@@ -1,9 +1,7 @@
+use super::super::config::{ORDER_FIELD_EXTENSION, ORDER_P};
 use super::{field_element::FieldElement, polynomial::Polynomial};
 use std::ops;
 
-const ORDER_P: u128 = 59; // Base coefficients for coordinates of points in elliptic curve
-const EMBEDDING_DEGREE: u32 = 2; // Degree to ensure that torsion group is contained in the elliptic curve over field extensions
-const ORDER_FIELD_EXTENSION: u128 = ORDER_P.pow(EMBEDDING_DEGREE);
 type FE = FieldElement<ORDER_P>;
 
 #[derive(Debug, Clone)]

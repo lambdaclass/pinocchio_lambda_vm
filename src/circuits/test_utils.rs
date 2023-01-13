@@ -1,10 +1,11 @@
+use super::super::config::ORDER_R;
 use super::{
     qap::Qap,
     r1cs::{Constraint, R1CS},
 };
 use crate::math::{field_element::FieldElement, polynomial::Polynomial};
 
-type FE = FieldElement<5>;
+type FE = FieldElement<ORDER_R>;
 
 // r5 and r6 are exposed to help testing
 pub fn test_qap_r5() -> FE {

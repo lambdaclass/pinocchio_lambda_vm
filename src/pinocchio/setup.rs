@@ -1,10 +1,10 @@
+use super::super::config::ORDER_R;
 use crate::circuits::qap::Qap;
 use crate::math;
 use math::cyclic_group::CyclicGroup;
 use math::field_element::FieldElement;
 
-const ORDER: u128 = 5;
-pub type FE = FieldElement<ORDER>;
+pub type FE = FieldElement<ORDER_R>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// Evaluation key for Pinocchio
