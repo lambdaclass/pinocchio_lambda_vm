@@ -1,4 +1,5 @@
-# Pinocchio_Lambda_VM
+# Pinocchio Lambda VM
+
 Zero Knowledge Virtual Machine from scratch implementing Pinocchio
 
 To run all tests:
