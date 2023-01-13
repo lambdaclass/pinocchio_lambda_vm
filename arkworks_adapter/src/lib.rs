@@ -1,5 +1,5 @@
-use ark_bn254::{Fq, FqParameters};
-use ark_ff::{BigInteger256, Fp256, FpParameters, PrimeField};
+use ark_bn254::{FqParameters};
+use ark_ff::{Fp256, PrimeField};
 use ark_relations::r1cs::ConstraintSystemRef;
 use num_bigint::BigUint;
 use pinocchio_vm::circuits::r1cs::R1CS;
@@ -7,22 +7,22 @@ use pinocchio_vm::math::field_element::FieldElement;
 
 type FE = FieldElement<5>;
 
-pub fn arcworks_cs_to_pinocchio_r1cs(cs: &ConstraintSystemRef<Fp256<FqParameters>>) -> R1CS {
+pub fn arkworks_cs_to_pinocchio_r1cs(cs: &ConstraintSystemRef<Fp256<FqParameters>>) -> R1CS {
     cs.inline_all_lcs();
 
     let r1cs_matrices = cs.to_matrices().unwrap();
 
-    let A = arcworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
+    let a = arkworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
         &r1cs_matrices.a,
         cs.num_witness_variables() + cs.num_instance_variables() - 1,
     );
 
-    let B = arcworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
+    let b = arkworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
         &r1cs_matrices.b,
         cs.num_witness_variables() + cs.num_instance_variables() - 1,
     );
 
-    let C = arcworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
+    let c = arkworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
         &r1cs_matrices.c,
         cs.num_witness_variables() + cs.num_instance_variables() - 1,
     );
@@ -30,14 +30,14 @@ pub fn arcworks_cs_to_pinocchio_r1cs(cs: &ConstraintSystemRef<Fp256<FqParameters
     R1CS::new_with_matrixes(A, B, C, cs.num_instance_variables() - 1, 0)
 }
 
-fn arcworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
+fn arkworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
     m: &Vec<Vec<(Fp256<FqParameters>, usize)>>,
     total_variables: usize,
 ) -> Vec<Vec<FE>> {
-    sparse_matrix_to_dense(&arcworks_matrix_fps_to_pinocchio_fes(m), total_variables)
+    sparse_matrix_to_dense(&arkworks_matrix_fps_to_pinocchio_fes(m), total_variables)
 }
 
-fn arcworks_matrix_fps_to_pinocchio_fes(
+fn arkworks_matrix_fps_to_pinocchio_fes(
     m: &Vec<Vec<(Fp256<FqParameters>, usize)>>,
 ) -> Vec<Vec<(FE, usize)>> {
     m.iter()
@@ -192,7 +192,7 @@ mod tests {
     }
 
     #[test]
-    fn pinocchio_paper_r1cs_from_arcworks_eq_r1cs_from_pinocchio_vm() {
+    fn pinocchio_paper_r1cs_from_arkworks_eq_r1cs_from_pinocchio_vm() {
         let a = Fq::new(1.into());
         let b = Fq::new(2.into());
         let c = Fq::new(2.into());
@@ -208,7 +208,7 @@ mod tests {
             println!("{:?}", cs.which_is_unsatisfied().unwrap().unwrap());
         }
 
-        let converted_r1cs = arcworks_cs_to_pinocchio_r1cs(&cs);
+        let converted_r1cs = arkworks_cs_to_pinocchio_r1cs(&cs);
 
         assert_eq!(
             converted_r1cs.constraints,
@@ -222,7 +222,7 @@ mod tests {
     }
 
     /// This function changes variable 5 for 6
-    /// our current implementation of the paper r1cs and the arcworks
+    /// our current implementation of the paper r1cs and the arkworks
     /// version utilizes a different index, but it is the same r1cs
     fn swap_last_variables_test_circuit(r1cs: &R1CS) -> R1CS {
         let mut updated_constraints: Vec<Constraint> = Vec::new();
@@ -258,7 +258,7 @@ mod tests {
         if !is_satisfied {
             println!("{:?}", cs.which_is_unsatisfied().unwrap().unwrap());
         }
-        arcworks_cs_to_pinocchio_r1cs(&cs);
+        arkworks_cs_to_pinocchio_r1cs(&cs);
     }
 
     #[test]
@@ -276,7 +276,7 @@ mod tests {
             println!("{:?}", cs.which_is_unsatisfied().unwrap().unwrap());
         }
 
-        arcworks_cs_to_pinocchio_r1cs(&cs);
+        arkworks_cs_to_pinocchio_r1cs(&cs);
     }
 
     #[test]
@@ -296,6 +296,6 @@ mod tests {
             println!("{:?}", cs.which_is_unsatisfied().unwrap().unwrap());
         }
 
-        arcworks_cs_to_pinocchio_r1cs(&cs);
+        arkworks_cs_to_pinocchio_r1cs(&cs);
     }
 }
