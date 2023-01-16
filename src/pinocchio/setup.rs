@@ -6,9 +6,8 @@ use math::field_element::FieldElement;
 
 pub type FE = FieldElement<ORDER_R>;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
 /// Evaluation key for Pinocchio
-/// All the k are k_mid
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct EvaluationKey<T: BilinearCyclicGroup> {
     pub gv_ks: Vec<T>,
     pub gw_ks: Vec<T>,
@@ -19,9 +18,8 @@ pub struct EvaluationKey<T: BilinearCyclicGroup> {
     pub g_s_i: Vec<T>,
     pub g_beta: Vec<T>,
 }
+/// Verifying key for Pinocchio
 #[derive(Clone, Debug, PartialEq, Eq)]
-/// Evaluation key for Pinocchio
-/// All the k are k_0 + k_io
 pub struct VerifyingKey<T: BilinearCyclicGroup> {
     pub g_1: T,
     pub g_alpha_v: T,
