@@ -9,23 +9,23 @@ impl Fp64Parameters for FqParameters {}
 impl FftParameters for FqParameters {
     type BigInt = BigInteger;
 
+    // N = 2^s * t, t = 3 (odd integer), N = 4
+    // -> s = 3
     const TWO_ADICITY: u32 = 3;
 
     #[rustfmt::skip]
     const TWO_ADIC_ROOT_OF_UNITY: BigInteger = BigInteger([
-        1
+        3
     ]);
 }
 
 impl FpParameters for FqParameters {
-    /// MODULUS = 258664426012969094010652733694893533536393512754914660539884262666720468348340822774968888139573360124440321458177
     const MODULUS: BigInteger = BigInteger([5]);
 
     const MODULUS_BITS: u32 = 3;
 
     const CAPACITY: u32 = Self::MODULUS_BITS - 1;
 
-    // This isn't used, there is no need for random sampling
     const REPR_SHAVE_BITS: u32 = 0;
 
     const R: BigInteger = BigInteger([1]);
