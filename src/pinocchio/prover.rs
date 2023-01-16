@@ -76,7 +76,7 @@ mod tests {
         // In this test we do not hide elements. We work with the raw values instead.
         // These are easier to handle and computations can be done with pen and paper.
 
-        // We choose target_qap to be t = X + 1
+        // We choose a dummy `target_qap` to be t = X + 1
         let target_qap = Polynomial::new(vec![FE::new(1), FE::new(1)]);
 
         // We choose v = [t, t, t, t, t]. The same for w, and y.
@@ -93,7 +93,8 @@ mod tests {
             number_of_inputs: 1,
             number_of_outputs: 1,
         };
-        // Dummy evaluation key assuming s is equal to 1
+        // Dummy evaluation key assuming
+        // (s, r_v, r_w, alpha_v, alpha_w, alpha_y, beta, gamma) = (1, 1, 1, 2, 2, 3, 1)
         let easy_eval_key = EvaluationKey {
             gv_ks: vec![FE::new(2), FE::new(2)],
             gw_ks: vec![FE::new(2), FE::new(2)],
@@ -102,7 +103,7 @@ mod tests {
             gw_alphaks: vec![FE::new(4), FE::new(4)],
             gy_alphaks: vec![FE::new(4), FE::new(4)],
             g_s_i: vec![FE::new(1), FE::new(1)],
-            g_beta: vec![FE::new(1), FE::new(1)],
+            g_beta: vec![FE::new(18), FE::new(18)],
         };
 
         let c_coefficients = vec![
@@ -113,7 +114,7 @@ mod tests {
             FE::new(2),
             // c_3
             FE::new(1),
-            // output
+            // output:
             // c4
             FE::new(1),
         ];
@@ -126,14 +127,19 @@ mod tests {
         // Since in our evaluation key we are assuming that the component `s`
         // of the toxic waste is 1, we have v_{mid}(s) = 2 * t(1) + 1 * t(1) = 6.
         assert_eq!(proof.g_vs, FE::new(6));
+        assert_eq!(proof.g_ws, FE::new(6));
         assert_eq!(proof.g_ys, FE::new(6));
-        assert_eq!(proof.g_alpha_vs, FE::new(12));
+        assert_eq!(proof.g_alpha_vs, FE::new(2 * 6));
+        assert_eq!(proof.g_alpha_ws, FE::new(2 * 6));
+        assert_eq!(proof.g_alpha_ws, FE::new(2 * 6));
 
         // On the other hand p = vw - y = r^2 * t^2 - r * t,
         // where r = 1 + c_1 + c_2 + c_3 + c_4 = 8.
         // Therefore h = p / t = r^2 * t - r = 64 * t - 8.
         // we have h(s) = h(1) = 64 * t(1) - 8 = 64 * 2 - 8 = 120.
         assert_eq!(proof.g_hs, FE::new(120));
+
+        assert_eq!(proof.g_beta_vwy, FE::new(3 * 6 + 3 * 6 + 3 * 6));
     }
 
     #[test]
@@ -163,7 +169,7 @@ mod tests {
             gw_alphaks: vec![g.operate_with_self(4), g.operate_with_self(4)],
             gy_alphaks: vec![g.operate_with_self(4), g.operate_with_self(4)],
             g_s_i: vec![g.clone(), g.clone()],
-            g_beta: vec![g.clone(), g.clone()],
+            g_beta: vec![g.operate_with_self(18), g.operate_with_self(18)],
         };
 
         let c_coefficients = vec![FE::new(3), FE::new(2), FE::new(1), FE::new(1)];
@@ -171,9 +177,14 @@ mod tests {
         let proof = generate_proof(&easy_eval_key, &easy_qap, &c_coefficients);
 
         assert_eq!(proof.g_vs, g.operate_with_self(6));
+        assert_eq!(proof.g_ws, g.operate_with_self(6));
         assert_eq!(proof.g_ys, g.operate_with_self(6));
-        assert_eq!(proof.g_alpha_vs, g.operate_with_self(12));
+        assert_eq!(proof.g_alpha_vs, g.operate_with_self(2 * 6));
+        assert_eq!(proof.g_alpha_ws, g.operate_with_self(2 * 6));
+        assert_eq!(proof.g_alpha_ws, g.operate_with_self(2 * 6));
 
         assert_eq!(proof.g_hs, g.operate_with_self(120));
+
+        assert_eq!(proof.g_beta_vwy, g.operate_with_self(3 * 6 + 3 * 6 + 3 * 6));
     }
 }
