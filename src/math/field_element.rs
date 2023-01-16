@@ -8,6 +8,7 @@ pub enum FieldElementError {
     DivisionByZero,
 }
 
+/// Represents an element in Fp. (E.g: 0, 1, 2 are the elements of F3)
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct FieldElement<const ORDER: u128> {
     value: u128,
@@ -21,15 +22,20 @@ impl<const ORDER: u128> FieldElement<ORDER> {
         }
     }
 
+    /// Returns a representative for a field element.
+    /// E.g.: 8, 5 and 29 in F3 are all represented by 2.
     pub fn representative(&self) -> u128 {
         self.value
     }
 
+    /// Returns a random element from the field.
     pub fn random() -> Self {
         let value: u128 = rand::thread_rng().gen_range(1..ORDER);
         FieldElement { value }
     }
 
+    /// Returns `self` to the power of `exponent` using
+    /// right-to-left binary method for modular exponentiation.
     pub fn pow(self, mut exponent: u128) -> Self {
         let mut result = Self::new(1);
         let mut base = self;
@@ -46,6 +52,8 @@ impl<const ORDER: u128> FieldElement<ORDER> {
         result
     }
 
+    /// Computes the inverse of the element `self`.
+    /// Based on Fermat's little theorem.
     pub fn inv(self) -> Result<Self, FieldElementError> {
         if self.value != 0 {
             Ok(self.pow(ORDER - 2))
