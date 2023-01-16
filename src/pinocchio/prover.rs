@@ -8,23 +8,33 @@ use super::setup::EvaluationKey;
 
 type FE = FieldElement<ORDER_R>;
 
-/// Proof for Pinocchio
-/// All but hs are the mid related elements
+/// Pinocchio's proof
+/// Using the notation of Pinocchio's paper, these are
+/// the hidings of v_{mid}(s), w_{mid}(s), y_{mid}(s), h(s)
+/// and the "redundant" hidings for the consistency checks
+/// of the verifier.
+/// The polynomials v, w and y are the polynomials from the QAP
+/// The polynomial h is equal to (vw - y) / t, where t is the
+/// target polynomial of the QAP.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Proof<T: BilinearCyclicGroup> {
     pub g_vs: T,
     pub g_ws: T,
     pub g_ys: T,
+    pub g_hs: T,
     pub g_alpha_vs: T,
     pub g_alpha_ws: T,
     pub g_alpha_ys: T,
     pub g_beta_vwy: T,
-    pub g_hs: T,
 }
 
-/// Generates a proof from an evaluation_key,
-/// the qap representation of the circuit
-/// the first Cs of the inputs, the intermediate Cs results and the final Cs of the results
+/// Generates a proof.
+/// Takes as input the evaluation_key,
+/// the QAP representation of the circuit
+/// and the values of the circuit wires corresponding
+/// to the particular execution instance. These values are
+/// the ones denoted `c_i` in the paper. They include all
+/// inputs and outputs.
 pub fn generate_proof<T: BilinearCyclicGroup>(
     evaluation_key: &EvaluationKey<T>,
     qap: &Qap,
@@ -35,8 +45,6 @@ pub fn generate_proof<T: BilinearCyclicGroup>(
 
     let h_polynomial = qap.h_polynomial(qap_c_coefficients);
 
-    // If C and the evaluation key are valid, this shouldn't fail
-    // TO DO: Raise an error if some value can't be computated
     Proof {
         g_vs: msm(c_mid, &evaluation_key.gv_ks),
         g_ws: msm(c_mid, &evaluation_key.gw_ks),
@@ -45,7 +53,6 @@ pub fn generate_proof<T: BilinearCyclicGroup>(
         g_alpha_ws: msm(c_mid, &evaluation_key.gw_alphaks),
         g_alpha_ys: msm(c_mid, &evaluation_key.gy_alphaks),
         g_beta_vwy: msm(c_mid, &evaluation_key.g_beta),
-        // evaluation key may have extra elements for g s i, since in this implementation it uses an upper bound of elements
         g_hs: msm(
             h_polynomial.coefficients(),
             &evaluation_key.g_s_i[..h_polynomial.coefficients().len()],
@@ -61,144 +68,112 @@ mod tests {
     use super::*;
 
     // This test runs the proof algorithms with some easy inputs
-    // to check operations are made correctly
-    // Eval key and polynomials don't mean anything
-    // It only works with FE as the BilinearCyclicGroupType
+    // to check operations are correct
+    // The evaluation key and polynomials have dummy values and do
+    // not correspond to any circuit.
     #[test]
-    fn proof_test_over_field_element() {
-        // This eval key is the identity
+    fn test_proof_is_generated_correctly_when_using_raw_values_instead_of_hidings() {
+        // In this test we do not hide elements. We work with the raw values instead.
+        // These are easier to handle and computations can be done with pen and paper.
+
+        // We choose target_qap to be t = X + 1
+        let target_qap = Polynomial::new(vec![FE::new(1), FE::new(1)]);
+
+        // We choose v = [t, t, t, t, t]. The same for w, and y.
+        let v = vec![target_qap.clone(); 5];
+        let w = vec![target_qap.clone(); 5];
+        let y = vec![target_qap.clone(); 5];
+
+        // There is 1 input and 1 output. So there are 2 middle values.
+        let easy_qap = Qap {
+            v,
+            w,
+            y,
+            target: target_qap,
+            number_of_inputs: 1,
+            number_of_outputs: 1,
+        };
+        // Dummy evaluation key assuming s is equal to 1
         let easy_eval_key = EvaluationKey {
-            gv_ks: vec![FE::new(1), FE::new(1)],
-            gw_ks: vec![FE::new(1), FE::new(1)],
-            gy_ks: vec![FE::new(1), FE::new(1)],
-            gv_alphaks: vec![FE::new(2), FE::new(2)],
-            gw_alphaks: vec![FE::new(2), FE::new(2)],
-            gy_alphaks: vec![FE::new(2), FE::new(2)],
+            gv_ks: vec![FE::new(2), FE::new(2)],
+            gw_ks: vec![FE::new(2), FE::new(2)],
+            gy_ks: vec![FE::new(2), FE::new(2)],
+            gv_alphaks: vec![FE::new(4), FE::new(4)],
+            gw_alphaks: vec![FE::new(4), FE::new(4)],
+            gy_alphaks: vec![FE::new(4), FE::new(4)],
             g_s_i: vec![FE::new(1), FE::new(1)],
             g_beta: vec![FE::new(1), FE::new(1)],
         };
 
-        // vwy are all equals, the 0 element is 0, the rest are ones
-        let vw_polynomial = vec![
-            // x0
-            Polynomial::new(vec![FE::new(0)]),
-            //x1 = xinput
-            Polynomial::new(vec![FE::new(1), FE::new(1)]),
-            //xmid
-            Polynomial::new(vec![FE::new(1), FE::new(1)]),
-            Polynomial::new(vec![FE::new(1), FE::new(1)]),
-            //xoutput
-            Polynomial::new(vec![FE::new(1), FE::new(1)]),
-        ];
-
-        // y is different than vw, but only in values not in the middle
-        // so results shouldn't change
-        let y_polynomial = vec![
-            // x0
-            Polynomial::new(vec![FE::new(32)]),
-            //x1 = xinput
-            Polynomial::new(vec![FE::new(123), FE::new(123)]),
-            //xmid
-            Polynomial::new(vec![FE::new(1), FE::new(1)]),
-            Polynomial::new(vec![FE::new(1), FE::new(1)]),
-            //xoutput
-            Polynomial::new(vec![FE::new(321), FE::new(321)]),
-        ];
-
-        // 1 input, and 1 output, so there are 2 values in the middle
-        let easy_qap = Qap {
-            v: vw_polynomial.clone(),
-            w: vw_polynomial,
-            y: y_polynomial,
-            target: Polynomial::new(vec![FE::new(1), FE::new(1)]),
-            number_of_inputs: 1,
-            number_of_outputs: 1,
-        };
-
         let c_coefficients = vec![
-            //c1
-            FE::new(1),
-            //c_mids
-            FE::new(2),
+            // c1
             FE::new(3),
-            //c4 = c_output
+            // c_mids:
+            // c_2
+            FE::new(2),
+            // c_3
+            FE::new(1),
+            // output
+            // c4
             FE::new(1),
         ];
 
         let proof = generate_proof(&easy_eval_key, &easy_qap, &c_coefficients);
 
-        assert_eq!(proof.g_vs, FE::new(5));
-        assert_eq!(proof.g_ys, FE::new(5));
-        assert_eq!(proof.g_alpha_vs, FE::new(10));
+        // For this choice of dummy polynomials and circuit wire values, we obtain
+        // v = t + c_1 * t + c_2 * t + c_3 * t + c_4 * t, and v_{mid} = c_2 * t + c_3 * t.
+        // And similarly for v and w.
+        // Since in our evaluation key we are assuming that the component `s`
+        // of the toxic waste is 1, we have v_{mid}(s) = 2 * t(1) + 1 * t(1) = 6.
+        assert_eq!(proof.g_vs, FE::new(6));
+        assert_eq!(proof.g_ys, FE::new(6));
+        assert_eq!(proof.g_alpha_vs, FE::new(12));
+
+        // On the other hand p = vw - y = r^2 * t^2 - r * t,
+        // where r = 1 + c_1 + c_2 + c_3 + c_4 = 8.
+        // Therefore h = p / t = r^2 * t - r = 64 * t - 8.
+        // we have h(s) = h(1) = 64 * t(1) - 8 = 64 * 2 - 8 = 120.
+        assert_eq!(proof.g_hs, FE::new(120));
     }
 
     #[test]
-    fn proof_test_over_elliptic_curves() {
+    fn test_proof_is_generated_correctly_when_hiding_in_elliptic_curves() {
+        // Same test as before, but this time hiding points in elliptic curves
+        let target_qap = Polynomial::new(vec![FE::new(1), FE::new(1)]);
+        let v = vec![target_qap.clone(); 5];
+        let w = vec![target_qap.clone(); 5];
+        let y = vec![target_qap.clone(); 5];
+
+        let easy_qap = Qap {
+            v,
+            w,
+            y,
+            target: target_qap,
+            number_of_inputs: 1,
+            number_of_outputs: 1,
+        };
+
         let g = EllipticCurveElement::generator();
 
-        // This eval key is the identity
         let easy_eval_key = EvaluationKey {
-            gv_ks: vec![g.clone(), g.clone()],
-            gw_ks: vec![g.clone(), g.clone()],
-            gy_ks: vec![g.clone(), g.clone()],
-            gv_alphaks: vec![g.operate_with_self(2), g.operate_with_self(2)],
-            gw_alphaks: vec![g.operate_with_self(2), g.operate_with_self(2)],
-            gy_alphaks: vec![g.operate_with_self(2), g.operate_with_self(2)],
+            gv_ks: vec![g.operate_with_self(2), g.operate_with_self(2)],
+            gw_ks: vec![g.operate_with_self(2), g.operate_with_self(2)],
+            gy_ks: vec![g.operate_with_self(2), g.operate_with_self(2)],
+            gv_alphaks: vec![g.operate_with_self(4), g.operate_with_self(4)],
+            gw_alphaks: vec![g.operate_with_self(4), g.operate_with_self(4)],
+            gy_alphaks: vec![g.operate_with_self(4), g.operate_with_self(4)],
             g_s_i: vec![g.clone(), g.clone()],
             g_beta: vec![g.clone(), g.clone()],
         };
 
-        // vwy are all equals, the 0 element is 0, the rest are ones
-        let vw_polynomial = vec![
-            // x0
-            Polynomial::new(vec![FE::new(0)]),
-            //x1 = xinput
-            Polynomial::new(vec![FE::new(1), FE::new(1)]),
-            //xmid
-            Polynomial::new(vec![FE::new(1), FE::new(1)]),
-            Polynomial::new(vec![FE::new(1), FE::new(1)]),
-            //xoutput
-            Polynomial::new(vec![FE::new(1), FE::new(1)]),
-        ];
-
-        // y is different than vw, but only in values not in the middle
-        // so results shouldn't change
-        let y_polynomial = vec![
-            // x0
-            Polynomial::new(vec![FE::new(32)]),
-            //x1 = xinput
-            Polynomial::new(vec![FE::new(123), FE::new(123)]),
-            //xmid
-            Polynomial::new(vec![FE::new(1), FE::new(1)]),
-            Polynomial::new(vec![FE::new(1), FE::new(1)]),
-            //xoutput
-            Polynomial::new(vec![FE::new(321), FE::new(321)]),
-        ];
-
-        // 1 input, and 1 output, so there are 2 values in the middle
-        let easy_qap = Qap {
-            v: vw_polynomial.clone(),
-            w: vw_polynomial,
-            y: y_polynomial,
-            target: Polynomial::new(vec![FE::new(1), FE::new(1)]),
-            number_of_inputs: 1,
-            number_of_outputs: 1,
-        };
-
-        let c_coefficients = vec![
-            //c1
-            FE::new(1),
-            //c_mids
-            FE::new(2),
-            FE::new(3),
-            //c4 = c_output
-            FE::new(1),
-        ];
+        let c_coefficients = vec![FE::new(3), FE::new(2), FE::new(1), FE::new(1)];
 
         let proof = generate_proof(&easy_eval_key, &easy_qap, &c_coefficients);
 
-        assert_eq!(proof.g_vs, g.operate_with_self(5));
-        assert_eq!(proof.g_ys, g.operate_with_self(5));
-        assert_eq!(proof.g_alpha_vs, g.operate_with_self(5));
+        assert_eq!(proof.g_vs, g.operate_with_self(6));
+        assert_eq!(proof.g_ys, g.operate_with_self(6));
+        assert_eq!(proof.g_alpha_vs, g.operate_with_self(12));
+
+        assert_eq!(proof.g_hs, g.operate_with_self(120));
     }
 }
