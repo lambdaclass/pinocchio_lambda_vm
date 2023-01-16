@@ -94,8 +94,8 @@ mod tests {
             number_of_outputs: 1,
         };
         // Dummy evaluation key assuming
-        // (s, r_v, r_w, alpha_v, alpha_w, alpha_y, beta, gamma) = (1, 1, 1, 2, 2, 3, 1)
-        let easy_eval_key = EvaluationKey {
+        // (s, r_v, r_w, alpha_v, alpha_w, alpha_y, beta, gamma) = (1, 1, 1, 2, 2, 2, 3, 1)
+        let evaluation_key = EvaluationKey {
             gv_ks: vec![FE::new(2), FE::new(2)],
             gw_ks: vec![FE::new(2), FE::new(2)],
             gy_ks: vec![FE::new(2), FE::new(2)],
@@ -119,7 +119,7 @@ mod tests {
             FE::new(1),
         ];
 
-        let proof = generate_proof(&easy_eval_key, &easy_qap, &c_coefficients);
+        let proof = generate_proof(&evaluation_key, &easy_qap, &c_coefficients);
 
         // For this choice of dummy polynomials and circuit wire values, we obtain
         // v = t + c_1 * t + c_2 * t + c_3 * t + c_4 * t, and v_{mid} = c_2 * t + c_3 * t.
@@ -161,7 +161,7 @@ mod tests {
 
         let g = EllipticCurveElement::generator();
 
-        let easy_eval_key = EvaluationKey {
+        let evaluation_key = EvaluationKey {
             gv_ks: vec![g.operate_with_self(2), g.operate_with_self(2)],
             gw_ks: vec![g.operate_with_self(2), g.operate_with_self(2)],
             gy_ks: vec![g.operate_with_self(2), g.operate_with_self(2)],
@@ -174,7 +174,7 @@ mod tests {
 
         let c_coefficients = vec![FE::new(3), FE::new(2), FE::new(1), FE::new(1)];
 
-        let proof = generate_proof(&easy_eval_key, &easy_qap, &c_coefficients);
+        let proof = generate_proof(&evaluation_key, &easy_qap, &c_coefficients);
 
         assert_eq!(proof.g_vs, g.operate_with_self(6));
         assert_eq!(proof.g_ws, g.operate_with_self(6));
