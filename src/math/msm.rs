@@ -7,11 +7,11 @@ pub type CyclicBilinearGroupType = EllipticCurveElement;
 
 /// Calculates msm for C and hidings
 /// if either array is empty, returns zero
-pub fn msm<T>(c: &[FE], hidings: &[T]) -> T
+pub fn msm<T>(cs: &[FE], hidings: &[T]) -> T
 where
     T: CyclicBilinearGroup,
 {
-    c.iter()
+    cs.iter()
         .zip(hidings.iter())
         .map(|(&c, h)| h.operate_with_self(c.representative()))
         .reduce(|acc, x| acc.operate_with(&x))

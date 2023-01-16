@@ -79,16 +79,16 @@ mod tests {
         // We choose a dummy `target_qap` to be t = X + 1
         let target_qap = Polynomial::new(vec![FE::new(1), FE::new(1)]);
 
-        // We choose v = [t, t, t, t, t]. The same for w, and y.
-        let v = vec![target_qap.clone(); 5];
-        let w = vec![target_qap.clone(); 5];
-        let y = vec![target_qap.clone(); 5];
+        // We choose vs = [t, t, t, t, t]. The same for ws, and ys.
+        let vs = vec![target_qap.clone(); 5];
+        let ws = vec![target_qap.clone(); 5];
+        let ys = vec![target_qap.clone(); 5];
 
         // There is 1 input and 1 output. So there are 2 middle values.
         let easy_qap = Qap {
-            v,
-            w,
-            y,
+            vs,
+            ws,
+            ys,
             target: target_qap,
             number_of_inputs: 1,
             number_of_outputs: 1,
@@ -146,14 +146,14 @@ mod tests {
     fn test_proof_is_generated_correctly_when_hiding_in_elliptic_curves() {
         // Same test as before, but this time hiding points in elliptic curves
         let target_qap = Polynomial::new(vec![FE::new(1), FE::new(1)]);
-        let v = vec![target_qap.clone(); 5];
-        let w = vec![target_qap.clone(); 5];
-        let y = vec![target_qap.clone(); 5];
+        let vs = vec![target_qap.clone(); 5];
+        let ws = vec![target_qap.clone(); 5];
+        let ys = vec![target_qap.clone(); 5];
 
         let easy_qap = Qap {
-            v,
-            w,
-            y,
+            vs,
+            ws,
+            ys,
             target: target_qap,
             number_of_inputs: 1,
             number_of_outputs: 1,
