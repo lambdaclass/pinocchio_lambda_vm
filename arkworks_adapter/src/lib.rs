@@ -1,13 +1,15 @@
-use ark_bn254::{FqParameters};
-use ark_ff::{Fp256, PrimeField};
+mod bls6_6_fq;
+
+use ark_ff::{Fp64, PrimeField};
 use ark_relations::r1cs::ConstraintSystemRef;
+use bls6_6_fq::{Fq, FqParameters};
 use num_bigint::BigUint;
 use pinocchio_vm::circuits::r1cs::R1CS;
 use pinocchio_vm::math::field_element::FieldElement;
 
 type FE = FieldElement<5>;
 
-pub fn arkworks_cs_to_pinocchio_r1cs(cs: &ConstraintSystemRef<Fp256<FqParameters>>) -> R1CS {
+pub fn arkworks_cs_to_pinocchio_r1cs(cs: &ConstraintSystemRef<Fq>) -> R1CS {
     cs.inline_all_lcs();
 
     let r1cs_matrices = cs.to_matrices().unwrap();
@@ -31,14 +33,14 @@ pub fn arkworks_cs_to_pinocchio_r1cs(cs: &ConstraintSystemRef<Fp256<FqParameters
 }
 
 fn arkworks_r1cs_matrix_to_pinocchio_r1cs_matrix(
-    m: &Vec<Vec<(Fp256<FqParameters>, usize)>>,
+    m: &Vec<Vec<(Fp64<FqParameters>, usize)>>,
     total_variables: usize,
 ) -> Vec<Vec<FE>> {
     sparse_matrix_to_dense(&arkworks_matrix_fps_to_pinocchio_fes(m), total_variables)
 }
 
 fn arkworks_matrix_fps_to_pinocchio_fes(
-    m: &Vec<Vec<(Fp256<FqParameters>, usize)>>,
+    m: &Vec<Vec<(Fp64<FqParameters>, usize)>>,
 ) -> Vec<Vec<(FE, usize)>> {
     m.iter()
         .map(|x| {
@@ -83,7 +85,7 @@ fn biguint_to_u128(big: BigUint) -> u128 {
 
 #[cfg(test)]
 mod tests {
-    use ark_bn254::Fq;
+    use bls6_6_fq::Fq;
     use ark_r1cs_std::{fields::fp::FpVar, prelude::AllocVar};
     use ark_relations::{
         lc,
