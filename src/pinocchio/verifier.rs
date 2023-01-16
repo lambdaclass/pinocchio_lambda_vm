@@ -76,6 +76,7 @@ mod tests {
 
     // In this tests we do not hide elements. We work with the raw values instead.
     // These are easier to handle and computations can be done with pen and paper.
+    // Check out the prover tests to see where most of these values come from.
     fn dummy_verifying_data_without_hidings() -> (VerifyingKey<FE>, Proof<FE>, Vec<FE>) {
         // Dummy verifying key assuming
         // (s, r_v, r_w, alpha_v, alpha_w, alpha_y, beta, gamma) = (1, 1, 1, 2, 2, 2, 3, 1)
@@ -87,9 +88,9 @@ mod tests {
             g_gamma: FE::new(3),
             g_beta_gamma: FE::new(3),
             gy_target_on_s: FE::new(2),
-            gv_ks: vec![FE::new(6), FE::new(6)],
-            gw_ks: vec![FE::new(6), FE::new(6)],
-            gy_ks: vec![FE::new(6), FE::new(6)],
+            gv_ks: vec![FE::new(0), FE::new(6), FE::new(6)],
+            gw_ks: vec![FE::new(0), FE::new(6), FE::new(6)],
+            gy_ks: vec![FE::new(0), FE::new(6), FE::new(6)],
         };
 
         let input_output = vec![
@@ -116,13 +117,13 @@ mod tests {
     }
 
     #[test]
-    fn test_divisibility_check_correct_on_correct_proof_without_hidings() {
+    fn test_divisibility_check_on_correct_proof_without_hidings() {
         let (verifying_key, proof, input_output) = dummy_verifying_data_without_hidings();
         assert!(check_divisibility(&verifying_key, &proof, &input_output));
     }
 
     #[test]
-    fn test_appropiate_spans_correct_on_correct_proof_without_hidings() {
+    fn test_appropiate_spans_on_correct_proof_without_hidings() {
         let (verifying_key, proof, _) = dummy_verifying_data_without_hidings();
         assert!(check_appropiate_spans(&verifying_key, &proof));
     }
@@ -171,9 +172,21 @@ mod tests {
             g_gamma: g.operate_with_self(3),
             g_beta_gamma: g.operate_with_self(3),
             gy_target_on_s: g.operate_with_self(2),
-            gv_ks: vec![g.operate_with_self(6), g.operate_with_self(6)],
-            gw_ks: vec![g.operate_with_self(6), g.operate_with_self(6)],
-            gy_ks: vec![g.operate_with_self(6), g.operate_with_self(6)],
+            gv_ks: vec![
+                g.operate_with_self(0),
+                g.operate_with_self(6),
+                g.operate_with_self(6),
+            ],
+            gw_ks: vec![
+                g.operate_with_self(0),
+                g.operate_with_self(6),
+                g.operate_with_self(6),
+            ],
+            gy_ks: vec![
+                g.operate_with_self(0),
+                g.operate_with_self(6),
+                g.operate_with_self(6),
+            ],
         };
 
         let input_output = vec![
@@ -221,7 +234,7 @@ mod tests {
     #[test]
     fn test_divisibility_check_correct_on_incorrect_input_output_with_elliptic_curve_hidings() {
         let (verifying_key, proof, _) = dummy_verifying_data_with_elliptic_curve_hidings();
-        let input_output = vec![FE::new(0), FE::new(0)];
+        let input_output = vec![FE::new(0), FE::new(1)];
         assert!(!check_divisibility(&verifying_key, &proof, &input_output));
     }
 
