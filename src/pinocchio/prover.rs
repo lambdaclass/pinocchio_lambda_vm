@@ -1,6 +1,6 @@
 use super::super::config::ORDER_R;
 use crate::circuits::qap::Qap;
-use crate::math::cyclic_group::BilinearCyclicGroup;
+use crate::math::cyclic_group::CyclicBilinearGroup;
 use crate::math::field_element::FieldElement;
 use crate::math::msm::msm;
 
@@ -17,7 +17,7 @@ type FE = FieldElement<ORDER_R>;
 /// The polynomial h is equal to (vw - y) / t, where t is the
 /// target polynomial of the QAP.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Proof<T: BilinearCyclicGroup> {
+pub struct Proof<T: CyclicBilinearGroup> {
     pub g_vs: T,
     pub g_ws: T,
     pub g_ys: T,
@@ -35,7 +35,7 @@ pub struct Proof<T: BilinearCyclicGroup> {
 /// to the particular execution instance. These values are
 /// the ones denoted `c_i` in the paper. They include all
 /// inputs and outputs.
-pub fn generate_proof<T: BilinearCyclicGroup>(
+pub fn generate_proof<T: CyclicBilinearGroup>(
     evaluation_key: &EvaluationKey<T>,
     qap: &Qap,
     qap_c_coefficients: &[FE],
@@ -63,7 +63,7 @@ pub fn generate_proof<T: BilinearCyclicGroup>(
 #[cfg(test)]
 mod tests {
     use crate::math::elliptic_curve::EllipticCurveElement;
-    use crate::math::{cyclic_group::BilinearCyclicGroup, polynomial::Polynomial};
+    use crate::math::{cyclic_group::CyclicBilinearGroup, polynomial::Polynomial};
 
     use super::*;
 

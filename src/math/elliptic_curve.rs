@@ -3,7 +3,7 @@ use super::super::config::{
     TARGET_NORMALIZATION_POWER,
 };
 use super::{
-    cyclic_group::BilinearCyclicGroup, field_element::FieldElement,
+    cyclic_group::CyclicBilinearGroup, field_element::FieldElement,
     field_extension_element::FieldExtensionElement, polynomial::Polynomial,
 };
 use std::ops;
@@ -147,7 +147,7 @@ impl ops::Neg for EllipticCurveElement {
     }
 }
 
-impl BilinearCyclicGroup for EllipticCurveElement {
+impl CyclicBilinearGroup for EllipticCurveElement {
     type PairingOutput = FEE;
 
     fn generator() -> Self {

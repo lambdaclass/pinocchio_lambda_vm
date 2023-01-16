@@ -1,13 +1,13 @@
 use super::super::config::ORDER_R;
 use super::prover::Proof;
 use super::setup::VerifyingKey;
-use crate::math::{self, cyclic_group::BilinearCyclicGroup};
+use crate::math::{self, cyclic_group::CyclicBilinearGroup};
 use math::field_element::FieldElement;
 use math::msm::msm;
 
 type FE = FieldElement<ORDER_R>;
 
-pub fn verify<T: BilinearCyclicGroup>(
+pub fn verify<T: CyclicBilinearGroup>(
     verifying_key: &VerifyingKey<T>,
     proof: &Proof<T>,
     c_input_output: &[FE],
@@ -18,7 +18,7 @@ pub fn verify<T: BilinearCyclicGroup>(
     b1 && b2 && b3
 }
 
-pub fn check_divisibility<T: BilinearCyclicGroup>(
+pub fn check_divisibility<T: CyclicBilinearGroup>(
     verifying_key: &VerifyingKey<T>,
     proof: &Proof<T>,
     input_output: &[FE],
@@ -42,7 +42,7 @@ pub fn check_divisibility<T: BilinearCyclicGroup>(
     lhs == rhs_1 * rhs_2
 }
 
-pub fn check_appropiate_spans<T: BilinearCyclicGroup>(
+pub fn check_appropiate_spans<T: CyclicBilinearGroup>(
     verifying_key: &VerifyingKey<T>,
     proof: &Proof<T>,
 ) -> bool {
@@ -54,7 +54,7 @@ pub fn check_appropiate_spans<T: BilinearCyclicGroup>(
     b1 && b2 && b3
 }
 
-pub fn check_same_linear_combinations<T: BilinearCyclicGroup>(
+pub fn check_same_linear_combinations<T: CyclicBilinearGroup>(
     verifying_key: &VerifyingKey<T>,
     proof: &Proof<T>,
 ) -> bool {
