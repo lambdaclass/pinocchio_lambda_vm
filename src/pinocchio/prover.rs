@@ -1,6 +1,6 @@
 use super::super::config::ORDER_R;
 use crate::circuits::qap::Qap;
-use crate::math::cyclic_group::CyclicGroup;
+use crate::math::cyclic_group::BilinearCyclicGroup;
 use crate::math::field_element::FieldElement;
 use crate::math::msm::msm;
 
@@ -11,7 +11,7 @@ type FE = FieldElement<ORDER_R>;
 /// Proof for Pinocchio
 /// All but hs are the mid related elements
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Proof<T: CyclicGroup> {
+pub struct Proof<T: BilinearCyclicGroup> {
     pub g_vs: T,
     pub g_ws: T,
     pub g_ys: T,
@@ -25,7 +25,7 @@ pub struct Proof<T: CyclicGroup> {
 /// Generates a proof from an evaluation_key,
 /// the qap representation of the circuit
 /// the first Cs of the inputs, the intermediate Cs results and the final Cs of the results
-pub fn generate_proof<T: CyclicGroup>(
+pub fn generate_proof<T: BilinearCyclicGroup>(
     evaluation_key: &EvaluationKey<T>,
     qap: &Qap,
     qap_c_coefficients: &[FE],
@@ -56,14 +56,14 @@ pub fn generate_proof<T: CyclicGroup>(
 #[cfg(test)]
 mod tests {
     use crate::math::elliptic_curve::EllipticCurveElement;
-    use crate::math::{cyclic_group::CyclicGroup, polynomial::Polynomial};
+    use crate::math::{cyclic_group::BilinearCyclicGroup, polynomial::Polynomial};
 
     use super::*;
 
     // This test runs the proof algorithms with some easy inputs
     // to check operations are made correctly
     // Eval key and polynomials don't mean anything
-    // It only works with FE as the CyclicGroupType
+    // It only works with FE as the BilinearCyclicGroupType
     #[test]
     fn proof_test_over_field_element() {
         // This eval key is the identity

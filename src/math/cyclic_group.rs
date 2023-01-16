@@ -2,7 +2,7 @@ use std::ops::Mul;
 
 /// Cyclic group implementation for Pinocchio Implementation
 /// inverse function is not implemented since it's not needed for it
-pub trait CyclicGroup: Clone {
+pub trait BilinearCyclicGroup: Clone {
     type PairingOutput: Mul<Output = Self::PairingOutput> + PartialEq + Eq;
 
     fn generator() -> Self;

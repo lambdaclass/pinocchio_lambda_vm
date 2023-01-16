@@ -1,7 +1,7 @@
 use super::super::config::ORDER_R;
 use crate::circuits::qap::Qap;
 use crate::math;
-use math::cyclic_group::CyclicGroup;
+use math::cyclic_group::BilinearCyclicGroup;
 use math::field_element::FieldElement;
 
 pub type FE = FieldElement<ORDER_R>;
@@ -9,7 +9,7 @@ pub type FE = FieldElement<ORDER_R>;
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// Evaluation key for Pinocchio
 /// All the k are k_mid
-pub struct EvaluationKey<T: CyclicGroup> {
+pub struct EvaluationKey<T: BilinearCyclicGroup> {
     pub gv_ks: Vec<T>,
     pub gw_ks: Vec<T>,
     pub gy_ks: Vec<T>,
@@ -22,7 +22,7 @@ pub struct EvaluationKey<T: CyclicGroup> {
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// Evaluation key for Pinocchio
 /// All the k are k_0 + k_io
-pub struct VerifyingKey<T: CyclicGroup> {
+pub struct VerifyingKey<T: BilinearCyclicGroup> {
     pub g_1: T,
     pub g_alpha_v: T,
     pub g_alpha_w: T,
@@ -88,7 +88,7 @@ impl ToxicWaste {
     }
 }
 
-fn generate_verifying_key<T: CyclicGroup>(
+fn generate_verifying_key<T: BilinearCyclicGroup>(
     qap: &Qap,
     toxic_waste: &ToxicWaste,
     generator: &T,
@@ -140,7 +140,7 @@ fn generate_verifying_key<T: CyclicGroup>(
     }
 }
 
-fn generate_evaluation_key<T: CyclicGroup>(
+fn generate_evaluation_key<T: BilinearCyclicGroup>(
     qap: &Qap,
     toxic_waste: &ToxicWaste,
     generator: &T,
@@ -210,7 +210,7 @@ fn generate_evaluation_key<T: CyclicGroup>(
     }
 }
 
-pub fn setup<T: CyclicGroup>(
+pub fn setup<T: BilinearCyclicGroup>(
     qap: &Qap,
     toxic_waste: &ToxicWaste,
 ) -> (EvaluationKey<T>, VerifyingKey<T>) {

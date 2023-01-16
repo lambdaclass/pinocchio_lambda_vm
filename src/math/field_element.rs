@@ -1,4 +1,4 @@
-use super::cyclic_group::CyclicGroup;
+use super::cyclic_group::BilinearCyclicGroup;
 use rand::prelude::*;
 use std::ops;
 
@@ -103,7 +103,7 @@ impl<const ORDER: u128> ops::Div for FieldElement<ORDER> {
     }
 }
 
-impl<const ORDER: u128> CyclicGroup for FieldElement<ORDER> {
+impl<const ORDER: u128> BilinearCyclicGroup for FieldElement<ORDER> {
     type PairingOutput = Self;
 
     fn generator() -> FieldElement<ORDER> {

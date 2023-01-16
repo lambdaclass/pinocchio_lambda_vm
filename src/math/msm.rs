@@ -1,15 +1,15 @@
-use crate::math::cyclic_group::CyclicGroup;
+use crate::math::cyclic_group::BilinearCyclicGroup;
 use crate::math::elliptic_curve::EllipticCurveElement;
 use crate::math::field_element::FieldElement;
 
 type FE = FieldElement<5>;
-pub type CyclicGroupType = EllipticCurveElement;
+pub type BilinearCyclicGroupType = EllipticCurveElement;
 
 /// Calculates msm for C and hidings
 /// if either array is empty, returns zero
 pub fn msm<T>(c: &[FE], hidings: &[T]) -> T
 where
-    T: CyclicGroup,
+    T: BilinearCyclicGroup,
 {
     c.iter()
         .zip(hidings.iter())
@@ -22,12 +22,12 @@ where
 mod tests {
     use super::*;
 
-    //MSM tests require the CyclicGroupType to be a FieldElement
+    //MSM tests require the BilinearCyclicGroupType to be a FieldElement
     #[test]
     fn msm_11_is_1() {
         let c = [FE::new(1)];
-        let hiding = [CyclicGroupType::generator()];
-        assert_eq!(msm(&c, &hiding), CyclicGroupType::generator());
+        let hiding = [BilinearCyclicGroupType::generator()];
+        assert_eq!(msm(&c, &hiding), BilinearCyclicGroupType::generator());
     }
 
     #[test]
