@@ -34,8 +34,9 @@ impl FpParameters for FqParameters {
 
     const INV: u64 = 3689348814741910323;
 
-    /// GENERATOR = 5
-    /// Encoded in Montgomery form, so the value here is
+    /// GENERATOR = 3
+    /// Encoded in Montgomery form, so the value here is 3
+    /// since R = 1
     #[rustfmt::skip]
     const GENERATOR: BigInteger = BigInteger([3]);
 
@@ -43,9 +44,6 @@ impl FpParameters for FqParameters {
     const MODULUS_MINUS_ONE_DIV_TWO: BigInteger = BigInteger([1]);
 
     // This is used for Tonelly Shanks, an algorithm to solve a square root.
-
-    // 2^s * t=5-1 -> 2^s * 3 = 4
-    // -> s = 
     #[rustfmt::skip]
     const T: BigInteger = BigInteger([3]);
 

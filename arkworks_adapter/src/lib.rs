@@ -29,6 +29,9 @@ pub fn arkworks_cs_to_pinocchio_r1cs(cs: &ConstraintSystemRef<Fq>) -> R1CS {
         cs.num_witness_variables() + cs.num_instance_variables() - 1,
     );
 
+    /* 
+        Notice we can't differentiate outputs and inputs from Arkworks CS, but for the proving system everything it just matters it's an IO, so it's a non problem.
+    */
     R1CS::new_with_matrixes(a, b, c, cs.num_instance_variables() - 1, 0)
 }
 
