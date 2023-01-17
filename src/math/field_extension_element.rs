@@ -218,3 +218,117 @@ impl ops::Div<&FieldExtensionElement> for FieldExtensionElement {
         &self / dividend
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[allow(clippy::upper_case_acronyms)]
+    type FEE = FieldExtensionElement;
+
+    #[test]
+    fn test_creating_a_field_element_extension_gets_the_remainder_of_the_polynomial() {
+        let a = FEE::new(Polynomial::new(vec![
+            FE::new(2),
+            FE::new(3),
+            FE::new(0),
+            FE::new(1),
+        ]));
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(2), FE::new(2)]));
+        assert_eq!(a, expected_result);
+    }
+
+    #[test]
+    fn test_add_1() {
+        let a = FEE::new(Polynomial::new(vec![FE::new(0), FE::new(3)]));
+        let b = FEE::new(Polynomial::new(vec![-FE::new(2), FE::new(8)]));
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(57), FE::new(11)]));
+        assert_eq!(a + b, expected_result);
+    }
+
+    #[test]
+    fn test_add_2() {
+        let a = FEE::new(Polynomial::new(vec![FE::new(12), FE::new(5)]));
+        let b = FEE::new(Polynomial::new(vec![-FE::new(4), FE::new(2)]));
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(8), FE::new(7)]));
+        assert_eq!(a + b, expected_result);
+    }
+
+    #[test]
+    fn test_sub_1() {
+        let a = FEE::new(Polynomial::new(vec![FE::new(0), FE::new(3)]));
+        let b = FEE::new(Polynomial::new(vec![-FE::new(2), FE::new(8)]));
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(2), FE::new(54)]));
+        assert_eq!(a - b, expected_result);
+    }
+
+    #[test]
+    fn test_sub_2() {
+        let a = FEE::new(Polynomial::new(vec![FE::new(12), FE::new(5)]));
+        let b = FEE::new(Polynomial::new(vec![-FE::new(4), FE::new(2)]));
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(16), FE::new(3)]));
+        assert_eq!(a - b, expected_result);
+    }
+
+    #[test]
+    fn test_mul_1() {
+        let a = FEE::new(Polynomial::new(vec![FE::new(0), FE::new(3)]));
+        let b = FEE::new(Polynomial::new(vec![-FE::new(2), FE::new(8)]));
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(35), FE::new(53)]));
+        assert_eq!(a * b, expected_result);
+    }
+
+    #[test]
+    fn test_mul_2() {
+        let a = FEE::new(Polynomial::new(vec![FE::new(12), FE::new(5)]));
+        let b = FEE::new(Polynomial::new(vec![-FE::new(4), FE::new(2)]));
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(1), FE::new(4)]));
+        assert_eq!(a * b, expected_result);
+    }
+
+    #[test]
+    fn test_div_1() {
+        let a = FEE::new(Polynomial::new(vec![FE::new(0), FE::new(3)]));
+        let b = FEE::new(Polynomial::new(vec![-FE::new(2), FE::new(8)]));
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(42), FE::new(19)]));
+        assert_eq!(a / b, expected_result);
+    }
+
+    #[test]
+    fn test_div_2() {
+        let a = FEE::new(Polynomial::new(vec![FE::new(12), FE::new(5)]));
+        let b = FEE::new(Polynomial::new(vec![-FE::new(4), FE::new(2)]));
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(4), FE::new(45)]));
+        assert_eq!(a / b, expected_result);
+    }
+
+    #[test]
+    fn test_pow_1() {
+        let a = FEE::new(Polynomial::new(vec![FE::new(0), FE::new(3)]));
+        let b = 5;
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(0), FE::new(7)]));
+        assert_eq!(a.pow(b), expected_result);
+    }
+
+    #[test]
+    fn test_pow_2() {
+        let a = FEE::new(Polynomial::new(vec![FE::new(12), FE::new(5)]));
+        let b = 8;
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(52), FE::new(35)]));
+        assert_eq!(a.pow(b), expected_result);
+    }
+
+    #[test]
+    fn test_inv_1() {
+        let a = FEE::new(Polynomial::new(vec![FE::new(0), FE::new(3)]));
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(0), FE::new(39)]));
+        assert_eq!(a.inv(), expected_result);
+    }
+
+    #[test]
+    fn test_inv() {
+        let a = FEE::new(Polynomial::new(vec![FE::new(12), FE::new(5)]));
+        let expected_result = FEE::new(Polynomial::new(vec![FE::new(28), FE::new(8)]));
+        assert_eq!(a.inv(), expected_result);
+    }
+}
