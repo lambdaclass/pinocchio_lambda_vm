@@ -275,6 +275,9 @@ mod tests {
         let ark_witness =         arkworks_witness_and_io_to_pinocchio_witness(&cs);
         
         println!("Witness: {:?}", ark_witness);
+
+        //Since the Arcworks version of the circuit has the last variables
+        //switched, c6 and c5 needs to be switched
         let (c6,c5) = test_utils::test_qap_solver(inputs_as_fe);
 
         let mut solver_witness = inputs_as_fe.clone().to_vec();
