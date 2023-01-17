@@ -25,7 +25,14 @@ pub struct EllipticCurveElement {
 impl EllipticCurveElement {
     /// Creates an elliptic curve point giving the (x, y, z) coordinates.
     fn new(x: FEE, y: FEE, z: FEE) -> Self {
-        assert_eq!(Self::defining_equation(&x, &y, &z), FEE::new_base(0));
+        assert_eq!(
+            Self::defining_equation(&x, &y, &z),
+            FEE::new_base(0),
+            "Point ({:?}, {:?}, {:?}) does not belong to the elliptic curve.",
+            x,
+            y,
+            z
+        );
         Self { x, y, z }
     }
 
@@ -51,7 +58,11 @@ impl EllipticCurveElement {
 
     /// Evaluates the line between points `self` and `r` at point `q`
     fn line(&self, r: &Self, q: &Self) -> FEE {
-        assert_ne!(*q, Self::neutral_element());
+        assert_ne!(
+            *q,
+            Self::neutral_element(),
+            "q cannot be the point at infinity."
+        );
         if *self == Self::neutral_element() || *r == Self::neutral_element() {
             if self == r {
                 return FEE::new_base(1);

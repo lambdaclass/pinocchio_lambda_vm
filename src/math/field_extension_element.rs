@@ -60,7 +60,11 @@ impl FieldExtensionElement {
     }
 
     pub fn inv(self) -> Self {
-        assert_ne!(self.value, Polynomial::zero());
+        assert_ne!(
+            self.value,
+            Polynomial::zero(),
+            "Cannot invert the zero element."
+        );
         self.pow(ORDER_FIELD_EXTENSION - 2)
     }
 }

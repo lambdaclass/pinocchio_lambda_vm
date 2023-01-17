@@ -19,7 +19,11 @@ pub fn msm<T>(cs: &[FE], hidings: &[T]) -> T
 where
     T: CyclicBilinearGroup,
 {
-    assert_eq!(cs.len(), hidings.len());
+    assert_eq!(
+        cs.len(),
+        hidings.len(),
+        "Slices `cs` and `hidings` must be of the same length to compute `msm`."
+    );
     cs.iter()
         .zip(hidings.iter())
         .map(|(&c, h)| h.operate_with_self(c.representative()))
