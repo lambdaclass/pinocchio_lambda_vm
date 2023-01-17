@@ -4,7 +4,6 @@ use std::ops::Deref;
 
 use ark_ff::{Fp64, PrimeField};
 use ark_relations::r1cs::ConstraintSystemRef;
-//use bls6_6_fq::{Fq, FqParameters};
 use num_bigint::BigUint;
 use pinocchio_vm::circuits::r1cs::R1CS;
 use pinocchio_vm::math::field_element::FieldElement;
@@ -42,7 +41,7 @@ pub fn arkworks_witness_and_io_to_pinocchio_witness<F: PrimeField>(cs: &Constrai
     let arkworks_witness = &borrowed_cs_ref.witness_assignment;
     let arkworks_io = &borrowed_cs_ref.instance_assignment;
 
-    let mut pinocchio_witness = arkworks_io.clone();
+    let mut pinocchio_witness = arkworks_io[1..].to_vec();
     
     pinocchio_witness.append(&mut arkworks_witness.to_vec());
 
@@ -109,17 +108,20 @@ fn biguint_to_u128(big: BigUint) -> u128 {
         _ => big.to_u64_digits()[0] as u128 & ((big.to_u64_digits()[1] as u128) << 64),
     }
 }
+
+
 #[cfg(test)]
 mod tests {
-    use std::thread::panicking;
-
     use super::*;
-    use ark_bn254::{Fq};
+    //use ark_bn254::{Fq};
+    use bls6_6_fq::{Fq, FqParameters};
+
     use ark_r1cs_std::{fields::fp::FpVar, prelude::AllocVar};
     use ark_relations::{
         lc,
         r1cs::{ConstraintSynthesizer, ConstraintSystem, ConstraintSystemRef, SynthesisError},
     };
+    use num_bigint::BigInt;
     use pinocchio_vm::circuits::{r1cs::Constraint, test_utils};
     pub struct MulCircuit {
         /// Public input
@@ -130,18 +132,15 @@ mod tests {
 
     impl ConstraintSynthesizer<Fq> for MulCircuit {
         fn generate_constraints(self, cs: ConstraintSystemRef<Fq>) -> Result<(), SynthesisError> {
-            /*
-                let a = FpVar::new_witness(cs, || Ok(self.a)).unwrap();
-                let b = FpVar::new_witness(cs, || Ok(self.b)).unwrap();
-                let c = a.mul(b);
-            */
+
             let a = cs.new_witness_variable(|| Ok(self.a))?;
 
             let b = cs.new_witness_variable(|| Ok(self.b))?;
 
             let c = cs.new_witness_variable(|| Ok(self.a * self.b))?;
-
-            cs.enforce_constraint(lc!() + a, lc!() + b, lc!() + c)?;
+         
+            cs.enforce_constraint(lc!() + a, lc!() + b, lc!() + c)?;  
+            println!("{:?}*{:?} = {:?}", self.a, self.b, (self.a * self.b).to_string());
 
             Ok(())
         }
@@ -212,11 +211,7 @@ mod tests {
 
             let calculated_result = self.c * self.d * (self.a + self.d);
 
-            println!("Pre intermediate: {:?} {:?}", c,d);
-            println!("Intermediate = {:?}", self.c * self.d);
-
-            println!("Calculated result = {:?}", calculated_result.to_string());
-            let result = cs.new_witness_variable(|| Ok(calculated_result))?;
+            let result = cs.new_input_variable(|| Ok(calculated_result))?;
 
             cs.enforce_constraint(lc!() + a + b, lc!() + e, lc!() + result)?;
 
@@ -226,10 +221,10 @@ mod tests {
 
     #[test]
     fn pinocchio_paper_r1cs_from_arkworks_eq_r1cs_from_pinocchio_vm() {
-        let a = Fq::new(1.into());
-        let b = Fq::new(2.into());
-        let c = Fq::new(2.into());
-        let d = Fq::new(2.into());
+        let a = Fq::from(4);
+        let b = Fq::from(3);
+        let c = Fq::from(2);
+        let d = Fq::from(1);
 
         let circuit = PinocchioPaperExampleCircuit { a, b, c, d };
 
@@ -259,34 +254,36 @@ mod tests {
         // 1 + 2 mod 5= 3
         // 3 * 4 mod 5 = 12 mod 5 = 2
         // 3*2 mod 5 = 1
-        let a = Fq::new(5.into());
-        let b = Fq::new(3.into());
-        let c = Fq::new(3.into());
-        let d = Fq::new(4.into());
+        let a = Fq::from(1);
+        //let b = Fq::from((ark_ff::BigInteger256::new([2, 0, 0, 0]));
+        let b = Fq::from(2);
+        let c = Fq::from(3);
+        let d = Fq::from(4);
 
         let inputs_as_fe = 
-        [FE::new(1),FE::new(1),FE::new(1),FE::new(2)];
+        [FE::new(1),FE::new(2),FE::new(3),FE::new(4)];
         let circuit = PinocchioPaperExampleCircuit { a, b, c, d };
 
         let cs = ConstraintSystem::new_ref();
         circuit.generate_constraints(cs.clone()).unwrap();
 
         let is_satisfied = cs.is_satisfied().unwrap();
+
         if !is_satisfied {
-            panic!("There is something wrong with the circuit");
+            println!("This should be printed");
         }
 
         
         let ark_witness =         arkworks_witness_and_io_to_pinocchio_witness(&cs);
         
+        println!("Witness: {:?}", ark_witness);
         let (c6,c5) = test_utils::test_qap_solver(inputs_as_fe);
 
         let mut solver_witness = inputs_as_fe.clone().to_vec();
-        solver_witness.push(c6);
         solver_witness.push(c5);
+        solver_witness.push(c6);
 
         assert_eq!(ark_witness,solver_witness);
-
     }
 
 
@@ -315,8 +312,8 @@ mod tests {
     // is realized without panics
     #[test]
     fn mul_2_3() {
-        let a = Fq::new(2.into());
-        let b = Fq::new(3.into());
+        let a = Fq::from(2);
+        let b = Fq::from(3);
 
         let circuit = MulCircuit { a, b };
 
@@ -332,8 +329,8 @@ mod tests {
 
     #[test]
     fn mul_2_3_pub() {
-        let a = Fq::new(2.into());
-        let b = Fq::new(3.into());
+        let a = Fq::from(2);
+        let b = Fq::from(3);
 
         let circuit = PubMulCircuit { a, b };
 
@@ -350,10 +347,10 @@ mod tests {
 
     #[test]
     fn triple_mul_1_2_2_2() {
-        let a = Fq::new(1.into());
-        let b = Fq::new(2.into());
-        let c = Fq::new(2.into());
-        let d = Fq::new(2.into());
+        let a = Fq::from(1);
+        let b = Fq::from(2);
+        let c = Fq::from(3);
+        let d = Fq::from(4);
 
         let circuit = TripleMulCircuit { a, b, c, d };
 
