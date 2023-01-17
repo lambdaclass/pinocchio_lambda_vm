@@ -4,11 +4,11 @@ use ark_relations::{
 };
 
 use pinocchio_vm::{
-    circuits::qap::Qap,
+    circuits::qap::QuadraticArithmeticProgram as Qap,
     math::elliptic_curve::EllipticCurveElement,
     pinocchio::{
         prover,
-        setup::{setup, EvaluationKey, ToxicWaste, VerifyingKey},
+        setup::{setup, EvaluationKey, ToxicWaste, VerificationKey},
         verifier,
     },
 };
@@ -38,7 +38,7 @@ fn create_proof_from_arkworks_and_verify_it() {
 
     let (ek, vk): (
         EvaluationKey<EllipticCurveElement>,
-        VerifyingKey<EllipticCurveElement>,
+        VerificationKey<EllipticCurveElement>,
     ) = setup(&qap, &toxic_waste);
 
     let mut c_vector = io.clone();
