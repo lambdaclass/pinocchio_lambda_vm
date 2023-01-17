@@ -1,13 +1,6 @@
-FROM nvidia/cuda:11.8.0-devel-ubuntu20.04
+FROM rust:1.66
 
-# Update default packages
-RUN apt-get update
+WORKDIR /usr/src/elliptic-curves
+COPY . .
 
-# Get Ubuntu packages
-RUN apt-get install -y \
- build-essential \
- curl 
- 
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y 
-
-ENV RUSTUP_TOOLCHAIN=1.64.0
+CMD cargo test
