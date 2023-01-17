@@ -8,10 +8,10 @@ type Polynomial = Poly<ORDER_R>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// QAP Representation of the circuits
-pub struct Qap {
-    pub v: Vec<Polynomial>,
-    pub w: Vec<Polynomial>,
-    pub y: Vec<Polynomial>,
+pub struct QuadraticArithmeticProgram {
+    pub vs: Vec<Polynomial>,
+    pub ws: Vec<Polynomial>,
+    pub ys: Vec<Polynomial>,
     pub target: Polynomial,
     pub number_of_inputs: usize,
     pub number_of_outputs: usize,
@@ -22,7 +22,7 @@ pub enum CreationError {
     PolynomialVectorsSizeMismatch,
 }
 
-impl Qap {
+impl QuadraticArithmeticProgram {
     /// Creates a new QAP
     /// This expects vectors to be organized like:
     /// v0,w0,y0
@@ -30,21 +30,21 @@ impl Qap {
     /// mid associated polynomials
     /// outputs associated v,w,y polynomials
     pub fn new(
-        v: Vec<Polynomial>,
-        w: Vec<Polynomial>,
-        y: Vec<Polynomial>,
+        vs: Vec<Polynomial>,
+        ws: Vec<Polynomial>,
+        ys: Vec<Polynomial>,
         target: Polynomial,
         number_of_inputs: usize,
         number_of_outputs: usize,
     ) -> Result<Self, CreationError> {
         // TO DO: Check if the amount of inputs and outputs matches the polynomials
-        if v.len() != w.len() || v.len() != y.len() || w.len() != y.len() {
+        if vs.len() != ws.len() || vs.len() != ys.len() || ws.len() != ys.len() {
             Err(CreationError::PolynomialVectorsSizeMismatch)
         } else {
             Ok(Self {
-                v,
-                w,
-                y,
+                vs,
+                ws,
+                ys,
                 target,
                 number_of_inputs,
                 number_of_outputs,
@@ -59,27 +59,27 @@ impl Qap {
     /// Returns p polynomial
     // This along the polynomial execution should be migrated with a better
     // representation of the circuit
-    pub fn p_polynomial(&self, c: &[FE]) -> Polynomial {
-        let v: Polynomial = self.v[0].clone()
-            + self.v[1..]
+    pub fn p_polynomial(&self, cs: &[FE]) -> Polynomial {
+        let v: Polynomial = self.vs[0].clone()
+            + self.vs[1..]
                 .iter()
-                .zip(c)
+                .zip(cs)
                 .map(|(v, c)| v.mul_with_ref(&Polynomial::new_monomial(*c, 0)))
                 .reduce(|x, y| x + y)
                 .unwrap();
 
-        let w: Polynomial = self.w[0].clone()
-            + self.w[1..]
+        let w: Polynomial = self.ws[0].clone()
+            + self.ws[1..]
                 .iter()
-                .zip(c)
+                .zip(cs)
                 .map(|(w, c)| w.mul_with_ref(&Polynomial::new_monomial(*c, 0)))
                 .reduce(|x, y| x + y)
                 .unwrap();
 
-        let y: Polynomial = self.y[0].clone()
-            + self.y[1..]
+        let y: Polynomial = self.ys[0].clone()
+            + self.ys[1..]
                 .iter()
-                .zip(c)
+                .zip(cs)
                 .map(|(y, c)| y.mul_with_ref(&Polynomial::new_monomial(*c, 0)))
                 .reduce(|x, y| x + y)
                 .unwrap();
@@ -88,54 +88,54 @@ impl Qap {
     }
 
     pub fn v_mid(&'_ self) -> &[Polynomial] {
-        &self.v[self.number_of_inputs + 1..(self.v.len() - self.number_of_outputs)]
+        &self.vs[self.number_of_inputs + 1..(self.vs.len() - self.number_of_outputs)]
     }
 
     pub fn w_mid(&'_ self) -> &[Polynomial] {
-        &self.w[self.number_of_inputs + 1..(self.w.len() - self.number_of_outputs)]
+        &self.ws[self.number_of_inputs + 1..(self.ws.len() - self.number_of_outputs)]
     }
 
     pub fn y_mid(&'_ self) -> &[Polynomial] {
-        &self.y[self.number_of_inputs + 1..(self.y.len() - self.number_of_outputs)]
+        &self.ys[self.number_of_inputs + 1..(self.ys.len() - self.number_of_outputs)]
     }
 
     pub fn v_input(&'_ self) -> &[Polynomial] {
-        &self.v[1..self.number_of_inputs + 1]
+        &self.vs[1..self.number_of_inputs + 1]
     }
 
     pub fn w_input(&'_ self) -> &[Polynomial] {
-        &self.w[1..self.number_of_inputs + 1]
+        &self.ws[1..self.number_of_inputs + 1]
     }
 
     pub fn y_input(&'_ self) -> &[Polynomial] {
-        &self.y[1..self.number_of_inputs + 1]
+        &self.ys[1..self.number_of_inputs + 1]
     }
 
     pub fn v0(&'_ self) -> &Polynomial {
-        &self.v[0]
+        &self.vs[0]
     }
 
     pub fn w0(&'_ self) -> &Polynomial {
-        &self.w[0]
+        &self.ws[0]
     }
 
     pub fn y0(&'_ self) -> &Polynomial {
-        &self.y[0]
+        &self.ys[0]
     }
 
     pub fn v_output(&'_ self) -> &[Polynomial] {
-        &self.v[(self.v.len() - self.number_of_outputs)..]
+        &self.vs[(self.vs.len() - self.number_of_outputs)..]
     }
     pub fn w_output(&'_ self) -> &[Polynomial] {
-        &self.w[(self.w.len() - self.number_of_outputs)..]
+        &self.ws[(self.ws.len() - self.number_of_outputs)..]
     }
 
     pub fn y_output(&'_ self) -> &[Polynomial] {
-        &self.y[(self.y.len() - self.number_of_outputs)..]
+        &self.ys[(self.ys.len() - self.number_of_outputs)..]
     }
 }
 
-impl From<R1CS> for Qap {
+impl From<R1CS> for QuadraticArithmeticProgram {
     /// Transforms a R1CS to a QAP
     fn from(r1cs: R1CS) -> Self {
         // The r values for the qap polynomial can each be any number,
@@ -146,9 +146,9 @@ impl From<R1CS> for Qap {
             .map(FE::new)
             .collect();
 
-        let mut v: Vec<Polynomial> = Vec::with_capacity(r1cs.witness_size());
-        let mut w: Vec<Polynomial> = Vec::with_capacity(r1cs.witness_size());
-        let mut y: Vec<Polynomial> = Vec::with_capacity(r1cs.witness_size());
+        let mut vs: Vec<Polynomial> = Vec::with_capacity(r1cs.witness_size());
+        let mut ws: Vec<Polynomial> = Vec::with_capacity(r1cs.witness_size());
+        let mut ys: Vec<Polynomial> = Vec::with_capacity(r1cs.witness_size());
         let mut t: Polynomial = Polynomial::new_monomial(FE::new(1), 0);
 
         for r in &rs {
@@ -160,15 +160,15 @@ impl From<R1CS> for Qap {
             let w_ys: Vec<FE> = r1cs.constraints.iter().map(|c| c.b[i]).collect();
             let y_ys: Vec<FE> = r1cs.constraints.iter().map(|c| c.c[i]).collect();
 
-            v.push(Polynomial::interpolate(&rs, &v_ys));
-            w.push(Polynomial::interpolate(&rs, &w_ys));
-            y.push(Polynomial::interpolate(&rs, &y_ys));
+            vs.push(Polynomial::interpolate(&rs, &v_ys));
+            ws.push(Polynomial::interpolate(&rs, &w_ys));
+            ys.push(Polynomial::interpolate(&rs, &y_ys));
         }
 
-        Qap {
-            v,
-            w,
-            y,
+        QuadraticArithmeticProgram {
+            vs,
+            ws,
+            ys,
             target: t,
             number_of_inputs: r1cs.number_of_inputs,
             number_of_outputs: r1cs.number_of_outputs,
@@ -196,16 +196,16 @@ mod tests {
         let t = Polynomial::new(vec![FE::new(3)]);
         assert_eq!(
             Err(CreationError::PolynomialVectorsSizeMismatch),
-            Qap::new(v, u, w, t, 2, 1)
+            QuadraticArithmeticProgram::new(v, u, w, t, 2, 1)
         );
     }
 
     #[test]
     fn test_circuit_v_w_y_have_7_elements() {
         let test_circuit = new_test_qap();
-        assert_eq!(test_circuit.v.len(), 7);
-        assert_eq!(test_circuit.w.len(), 7);
-        assert_eq!(test_circuit.y.len(), 7);
+        assert_eq!(test_circuit.vs.len(), 7);
+        assert_eq!(test_circuit.ws.len(), 7);
+        assert_eq!(test_circuit.ys.len(), 7);
     }
 
     //_mid polynomials of test circuit contains only one polynomial
@@ -361,7 +361,7 @@ mod tests {
     fn test_r1cs_into_qap_is_test_qap() {
         let qap = new_test_qap();
         let r1cs = new_test_r1cs();
-        let r1cs_as_qap: Qap = r1cs.into();
+        let r1cs_as_qap: QuadraticArithmeticProgram = r1cs.into();
         assert_eq!(qap, r1cs_as_qap);
     }
 }

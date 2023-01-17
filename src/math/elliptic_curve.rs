@@ -3,7 +3,7 @@ use super::super::config::{
     TARGET_NORMALIZATION_POWER,
 };
 use super::{
-    cyclic_group::CyclicGroup, field_element::FieldElement,
+    cyclic_group::CyclicBilinearGroup, field_element::FieldElement,
     field_extension_element::FieldExtensionElement, polynomial::Polynomial,
 };
 use std::ops;
@@ -12,7 +12,9 @@ type FE = FieldElement<ORDER_P>;
 #[allow(clippy::upper_case_acronyms)]
 type FEE = FieldExtensionElement;
 
-// Projective Short Weierstrass form
+/// Represents an elliptic curve point using the projective short Weierstrass form:
+///   y^2 * z = x^3 + a * x * z^2 + b * z^3
+/// x, y and z variables are field extension elements.
 #[derive(Debug, Clone)]
 pub struct EllipticCurveElement {
     x: FEE,
@@ -21,11 +23,21 @@ pub struct EllipticCurveElement {
 }
 
 impl EllipticCurveElement {
+    /// Creates an elliptic curve point giving the (x, y, z) coordinates.
     fn new(x: FEE, y: FEE, z: FEE) -> Self {
-        assert_eq!(Self::defining_equation(&x, &y, &z), FEE::new_base(0));
+        assert_eq!(
+            Self::defining_equation(&x, &y, &z),
+            FEE::new_base(0),
+            "Point ({:?}, {:?}, {:?}) does not belong to the elliptic curve.",
+            x,
+            y,
+            z
+        );
         Self { x, y, z }
     }
 
+    /// Evaluates the short Weierstrass equation at (x, y z).
+    /// Useful for checking if (x, y, z) belongs to the elliptic curve.
     fn defining_equation(x: &FEE, y: &FEE, z: &FEE) -> FEE {
         y.pow(2) * z
             - x.pow(3)
@@ -33,12 +45,24 @@ impl EllipticCurveElement {
             - FEE::new_base(ELLIPTIC_CURVE_B) * z.pow(3)
     }
 
+    /// Normalize the projective coordinates to obtain affine coordinates
+    /// of the form (x, y, 1)
+    /// Panics if `self` is the point at infinity
     fn affine(&self) -> Self {
+        assert!(
+            self != &EllipticCurveElement::neutral_element(),
+            "The point at infinity is not affine."
+        );
         Self::new(&self.x / &self.z, &self.y / &self.z, FEE::new_base(1))
     }
 
+    /// Evaluates the line between points `self` and `r` at point `q`
     fn line(&self, r: &Self, q: &Self) -> FEE {
-        assert_ne!(*q, Self::neutral_element());
+        assert_ne!(
+            *q,
+            Self::neutral_element(),
+            "q cannot be the point at infinity."
+        );
         if *self == Self::neutral_element() || *r == Self::neutral_element() {
             if self == r {
                 return FEE::new_base(1);
@@ -67,6 +91,11 @@ impl EllipticCurveElement {
         }
     }
 
+    /// Computes Miller's algorithm between points `p` and `q`.
+    /// The implementaiton is based on Sagemath's sourcecode:
+    /// See `_miller_` method on page 114
+    /// https://www.sagemath.org/files/thesis/hansen-thesis-2009.pdf
+    /// Other resources can be found at "Pairings for beginners" from Craig Costello, Algorithm 5.1, page 79.
     fn miller(p: &Self, q: &Self) -> FEE {
         let p = p.affine();
         let q = q.affine();
@@ -97,6 +126,8 @@ impl EllipticCurveElement {
         f
     }
 
+    /// Computes the Weil pairing between points `p` and `q`.
+    /// See "Pairing for beginners" from Craig Costello, page 79.
     #[allow(unused)]
     fn weil_pairing(p: &Self, q: &Self) -> FEE {
         if *p == Self::neutral_element() || *q == Self::neutral_element() || p == q {
@@ -109,6 +140,8 @@ impl EllipticCurveElement {
         }
     }
 
+    /// Computes the Tate pairing between points `p` and `q`.
+    /// See "Pairing for beginners" from Craig Costello, page 79.
     fn tate_pairing(p: &Self, q: &Self) -> FEE {
         if *p == Self::neutral_element() || *q == Self::neutral_element() || p == q {
             FEE::new_base(1)
@@ -117,6 +150,11 @@ impl EllipticCurveElement {
         }
     }
 
+    /// Apply a distorsion map to point `p`.
+    /// This is useful for converting points living in the base field
+    /// to points living in the extension field.
+    /// The current implementation only works for the elliptic curve with A=1 and B=0
+    /// ORDER_P=59. This curve was chosen because it is supersingular.
     fn distorsion_map(p: &Self) -> Self {
         let t = FEE::new(Polynomial::new_monomial(FE::new(1), 1));
         Self::new(-&p.x, &p.y * t, p.z.clone())
@@ -147,7 +185,7 @@ impl ops::Neg for EllipticCurveElement {
     }
 }
 
-impl CyclicGroup for EllipticCurveElement {
+impl CyclicBilinearGroup for EllipticCurveElement {
     type PairingOutput = FEE;
 
     fn generator() -> Self {
@@ -179,7 +217,8 @@ impl CyclicGroup for EllipticCurveElement {
         result
     }
 
-    /// Taken from moonmath (Algorithm 7, page 89)
+    /// Computes the addition of `self` and `other`.
+    /// Taken from Moonmath (Algorithm 7, page 89)
     fn operate_with(&self, other: &Self) -> Self {
         if *other == Self::neutral_element() {
             self.clone()
@@ -218,6 +257,10 @@ impl CyclicGroup for EllipticCurveElement {
         }
     }
 
+    /// Computes a Type 1 Tate pairing between `self` and `other.
+    /// See "Pairing for beginners" from Craig Costello, section 4.2 Pairing types, page 58.
+    /// Note that a distorsion map is applied to `other` before using the Tate pairing.
+    /// So this method can be called with two field extension elements from the base field.
     fn pairing(&self, other: &Self) -> Self::PairingOutput {
         Self::tate_pairing(self, &Self::distorsion_map(other))
     }
@@ -227,7 +270,7 @@ impl CyclicGroup for EllipticCurveElement {
 mod tests {
     use super::*;
 
-    // Tiny Jub Jub
+    // This tests only apply for the specific curve found in the configuration file.
     #[test]
     fn create_valid_point_works() {
         let point =

@@ -1,41 +1,61 @@
-use pinocchio_vm::circuits::test_utils::{new_test_qap, new_test_r1cs, test_qap_solver};
+/// Integration test with the happy path: Setup -> Proof generation -> Proof verification.
+use pinocchio_vm::circuits::test_utils::{new_test_r1cs, test_qap_solver};
 use pinocchio_vm::math::elliptic_curve::EllipticCurveElement;
 use pinocchio_vm::math::field_element::FieldElement as FE;
 use pinocchio_vm::pinocchio::prover;
-use pinocchio_vm::pinocchio::setup::{setup, EvaluationKey, ToxicWaste, VerifyingKey};
+use pinocchio_vm::pinocchio::setup::{setup, EvaluationKey, ToxicWaste, VerificationKey};
 use pinocchio_vm::pinocchio::verifier;
 
-#[test]
-fn test_pinocchio() {
+fn test_pinocchio(toxic_waste: ToxicWaste) {
+    // Get example circuit.
     let test_qap = new_test_r1cs().into();
-    let toxic_waste = ToxicWaste::sample();
-    let (ek, verifying_key): (
+
+    // Construct the evaluation and veryfing key.
+    let (evaluation_key, verification_key): (
         EvaluationKey<EllipticCurveElement>,
-        VerifyingKey<EllipticCurveElement>,
+        VerificationKey<EllipticCurveElement>,
     ) = setup(&test_qap, &toxic_waste);
 
+    // Declare inputs to the circuit. Here we choose the ones from the example
+    // of the paper.
     let inputs = [FE::new(1), FE::new(2), FE::new(3), FE::new(4)];
 
-    // For the test circuit c_mid and c_output has only one element
+    // Execute the circuit with the above inputs.
+    // Get the output and all the intermediate values,
+    // that is, the values of the circuit wires.
     let (c_mid, c_output) = test_qap_solver(inputs);
 
+    // Construct the witness. In the context of Pinocchio
+    // this means the tuple of all the values corresponding
+    // to the inputs, the outputs and the values of the
+    // circuit wires. The prover needs all this to construct
+    // the proof.
     let mut c_vector = inputs.to_vec();
     c_vector.push(c_mid);
     c_vector.push(c_output);
 
-    let proof = prover::generate_proof(&ek, &test_qap, &c_vector);
+    // Generate the proof of execution.
+    let proof = prover::generate_proof(&evaluation_key, &test_qap, &c_vector);
 
+    // Collect all inputs and ouputs of the circuit.
     let mut c_io_vector = inputs.to_vec();
     c_io_vector.push(c_output);
 
-    let accepted = verifier::verify(&verifying_key, &proof, &c_io_vector);
+    // Verify the proof.
+    let accepted = verifier::verify(&verification_key, &proof, &c_io_vector);
 
+    // Accept or reject the proof.
     assert!(accepted);
 }
 
 #[test]
+fn test_pinocchio_random_toxic_wate() {
+    let toxic_waste = ToxicWaste::sample();
+    test_pinocchio(toxic_waste);
+}
+
+#[test]
 fn test_pinocchio_2() {
-    let test_qap = new_test_qap();
     let toxic_waste = ToxicWaste::new(
         FE::new(2),
         FE::new(3),
@@ -46,26 +66,5 @@ fn test_pinocchio_2() {
         FE::new(2),
         FE::new(3),
     );
-    let (ek, vk): (
-        EvaluationKey<EllipticCurveElement>,
-        VerifyingKey<EllipticCurveElement>,
-    ) = setup(&test_qap, &toxic_waste);
-
-    let inputs = [FE::new(1), FE::new(2), FE::new(3), FE::new(4)];
-
-    // For the test circuit c_mid and c_output has only one element
-    let (c_mid, c_output) = test_qap_solver(inputs);
-
-    let mut c_vector = inputs.to_vec();
-    c_vector.push(c_mid);
-    c_vector.push(c_output);
-
-    let proof = prover::generate_proof(&ek, &test_qap, &c_vector);
-
-    let mut c_io_vector = inputs.to_vec();
-    c_io_vector.push(c_output);
-
-    let accepted = verifier::verify(&vk, &proof, &c_io_vector);
-
-    assert!(accepted);
+    test_pinocchio(toxic_waste);
 }
