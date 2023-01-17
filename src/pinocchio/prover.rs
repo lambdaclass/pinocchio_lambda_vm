@@ -1,3 +1,4 @@
+use super::super::config::ORDER_R;
 use crate::circuits::qap::Qap;
 use crate::math::cyclic_group::CyclicGroup;
 use crate::math::field_element::FieldElement;
@@ -5,8 +6,7 @@ use crate::math::msm::msm;
 
 use super::setup::EvaluationKey;
 
-const ORDER: u128 = 5;
-type FE = FieldElement<ORDER>;
+type FE = FieldElement<ORDER_R>;
 
 /// Proof for Pinocchio
 /// All but hs are the mid related elements

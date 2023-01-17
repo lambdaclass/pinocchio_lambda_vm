@@ -1,9 +1,6 @@
 use super::field_element::FieldElement;
 use std::ops;
 
-//const ORDER: u128 = 23;
-//type FE = FieldElement<ORDER>;
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Polynomial<const ORDER: u128> {
     // coefficients[0] is the smallest coefficient
