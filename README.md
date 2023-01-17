@@ -2,6 +2,19 @@
 This is a self-contained Rust implementation of [Pinocchio](https://eprint.iacr.org/2013/279.pdf). It is intented for those who want to learn more about SNARKs. Pinocchio is a proving system for efficiently verifying general computations. This source code is the companion of this [blog post](https://www.notamonadtutorial.com/pinocchio-virtual-machine-nearly-practical-verifiable-computation/
 ) were a more friendly and high level explanation of Pinocchio can be found.
 
+It also contains an arkworks_adapter project to use circuits made with Arkworks R1CS with this implementation of Pinocchio
+# Usage
+
+To run tests:
+`make test`
+`make test_arkworks_adapter`
+
+To use a docker shell:
+`make docker-shell`
+
+To use a nix shell:
+`make nix-shell`
+
 # Pinocchio
 Pinocchio is a proving system. It is composed of an initial setup, a prover and a verifier. The idea is the following. For a computer program P written in some language, the prover runs the program P and computes its output and a proof of execution. This proof convinces the verifier that he has actually run the program and the output is correct. This is useful for example when the prover is an untrusted agent.
 

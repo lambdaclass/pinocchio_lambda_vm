@@ -1,7 +1,7 @@
 test:
 	cargo test
 
-test_adapter:
+test_arkworks_adapter:
 	cd arkworks_adapter && cargo test
 
 docker-shell:
