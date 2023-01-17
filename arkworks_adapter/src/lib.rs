@@ -1,4 +1,4 @@
-mod bls6_6_fq;
+mod fq5;
 #[cfg(test)]
 mod integration_tests;
 
@@ -32,8 +32,10 @@ pub fn arkworks_cs_to_pinocchio_r1cs<F: PrimeField>(cs: &ConstraintSystemRef<F>)
     );
 
     /*
-        Notice we can't differentiate outputs and inputs from Arkworks CS, but for the proving system everything it just matters it's an IO, so it's a non problem.
+        Notice we can't differentiate outputs and inputs from Arkworks CS, but for the proving system everything that matters is that it's public data (IO), 
+        or private data (witness/c_mid)
     */
+
     R1CS::new_with_matrixes(a, b, c, cs.num_instance_variables() - 1, 0)
 }
 
@@ -46,17 +48,14 @@ pub fn arkworks_io_and_witness_to_pinocchio_io_and_witness<F: PrimeField>(
     let ark_witness = &borrowed_cs_ref.witness_assignment;
     let ark_io = &borrowed_cs_ref.instance_assignment[1..].to_vec();
 
-    // TO DO: Extract a function for this transformation
     let io: Vec<FE> = ark_io
         .iter()
-        .map(|x| biguint_to_u128(x.into_repr().into()))
-        .map(FE::new)
+        .map(ark_fq_to_pinocchio_fe)
         .collect();
 
     let witness: Vec<FE> = ark_witness
         .iter()
-        .map(|x| biguint_to_u128(x.into_repr().into()))
-        .map(FE::new)
+        .map(ark_fq_to_pinocchio_fe)
         .collect();
 
     (io, witness)
@@ -75,8 +74,7 @@ fn arkworks_matrix_fps_to_pinocchio_fes<F: PrimeField>(
     m.iter()
         .map(|x| {
             x.iter()
-                .map(|(x, y)| (biguint_to_u128(x.into_repr().into()), *y))
-                .map(|(x, y)| (FE::new(x), y))
+                .map(|(x, y)| (ark_fq_to_pinocchio_fe(x), *y))
                 .collect()
         })
         .collect()
@@ -97,12 +95,22 @@ fn sparse_row_to_dense(row: &Vec<(FE, usize)>, total_variables: usize) -> Vec<FE
     // TO DO: Check how constants are set
     dense_row[0] = FE::new(0);
     for element in row {
-        println!("Assigned element: {:?}", element.1);
         dense_row[element.1] = element.0;
     }
     dense_row
 }
 
+
+/// Converts an Arkworks fq to a pinocchio FE
+fn ark_fq_to_pinocchio_fe<F: PrimeField>( ark_fq: &F ) -> FE {
+    
+    // into_repr changes back the FQ from the Montgomery to
+    // the underlaying representation
+    let ark_fq = ark_fq.into_repr();
+    let ark_fq_big_int: BigUint = ark_fq.into();
+    let fq_as_128 = biguint_to_u128(ark_fq_big_int);
+    FE::new(fq_as_128)
+}
 /// Converts biguint to u128
 /// If the biguint is bigger than u128 it takes the first 128 bytes
 fn biguint_to_u128(big: BigUint) -> u128 {
@@ -113,10 +121,11 @@ fn biguint_to_u128(big: BigUint) -> u128 {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bls6_6_fq::Fq;
+    use fq5::Fq;
 
     use ark_r1cs_std::{fields::fp::FpVar, prelude::AllocVar};
     use ark_relations::{
@@ -140,12 +149,6 @@ mod tests {
             let c = cs.new_witness_variable(|| Ok(self.a * self.b))?;
 
             cs.enforce_constraint(lc!() + a, lc!() + b, lc!() + c)?;
-            println!(
-                "{:?}*{:?} = {:?}",
-                self.a,
-                self.b,
-                (self.a * self.b).to_string()
-            );
 
             Ok(())
         }

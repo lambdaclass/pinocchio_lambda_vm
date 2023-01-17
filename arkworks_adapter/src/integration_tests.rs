@@ -2,6 +2,7 @@ use ark_relations::{
     lc,
     r1cs::{ConstraintSynthesizer, ConstraintSystem, ConstraintSystemRef, SynthesisError},
 };
+
 use pinocchio_vm::{
     circuits::qap::Qap,
     math::elliptic_curve::EllipticCurveElement,
@@ -14,7 +15,7 @@ use pinocchio_vm::{
 
 use crate::{
     arkworks_cs_to_pinocchio_r1cs, arkworks_io_and_witness_to_pinocchio_io_and_witness,
-    bls6_6_fq::Fq,
+    fq5::Fq,
 };
 
 #[test]
