@@ -159,7 +159,7 @@ mod tests {
             let a = FpVar::new_witness(cs.clone(), || Ok(self.a)).unwrap();
             let b = FpVar::new_witness(cs.clone(), || Ok(self.b)).unwrap();
             let c = FpVar::new_witness(cs.clone(), || Ok(self.c)).unwrap();
-            let d = FpVar::new_witness(cs.clone(), || Ok(self.d)).unwrap();
+            let d = FpVar::new_witness(cs, || Ok(self.d)).unwrap();
 
             let e = a * b;
             let f = c * d;
