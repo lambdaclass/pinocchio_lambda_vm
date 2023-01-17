@@ -20,7 +20,7 @@ pub struct EvaluationKey<T: CyclicBilinearGroup> {
 }
 /// Verifying key for Pinocchio
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct VerifyingKey<T: CyclicBilinearGroup> {
+pub struct VerificationKey<T: CyclicBilinearGroup> {
     pub g_1: T,
     pub g_alpha_v: T,
     pub g_alpha_w: T,
@@ -86,11 +86,11 @@ impl ToxicWaste {
     }
 }
 
-fn generate_verifying_key<T: CyclicBilinearGroup>(
+fn generate_verification_key<T: CyclicBilinearGroup>(
     qap: &Qap,
     toxic_waste: &ToxicWaste,
     generator: &T,
-) -> VerifyingKey<T> {
+) -> VerificationKey<T> {
     let s = toxic_waste.s;
     let alpha_v = toxic_waste.alpha_v;
     let alpha_w = toxic_waste.alpha_w;
@@ -124,7 +124,7 @@ fn generate_verifying_key<T: CyclicBilinearGroup>(
         gy_ks_io.push(g.operate_with_self((ry * qap.y_output()[k].evaluate(s)).representative()));
     }
 
-    VerifyingKey {
+    VerificationKey {
         g_1: g.clone(),
         g_alpha_v: g.operate_with_self(alpha_v.representative()),
         g_alpha_w: g.operate_with_self(alpha_w.representative()),
@@ -211,11 +211,11 @@ fn generate_evaluation_key<T: CyclicBilinearGroup>(
 pub fn setup<T: CyclicBilinearGroup>(
     qap: &Qap,
     toxic_waste: &ToxicWaste,
-) -> (EvaluationKey<T>, VerifyingKey<T>) {
+) -> (EvaluationKey<T>, VerificationKey<T>) {
     let generator = T::generator();
     (
         generate_evaluation_key(qap, toxic_waste, &generator),
-        generate_verifying_key(qap, toxic_waste, &generator),
+        generate_verification_key(qap, toxic_waste, &generator),
     )
 }
 
@@ -240,7 +240,7 @@ mod tests {
 
     #[test]
     fn evaluation_keys_size_for_test_circuit_is_1_for_each_key() {
-        let (eval_key, _): (EvaluationKey<FE>, VerifyingKey<FE>) =
+        let (eval_key, _): (EvaluationKey<FE>, VerificationKey<FE>) =
             setup(&new_test_qap(), &identity_toxic_waste());
         assert_eq!(eval_key.gv_ks.len(), 1);
         assert_eq!(eval_key.gw_ks.len(), 1);
@@ -270,7 +270,7 @@ mod tests {
         let g = FE::generator();
         let test_circuit = new_test_qap();
 
-        let (eval_key, _): (EvaluationKey<FE>, VerifyingKey<FE>) = setup(&test_circuit, &tw);
+        let (eval_key, _): (EvaluationKey<FE>, VerificationKey<FE>) = setup(&test_circuit, &tw);
 
         // These keys should be the same evaluation * rv, which is two
         assert_eq!(
@@ -330,7 +330,7 @@ mod tests {
 
     #[test]
     fn verification_key_gvks_has_length_6_for_test_circuit() {
-        let (_, vk): (EvaluationKey<FE>, VerifyingKey<FE>) =
+        let (_, vk): (EvaluationKey<FE>, VerificationKey<FE>) =
             setup(&new_test_qap(), &identity_toxic_waste());
         assert_eq!(vk.gv_ks.len(), 6);
         assert_eq!(vk.gw_ks.len(), 6);

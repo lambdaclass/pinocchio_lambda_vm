@@ -3,7 +3,7 @@ use pinocchio_vm::circuits::test_utils::{new_test_r1cs, test_qap_solver};
 use pinocchio_vm::math::elliptic_curve::EllipticCurveElement;
 use pinocchio_vm::math::field_element::FieldElement as FE;
 use pinocchio_vm::pinocchio::prover;
-use pinocchio_vm::pinocchio::setup::{setup, EvaluationKey, ToxicWaste, VerifyingKey};
+use pinocchio_vm::pinocchio::setup::{setup, EvaluationKey, ToxicWaste, VerificationKey};
 use pinocchio_vm::pinocchio::verifier;
 
 fn test_pinocchio(toxic_waste: ToxicWaste) {
@@ -11,9 +11,9 @@ fn test_pinocchio(toxic_waste: ToxicWaste) {
     let test_qap = new_test_r1cs().into();
 
     // Construct the evaluation and veryfing key.
-    let (evaluation_key, verifying_key): (
+    let (evaluation_key, verification_key): (
         EvaluationKey<EllipticCurveElement>,
-        VerifyingKey<EllipticCurveElement>,
+        VerificationKey<EllipticCurveElement>,
     ) = setup(&test_qap, &toxic_waste);
 
     // Declare inputs to the circuit. Here we choose the ones from the example
@@ -42,7 +42,7 @@ fn test_pinocchio(toxic_waste: ToxicWaste) {
     c_io_vector.push(c_output);
 
     // Verify the proof.
-    let accepted = verifier::verify(&verifying_key, &proof, &c_io_vector);
+    let accepted = verifier::verify(&verification_key, &proof, &c_io_vector);
 
     // Accept or reject the proof.
     assert!(accepted);
