@@ -118,20 +118,19 @@ mod tests {
     use super::*;
     use fq5::Fq;
 
-    use ark_r1cs_std::{fields::fp::FpVar, prelude::AllocVar};
     use ark_relations::{
         lc,
         r1cs::{ConstraintSynthesizer, ConstraintSystem, ConstraintSystemRef, SynthesisError},
     };
     use pinocchio_vm::circuits::{r1cs::Constraint, test_utils};
-    pub struct MulCircuit {
+    pub struct FullyPrivateMulCircuit {
         /// Public input
         pub a: Fq,
         /// Private input
         pub b: Fq,
     }
 
-    impl ConstraintSynthesizer<Fq> for MulCircuit {
+    impl ConstraintSynthesizer<Fq> for FullyPrivateMulCircuit {
         fn generate_constraints(self, cs: ConstraintSystemRef<Fq>) -> Result<(), SynthesisError> {
             let a = cs.new_witness_variable(|| Ok(self.a))?;
 
@@ -145,44 +144,20 @@ mod tests {
         }
     }
 
-    pub struct TripleMulCircuit {
-        /// Public input
-        pub a: Fq,
-        /// Private input
-        pub b: Fq,
-        pub c: Fq,
-        pub d: Fq,
-    }
-
-    impl ConstraintSynthesizer<Fq> for TripleMulCircuit {
-        fn generate_constraints(self, cs: ConstraintSystemRef<Fq>) -> Result<(), SynthesisError> {
-            let a = FpVar::new_witness(cs.clone(), || Ok(self.a)).unwrap();
-            let b = FpVar::new_witness(cs.clone(), || Ok(self.b)).unwrap();
-            let c = FpVar::new_witness(cs.clone(), || Ok(self.c)).unwrap();
-            let d = FpVar::new_witness(cs, || Ok(self.d)).unwrap();
-
-            let e = a * b;
-            let f = c * d;
-
-            let _g = e * f;
-
-            Ok(())
-        }
-    }
-    pub struct PubMulCircuit {
+    pub struct PrivInputPubResultMulCircuit {
         /// Public input
         pub a: Fq,
         /// Private input
         pub b: Fq,
     }
 
-    impl ConstraintSynthesizer<Fq> for PubMulCircuit {
+    impl ConstraintSynthesizer<Fq> for PrivInputPubResultMulCircuit {
         fn generate_constraints(self, cs: ConstraintSystemRef<Fq>) -> Result<(), SynthesisError> {
-            let a = cs.new_input_variable(|| Ok(self.a))?;
+            let a = cs.new_witness_variable(|| Ok(self.a))?;
 
-            let b = cs.new_input_variable(|| Ok(self.b))?;
+            let b = cs.new_witness_variable(|| Ok(self.b))?;
 
-            let c = cs.new_witness_variable(|| Ok(self.a * self.b))?;
+            let c = cs.new_input_variable(|| Ok(self.a * self.b))?;
 
             cs.enforce_constraint(lc!() + a, lc!() + b, lc!() + c)?;
 
@@ -303,14 +278,12 @@ mod tests {
         .unwrap()
     }
 
-    // The following tests purposes is to see if the transformation
-    // is realized without panics
     #[test]
-    fn mul_2_3() {
+    fn fully_private_mul_circuit_has_1_constraint_in_pinocchio_r1cs() {
         let a = Fq::from(2);
         let b = Fq::from(3);
 
-        let circuit = MulCircuit { a, b };
+        let circuit = FullyPrivateMulCircuit { a, b };
 
         let cs = ConstraintSystem::new_ref();
         circuit.generate_constraints(cs.clone()).unwrap();
@@ -319,15 +292,16 @@ mod tests {
         if !is_satisfied {
             panic!()
         }
-        arkworks_cs_to_pinocchio_r1cs(&cs);
+        let r1cs = arkworks_cs_to_pinocchio_r1cs(&cs);
+        assert_eq!(r1cs.number_of_constraints(), 1)
     }
 
     #[test]
-    fn mul_2_3_pub() {
+    fn fully_private_mul_circuit_has_3_elements_in_witness_and_0_io_for_pinocchio() {
         let a = Fq::from(2);
         let b = Fq::from(3);
 
-        let circuit = PubMulCircuit { a, b };
+        let circuit = FullyPrivateMulCircuit { a, b };
 
         let cs = ConstraintSystem::new_ref();
         circuit.generate_constraints(cs.clone()).unwrap();
@@ -336,18 +310,17 @@ mod tests {
         if !is_satisfied {
             panic!()
         }
-
-        arkworks_cs_to_pinocchio_r1cs(&cs);
+        let (io, witness) = arkworks_io_and_witness_to_pinocchio_io_and_witness(&cs);
+        assert_eq!(io.len(), 0);
+        assert_eq!(witness.len(), 3);
     }
 
     #[test]
-    fn triple_mul_1_2_2_2() {
-        let a = Fq::from(1);
-        let b = Fq::from(2);
-        let c = Fq::from(3);
-        let d = Fq::from(4);
+    fn priv_input_pub_output_mul_has_1_io_and_2_witness() {
+        let a = Fq::from(2);
+        let b = Fq::from(3);
 
-        let circuit = TripleMulCircuit { a, b, c, d };
+        let circuit = PrivInputPubResultMulCircuit { a, b };
 
         let cs = ConstraintSystem::new_ref();
         circuit.generate_constraints(cs.clone()).unwrap();
@@ -357,6 +330,29 @@ mod tests {
             panic!()
         }
 
-        arkworks_cs_to_pinocchio_r1cs(&cs);
+        let (io, witness) = arkworks_io_and_witness_to_pinocchio_io_and_witness(&cs);
+
+        assert_eq!(io.len(), 1);
+        assert_eq!(witness.len(), 2);
+    }
+
+    #[test]
+    fn priv_input_pub_output_mul_2_3_in_pinocchio_has_io_eq_to_6() {
+        let a = Fq::from(2);
+        let b = Fq::from(3);
+
+        let circuit = PrivInputPubResultMulCircuit { a, b };
+
+        let cs = ConstraintSystem::new_ref();
+        circuit.generate_constraints(cs.clone()).unwrap();
+
+        let is_satisfied = cs.is_satisfied().unwrap();
+        if !is_satisfied {
+            panic!()
+        }
+
+        let (io, _) = arkworks_io_and_witness_to_pinocchio_io_and_witness(&cs);
+
+        assert_eq!(io, [FE::new(6)]);
     }
 }

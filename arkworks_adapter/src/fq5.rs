@@ -44,7 +44,6 @@ impl FpParameters for FqParameters {
     const MODULUS_MINUS_ONE_DIV_TWO: BigInteger = BigInteger([1]);
 
     // This is used for Tonelly Shanks, an algorithm to solve a square root.
-
     // 2^s * t=5-1 -> 2^s * 3 = 4
     #[rustfmt::skip]
     const T: BigInteger = BigInteger([3]);
