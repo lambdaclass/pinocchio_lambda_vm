@@ -231,7 +231,7 @@ mod tests {
 
         let is_satisfied = cs.is_satisfied().unwrap();
         if !is_satisfied {
-            println!("{:?}", cs.which_is_unsatisfied().unwrap().unwrap());
+            panic!()
         }
 
         let converted_r1cs = arkworks_cs_to_pinocchio_r1cs(&cs);
@@ -268,7 +268,7 @@ mod tests {
         let is_satisfied = cs.is_satisfied().unwrap();
 
         if !is_satisfied {
-            println!("This should be printed");
+            panic!()
         }
 
         
@@ -320,7 +320,7 @@ mod tests {
 
         let is_satisfied = cs.is_satisfied().unwrap();
         if !is_satisfied {
-            println!("{:?}", cs.which_is_unsatisfied().unwrap().unwrap());
+            panic!()
         }
         arkworks_cs_to_pinocchio_r1cs(&cs);
     }
@@ -337,7 +337,7 @@ mod tests {
 
         let is_satisfied = cs.is_satisfied().unwrap();
         if !is_satisfied {
-            println!("{:?}", cs.which_is_unsatisfied().unwrap().unwrap());
+            panic!()
         }
 
         arkworks_cs_to_pinocchio_r1cs(&cs);
@@ -357,7 +357,7 @@ mod tests {
 
         let is_satisfied = cs.is_satisfied().unwrap();
         if !is_satisfied {
-            println!("{:?}", cs.which_is_unsatisfied().unwrap().unwrap());
+            panic!()
         }
 
         arkworks_cs_to_pinocchio_r1cs(&cs);
