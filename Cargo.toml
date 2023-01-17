@@ -1,5 +1,5 @@
 [package]
-name = "pinocchio_vm"
+name = "pinocchio_lambda_vm"
 version = "0.1.0"
 edition = "2021"
 
