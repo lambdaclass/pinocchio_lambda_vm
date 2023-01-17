@@ -2,7 +2,7 @@ mod bls6_6_fq;
 
 use std::ops::Deref;
 
-use ark_ff::{Fp64, PrimeField};
+use ark_ff::{PrimeField};
 use ark_relations::r1cs::ConstraintSystemRef;
 use num_bigint::BigUint;
 use pinocchio_vm::circuits::r1cs::R1CS;
@@ -113,15 +113,13 @@ fn biguint_to_u128(big: BigUint) -> u128 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    //use ark_bn254::{Fq};
-    use bls6_6_fq::{Fq, FqParameters};
+    use bls6_6_fq::{Fq};
 
     use ark_r1cs_std::{fields::fp::FpVar, prelude::AllocVar};
     use ark_relations::{
         lc,
         r1cs::{ConstraintSynthesizer, ConstraintSystem, ConstraintSystemRef, SynthesisError},
     };
-    use num_bigint::BigInt;
     use pinocchio_vm::circuits::{r1cs::Constraint, test_utils};
     pub struct MulCircuit {
         /// Public input
@@ -209,7 +207,7 @@ mod tests {
             let e = cs.new_witness_variable(|| Ok(self.c * self.d))?;
             cs.enforce_constraint(lc!() + c, lc!() + d, lc!() + e)?;
 
-            let calculated_result = self.c * self.d * (self.a + self.d);
+            let calculated_result = self.c * self.d * (self.a + self.b);
 
             let result = cs.new_input_variable(|| Ok(calculated_result))?;
 
