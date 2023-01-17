@@ -4,29 +4,38 @@ use std::ops;
 
 type FE = FieldElement<ORDER_P>;
 
+/// Represents an element in an extension of a prime field
+/// as polynomials modulo a defining polynomial.
 #[derive(Debug, Clone)]
 pub struct FieldExtensionElement {
     value: Polynomial<ORDER_P>,
 }
 
-// Taken from Moonmath BLS6_6 curve (Page 129)
 impl FieldExtensionElement {
-    pub fn new(value: Polynomial<ORDER_P>) -> Self {
-        let (_quotient, remainder) =
-            value.long_division_with_remainder(&Self::defining_polynomial());
+    /// Creates a `FieldExtensionElement` from a polynomial `p`.
+    /// It keeps the remainder of dividing `p` by the defining polynomial.
+    pub fn new(p: Polynomial<ORDER_P>) -> Self {
+        let (_quotient, remainder) = p.long_division_with_remainder(&Self::defining_polynomial());
         Self { value: remainder }
     }
 
+    /// Creates a `FieldExtensionElement` belonging to the base prime field.
     pub fn new_base(value: u128) -> Self {
         Self::new(Polynomial::new_monomial(FE::new(value), 0))
     }
 
+    /// Returns the defining polynomial of the field. In this case:
+    ///     1 + X^2
+    ///
+    /// This polynomial is chosen this way because the resulting field extension
+    /// is of degree 2. With this property a type I pairing compatible elliptic curve
+    /// is then defined.
     pub fn defining_polynomial() -> Polynomial<ORDER_P> {
-        let linear_term = Polynomial::new_monomial(FE::new(1), 0);
-        let higher_order_term = Polynomial::new_monomial(FE::new(1), 2);
-        linear_term + higher_order_term
+        Polynomial::new(vec![FE::new(1), FE::new(0), FE::new(1)])
     }
 
+    /// Returns `self` to the power of `exponent` using
+    /// right-to-left binary method for modular exponentiation.
     pub fn pow(&self, mut exponent: u128) -> Self {
         let mut result = Self::new(Polynomial::new_monomial(FE::new(1), 0));
         let mut base = self.clone();
@@ -41,22 +50,6 @@ impl FieldExtensionElement {
             base = &base * &base;
         }
         result
-    }
-
-    pub fn add(&self, other: &Self) -> Self {
-        self + other
-    }
-
-    pub fn sub(&self, other: &Self) -> Self {
-        self - other
-    }
-
-    pub fn mul(&self, other: &Self) -> Self {
-        self * other
-    }
-
-    pub fn div(&self, other: &Self) -> Self {
-        self / other
     }
 
     pub fn inv(self) -> Self {

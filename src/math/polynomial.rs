@@ -104,9 +104,9 @@ impl<const ORDER: u128> Polynomial<ORDER> {
         (pa, pb)
     }
 
-    /// Computes quotient and reminder of polynomial division.
+    /// Computes quotient and remainder of polynomial division.
     ///
-    /// Output: (quotient, reminder)
+    /// Output: (quotient, remainder)
     pub fn long_division_with_remainder(self, dividend: &Self) -> (Self, Self) {
         if dividend.degree() > self.degree() {
             (Polynomial::zero(), self)
