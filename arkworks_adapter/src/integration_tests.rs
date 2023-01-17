@@ -1,7 +1,21 @@
-use ark_relations::{r1cs::{ConstraintSystem, ConstraintSynthesizer, ConstraintSystemRef, SynthesisError}, lc};
-use pinocchio_vm::{pinocchio::{setup::{ToxicWaste, EvaluationKey, VerifyingKey, setup}, prover, verifier}, math::elliptic_curve::EllipticCurveElement, circuits::qap::Qap};
+use ark_relations::{
+    lc,
+    r1cs::{ConstraintSynthesizer, ConstraintSystem, ConstraintSystemRef, SynthesisError},
+};
+use pinocchio_vm::{
+    circuits::qap::Qap,
+    math::elliptic_curve::EllipticCurveElement,
+    pinocchio::{
+        prover,
+        setup::{setup, EvaluationKey, ToxicWaste, VerifyingKey},
+        verifier,
+    },
+};
 
-use crate::{bls6_6_fq::Fq, arkworks_cs_to_pinocchio_r1cs, arkworks_io_and_witness_to_pinocchio_io_and_witness};
+use crate::{
+    arkworks_cs_to_pinocchio_r1cs, arkworks_io_and_witness_to_pinocchio_io_and_witness,
+    bls6_6_fq::Fq,
+};
 
 #[test]
 fn create_proof_from_arkworks_and_verify_it() {
@@ -18,8 +32,8 @@ fn create_proof_from_arkworks_and_verify_it() {
     circuit.generate_constraints(cs.clone()).unwrap();
 
     let r1cs = arkworks_cs_to_pinocchio_r1cs(&cs);
-    let (io,witness) = arkworks_io_and_witness_to_pinocchio_io_and_witness(&cs);
-    
+    let (io, witness) = arkworks_io_and_witness_to_pinocchio_io_and_witness(&cs);
+
     let qap: Qap = r1cs.into();
 
     let (ek, vk): (

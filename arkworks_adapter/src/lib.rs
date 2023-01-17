@@ -4,7 +4,7 @@ mod integration_tests;
 
 use std::ops::Deref;
 
-use ark_ff::{PrimeField};
+use ark_ff::PrimeField;
 use ark_relations::r1cs::ConstraintSystemRef;
 use num_bigint::BigUint;
 use pinocchio_vm::circuits::r1cs::R1CS;
@@ -31,50 +31,46 @@ pub fn arkworks_cs_to_pinocchio_r1cs<F: PrimeField>(cs: &ConstraintSystemRef<F>)
         cs.num_witness_variables() + cs.num_instance_variables() - 1,
     );
 
-    /* 
+    /*
         Notice we can't differentiate outputs and inputs from Arkworks CS, but for the proving system everything it just matters it's an IO, so it's a non problem.
     */
     R1CS::new_with_matrixes(a, b, c, cs.num_instance_variables() - 1, 0)
 }
 
-pub fn arkworks_io_and_witness_to_pinocchio_io_and_witness<F: PrimeField>(cs: &ConstraintSystemRef<F>) -> (Vec<FE>, Vec<FE>){
+pub fn arkworks_io_and_witness_to_pinocchio_io_and_witness<F: PrimeField>(
+    cs: &ConstraintSystemRef<F>,
+) -> (Vec<FE>, Vec<FE>) {
     let binding = cs.borrow().unwrap();
     let borrowed_cs_ref = binding.deref();
-    
+
     let ark_witness = &borrowed_cs_ref.witness_assignment;
     let ark_io = &borrowed_cs_ref.instance_assignment[1..].to_vec();
 
     // TO DO: Extract a function for this transformation
-    let io: Vec<FE> = 
-        ark_io.iter()
-            .map(
-                |x| 
-                biguint_to_u128(x.into_repr().into()))
-            .map(|x| (FE::new(x)))
-            .collect();
+    let io: Vec<FE> = ark_io
+        .iter()
+        .map(|x| biguint_to_u128(x.into_repr().into()))
+        .map(FE::new)
+        .collect();
 
-    let witness: Vec<FE> = 
-        ark_witness.iter()
-            .map(
-                |x| 
-                biguint_to_u128(x.into_repr().into()))
-            .map(|x| (FE::new(x)))
-            .collect();
+    let witness: Vec<FE> = ark_witness
+        .iter()
+        .map(|x| biguint_to_u128(x.into_repr().into()))
+        .map(FE::new)
+        .collect();
 
-
-    
-    (io,witness)
+    (io, witness)
 }
 
 fn arkworks_r1cs_matrix_to_pinocchio_r1cs_matrix<F: PrimeField>(
-    m: &Vec<Vec<(F, usize)>>,
+    m: &[Vec<(F, usize)>],
     total_variables: usize,
 ) -> Vec<Vec<FE>> {
     sparse_matrix_to_dense(&arkworks_matrix_fps_to_pinocchio_fes(m), total_variables)
 }
 
 fn arkworks_matrix_fps_to_pinocchio_fes<F: PrimeField>(
-    m: &Vec<Vec<(F, usize)>>,
+    m: &[Vec<(F, usize)>],
 ) -> Vec<Vec<(FE, usize)>> {
     m.iter()
         .map(|x| {
@@ -86,7 +82,7 @@ fn arkworks_matrix_fps_to_pinocchio_fes<F: PrimeField>(
         .collect()
 }
 
-fn sparse_matrix_to_dense(m: &Vec<Vec<(FE, usize)>>, total_variables: usize) -> Vec<Vec<FE>> {
+fn sparse_matrix_to_dense(m: &[Vec<(FE, usize)>], total_variables: usize) -> Vec<Vec<FE>> {
     m.iter()
         .map(|row| sparse_row_to_dense(row, total_variables))
         .collect()
@@ -117,11 +113,10 @@ fn biguint_to_u128(big: BigUint) -> u128 {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bls6_6_fq::{Fq};
+    use bls6_6_fq::Fq;
 
     use ark_r1cs_std::{fields::fp::FpVar, prelude::AllocVar};
     use ark_relations::{
@@ -138,15 +133,19 @@ mod tests {
 
     impl ConstraintSynthesizer<Fq> for MulCircuit {
         fn generate_constraints(self, cs: ConstraintSystemRef<Fq>) -> Result<(), SynthesisError> {
-
             let a = cs.new_witness_variable(|| Ok(self.a))?;
 
             let b = cs.new_witness_variable(|| Ok(self.b))?;
 
             let c = cs.new_witness_variable(|| Ok(self.a * self.b))?;
-         
-            cs.enforce_constraint(lc!() + a, lc!() + b, lc!() + c)?;  
-            println!("{:?}*{:?} = {:?}", self.a, self.b, (self.a * self.b).to_string());
+
+            cs.enforce_constraint(lc!() + a, lc!() + b, lc!() + c)?;
+            println!(
+                "{:?}*{:?} = {:?}",
+                self.a,
+                self.b,
+                (self.a * self.b).to_string()
+            );
 
             Ok(())
         }
@@ -258,14 +257,12 @@ mod tests {
 
     #[test]
     fn pinocchio_paper_ark_witness_and_ark_io_are_correct() {
-
         let a = Fq::from(1);
         let b = Fq::from(2);
         let c = Fq::from(3);
         let d = Fq::from(4);
 
-        let inputs_as_fe = 
-        [FE::new(1),FE::new(2),FE::new(3),FE::new(4)];
+        let inputs_as_fe = [FE::new(1), FE::new(2), FE::new(3), FE::new(4)];
         let circuit = PinocchioPaperExampleCircuit { a, b, c, d };
 
         let cs = ConstraintSystem::new_ref();
@@ -277,22 +274,19 @@ mod tests {
             panic!()
         }
 
-        
-        let (ark_io,ark_witness) = arkworks_io_and_witness_to_pinocchio_io_and_witness(&cs);
-        
+        let (ark_io, ark_witness) = arkworks_io_and_witness_to_pinocchio_io_and_witness(&cs);
+
         //Since the Arcworks version of the circuit has the last variables
         //switched, c6 and c5 needs to be switched
-        let (c5,c6) = test_utils::test_qap_solver(inputs_as_fe);
+        let (c5, c6) = test_utils::test_qap_solver(inputs_as_fe);
 
         let solver_witness = vec![c5];
         let mut io = inputs_as_fe.to_vec();
         io.push(c6);
-        
-        assert_eq!(ark_witness,solver_witness);
-        assert_eq!(ark_io,io);
 
+        assert_eq!(ark_witness, solver_witness);
+        assert_eq!(ark_io, io);
     }
-
 
     /// This function changes variable 5 for 6
     /// our current implementation of the paper r1cs and the arkworks
