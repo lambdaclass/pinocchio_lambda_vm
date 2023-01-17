@@ -1,5 +1,5 @@
 use super::super::config::ORDER_R;
-use crate::circuits::qap::Qap;
+use crate::circuits::qap::QuadraticArithmeticProgram as QAP;
 use crate::math::cyclic_group::CyclicBilinearGroup;
 use crate::math::field_element::FieldElement;
 use crate::math::msm::msm;
@@ -37,7 +37,7 @@ pub struct Proof<T: CyclicBilinearGroup> {
 /// inputs and outputs.
 pub fn generate_proof<T: CyclicBilinearGroup>(
     evaluation_key: &EvaluationKey<T>,
-    qap: &Qap,
+    qap: &QAP,
     qap_c_coefficients: &[FE],
 ) -> Proof<T> {
     let c_mid = &qap_c_coefficients
@@ -85,7 +85,7 @@ mod tests {
         let ys = vec![target_qap.clone(); 5];
 
         // There is 1 input and 1 output. So there are 2 middle values.
-        let easy_qap = Qap {
+        let easy_qap = QAP {
             vs,
             ws,
             ys,
@@ -150,7 +150,7 @@ mod tests {
         let ws = vec![target_qap.clone(); 5];
         let ys = vec![target_qap.clone(); 5];
 
-        let easy_qap = Qap {
+        let easy_qap = QAP {
             vs,
             ws,
             ys,

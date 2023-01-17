@@ -1,5 +1,5 @@
 use super::super::config::ORDER_R;
-use crate::circuits::qap::Qap;
+use crate::circuits::qap::QuadraticArithmeticProgram as QAP;
 use crate::math;
 use math::cyclic_group::CyclicBilinearGroup;
 use math::field_element::FieldElement;
@@ -87,7 +87,7 @@ impl ToxicWaste {
 }
 
 fn generate_verification_key<T: CyclicBilinearGroup>(
-    qap: &Qap,
+    qap: &QAP,
     toxic_waste: &ToxicWaste,
     generator: &T,
 ) -> VerificationKey<T> {
@@ -139,7 +139,7 @@ fn generate_verification_key<T: CyclicBilinearGroup>(
 }
 
 fn generate_evaluation_key<T: CyclicBilinearGroup>(
-    qap: &Qap,
+    qap: &QAP,
     toxic_waste: &ToxicWaste,
     generator: &T,
 ) -> EvaluationKey<T> {
@@ -209,7 +209,7 @@ fn generate_evaluation_key<T: CyclicBilinearGroup>(
 }
 
 pub fn setup<T: CyclicBilinearGroup>(
-    qap: &Qap,
+    qap: &QAP,
     toxic_waste: &ToxicWaste,
 ) -> (EvaluationKey<T>, VerificationKey<T>) {
     let generator = T::generator();

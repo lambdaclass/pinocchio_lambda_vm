@@ -8,7 +8,7 @@ type Polynomial = Poly<ORDER_R>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// QAP Representation of the circuits
-pub struct Qap {
+pub struct QuadraticArithmeticProgram {
     pub vs: Vec<Polynomial>,
     pub ws: Vec<Polynomial>,
     pub ys: Vec<Polynomial>,
@@ -22,7 +22,7 @@ pub enum CreationError {
     PolynomialVectorsSizeMismatch,
 }
 
-impl Qap {
+impl QuadraticArithmeticProgram {
     /// Creates a new QAP
     /// This expects vectors to be organized like:
     /// v0,w0,y0
@@ -135,7 +135,7 @@ impl Qap {
     }
 }
 
-impl From<R1CS> for Qap {
+impl From<R1CS> for QuadraticArithmeticProgram {
     /// Transforms a R1CS to a QAP
     fn from(r1cs: R1CS) -> Self {
         // The r values for the qap polynomial can each be any number,
@@ -165,7 +165,7 @@ impl From<R1CS> for Qap {
             ys.push(Polynomial::interpolate(&rs, &y_ys));
         }
 
-        Qap {
+        QuadraticArithmeticProgram {
             vs,
             ws,
             ys,
@@ -196,7 +196,7 @@ mod tests {
         let t = Polynomial::new(vec![FE::new(3)]);
         assert_eq!(
             Err(CreationError::PolynomialVectorsSizeMismatch),
-            Qap::new(v, u, w, t, 2, 1)
+            QuadraticArithmeticProgram::new(v, u, w, t, 2, 1)
         );
     }
 
@@ -361,7 +361,7 @@ mod tests {
     fn test_r1cs_into_qap_is_test_qap() {
         let qap = new_test_qap();
         let r1cs = new_test_r1cs();
-        let r1cs_as_qap: Qap = r1cs.into();
+        let r1cs_as_qap: QuadraticArithmeticProgram = r1cs.into();
         assert_eq!(qap, r1cs_as_qap);
     }
 }

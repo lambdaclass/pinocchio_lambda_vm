@@ -1,6 +1,6 @@
 use super::super::config::ORDER_R;
 use super::{
-    qap::Qap,
+    qap::QuadraticArithmeticProgram as QAP,
     r1cs::{Constraint, R1CS},
 };
 use crate::math::{field_element::FieldElement, polynomial::Polynomial};
@@ -26,7 +26,7 @@ pub fn test_qap_solver(inputs: [FE; 4]) -> (FE, FE) {
 }
 
 /// Test qap based on pinocchios paper example
-pub fn new_test_qap() -> Qap {
+pub fn new_test_qap() -> QAP {
     let r5: FE = test_qap_r5();
     let r6: FE = test_qap_r6();
 
@@ -70,7 +70,7 @@ pub fn new_test_qap() -> Qap {
         Polynomial::interpolate(&[r5, r6], &[FE::new(0), FE::new(1)]),
     ];
 
-    Qap::new(vs.to_vec(), ws.to_vec(), ys.to_vec(), t, 4, 1).unwrap()
+    QAP::new(vs.to_vec(), ws.to_vec(), ys.to_vec(), t, 4, 1).unwrap()
 }
 
 pub fn new_test_r1cs() -> R1CS {
