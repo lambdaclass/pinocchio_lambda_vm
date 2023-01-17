@@ -32,7 +32,7 @@ pub fn arkworks_cs_to_pinocchio_r1cs<F: PrimeField>(cs: &ConstraintSystemRef<F>)
     );
 
     /*
-        Notice we can't differentiate outputs and inputs from Arkworks CS, but for the proving system everything that matters is that it's public data (IO), 
+        Notice we can't differentiate outputs and inputs from Arkworks CS, but for the proving system everything that matters is that it's public data (IO),
         or private data (witness/c_mid)
     */
 
@@ -48,15 +48,9 @@ pub fn arkworks_io_and_witness_to_pinocchio_io_and_witness<F: PrimeField>(
     let ark_witness = &borrowed_cs_ref.witness_assignment;
     let ark_io = &borrowed_cs_ref.instance_assignment[1..].to_vec();
 
-    let io: Vec<FE> = ark_io
-        .iter()
-        .map(ark_fq_to_pinocchio_fe)
-        .collect();
+    let io: Vec<FE> = ark_io.iter().map(ark_fq_to_pinocchio_fe).collect();
 
-    let witness: Vec<FE> = ark_witness
-        .iter()
-        .map(ark_fq_to_pinocchio_fe)
-        .collect();
+    let witness: Vec<FE> = ark_witness.iter().map(ark_fq_to_pinocchio_fe).collect();
 
     (io, witness)
 }
@@ -100,10 +94,8 @@ fn sparse_row_to_dense(row: &Vec<(FE, usize)>, total_variables: usize) -> Vec<FE
     dense_row
 }
 
-
 /// Converts an Arkworks fq to a pinocchio FE
-fn ark_fq_to_pinocchio_fe<F: PrimeField>( ark_fq: &F ) -> FE {
-    
+fn ark_fq_to_pinocchio_fe<F: PrimeField>(ark_fq: &F) -> FE {
     // into_repr changes back the FQ from the Montgomery to
     // the underlaying representation
     let ark_fq = ark_fq.into_repr();
@@ -120,7 +112,6 @@ fn biguint_to_u128(big: BigUint) -> u128 {
         _ => big.to_u64_digits()[0] as u128 & ((big.to_u64_digits()[1] as u128) << 64),
     }
 }
-
 
 #[cfg(test)]
 mod tests {

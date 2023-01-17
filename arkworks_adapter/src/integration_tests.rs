@@ -14,8 +14,7 @@ use pinocchio_vm::{
 };
 
 use crate::{
-    arkworks_cs_to_pinocchio_r1cs, arkworks_io_and_witness_to_pinocchio_io_and_witness,
-    fq5::Fq,
+    arkworks_cs_to_pinocchio_r1cs, arkworks_io_and_witness_to_pinocchio_io_and_witness, fq5::Fq,
 };
 
 #[test]
