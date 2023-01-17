@@ -1,6 +1,9 @@
 test:
 	cargo test
 
+test_adapter:
+	cd arkworks_adapter && cargo test
+
 docker-shell:
 	docker build -t cuda118 .
 	docker run --rm -it --mount src=$(PWD),dst=/cuda-code,type=bind cuda118
