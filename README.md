@@ -29,10 +29,10 @@ We encourage to start by reading the [blog post](https://www.notamonadtutorial.c
 
  Then, in the ```tests/``` module you will find integration tests that will guide you through the happy path: the setup, the prover and the verifier. Each of these components can be located in their own files:
 
-- `pinocchio/setup.rs`: this file generates the `VerificationKey` and the `EvaluationKey` with the relevant data to construct and verify proofs. This data comes from the structure of the program P encoded as `Polynomials` in a `QAP` (Quadratic arithmetic program). To hide this data, random `FieldElement`s are sampled as `ToxicWaste` and then mapped to `EllipticCurveElement`s via repeated addition of a `generator()` of the curve. 
+- `pinocchio/setup.rs`: generates the `VerificationKey` and the `EvaluationKey` with the relevant data to construct and verify proofs. This data comes from the structure of the program P encoded as `Polynomials` in a `QAP` (Quadratic arithmetic program). To hide this data, random `FieldElement`s are sampled as `ToxicWaste` and then mapped to `EllipticCurveElement`s via repeated addition of a `generator()` of the curve. 
 
-- `pinocchio/prover.rs`: this file takes the circuit encoded as a `QAP` and the trace of the program as `FieldElement`s. Then, it applies the `msm(...)` operation in order to generate the proof elements, in this case, `EllipticCurveElement`s hidings.
+- `pinocchio/prover.rs`: takes the circuit encoded as a `QAP` and the trace of the program as `FieldElement`s. Then, it applies the `msm(...)` operation in order to generate the proof elements, in this case, `EllipticCurveElement`s hidings.
 
-- `pinocchio/verifier.rs`: this file verifies the proof by checking the conditions mentioned in the paper. This involves computing `pairing(...)` operations between `EllipticCurveElement`'s.
+- `pinocchio/verifier.rs`: verifies the proof by checking the conditions mentioned in the paper. This involves computing `pairing(...)` operations between `EllipticCurveElement`'s.
 
 The rest of the files implement mathematical primitives and other auxiliary tools to complete the system.
