@@ -1,4 +1,6 @@
 mod bls6_6_fq;
+#[cfg(test)]
+mod integration_tests;
 
 use std::ops::Deref;
 
@@ -35,27 +37,33 @@ pub fn arkworks_cs_to_pinocchio_r1cs<F: PrimeField>(cs: &ConstraintSystemRef<F>)
     R1CS::new_with_matrixes(a, b, c, cs.num_instance_variables() - 1, 0)
 }
 
-pub fn arkworks_witness_and_io_to_pinocchio_witness<F: PrimeField>(cs: &ConstraintSystemRef<F>) -> Vec<FE>{
+pub fn arkworks_io_and_witness_to_pinocchio_io_and_witness<F: PrimeField>(cs: &ConstraintSystemRef<F>) -> (Vec<FE>, Vec<FE>){
     let binding = cs.borrow().unwrap();
     let borrowed_cs_ref = binding.deref();
-    let arkworks_witness = &borrowed_cs_ref.witness_assignment;
-    let arkworks_io = &borrowed_cs_ref.instance_assignment;
-
-    let mut pinocchio_witness = arkworks_io[1..].to_vec();
     
-    pinocchio_witness.append(&mut arkworks_witness.to_vec());
+    let ark_witness = &borrowed_cs_ref.witness_assignment;
+    let ark_io = &borrowed_cs_ref.instance_assignment[1..].to_vec();
 
-    let printable_arkworks_witness: Vec<String> = 
-        arkworks_witness.iter().map(|x| x.to_string()).collect();
-    println!("Ark witness: {:?}", arkworks_witness);
-    println!("Ark witness: {:?}", printable_arkworks_witness);
-    //TO DO: Refactor the code to transform a ark Fq to a pinocchio FE
-    pinocchio_witness.iter()
-        .map(
-            |x| 
-            biguint_to_u128(x.into_repr().into()))
-        .map(|x| (FE::new(x)))
-        .collect()
+    // TO DO: Extract a function for this transformation
+    let io: Vec<FE> = 
+        ark_io.iter()
+            .map(
+                |x| 
+                biguint_to_u128(x.into_repr().into()))
+            .map(|x| (FE::new(x)))
+            .collect();
+
+    let witness: Vec<FE> = 
+        ark_witness.iter()
+            .map(
+                |x| 
+                biguint_to_u128(x.into_repr().into()))
+            .map(|x| (FE::new(x)))
+            .collect();
+
+
+    
+    (io,witness)
 }
 
 fn arkworks_r1cs_matrix_to_pinocchio_r1cs_matrix<F: PrimeField>(
@@ -240,6 +248,7 @@ mod tests {
             converted_r1cs.constraints,
             swap_last_variables_test_circuit(&test_utils::new_test_r1cs()).constraints
         );
+
         assert_eq!(
             converted_r1cs.number_of_inputs + converted_r1cs.number_of_outputs,
             test_utils::new_test_r1cs().number_of_inputs
@@ -248,12 +257,9 @@ mod tests {
     }
 
     #[test]
-    fn pinocchio_paper_ark_witness_equals_solver() {
-        // 1 + 2 mod 5= 3
-        // 3 * 4 mod 5 = 12 mod 5 = 2
-        // 3*2 mod 5 = 1
+    fn pinocchio_paper_ark_witness_and_ark_io_are_correct() {
+
         let a = Fq::from(1);
-        //let b = Fq::from((ark_ff::BigInteger256::new([2, 0, 0, 0]));
         let b = Fq::from(2);
         let c = Fq::from(3);
         let d = Fq::from(4);
@@ -272,19 +278,19 @@ mod tests {
         }
 
         
-        let ark_witness =         arkworks_witness_and_io_to_pinocchio_witness(&cs);
+        let (ark_io,ark_witness) = arkworks_io_and_witness_to_pinocchio_io_and_witness(&cs);
         
-        println!("Witness: {:?}", ark_witness);
-
         //Since the Arcworks version of the circuit has the last variables
         //switched, c6 and c5 needs to be switched
-        let (c6,c5) = test_utils::test_qap_solver(inputs_as_fe);
+        let (c5,c6) = test_utils::test_qap_solver(inputs_as_fe);
 
-        let mut solver_witness = inputs_as_fe.clone().to_vec();
-        solver_witness.push(c5);
-        solver_witness.push(c6);
-
+        let solver_witness = vec![c5];
+        let mut io = inputs_as_fe.to_vec();
+        io.push(c6);
+        
         assert_eq!(ark_witness,solver_witness);
+        assert_eq!(ark_io,io);
+
     }
 
 
