@@ -1,10 +1,10 @@
 /// Integration test with the happy path: Setup -> Proof generation -> Proof verification.
-use pinocchio_vm::circuits::test_utils::{new_test_r1cs, test_qap_solver};
-use pinocchio_vm::math::elliptic_curve::EllipticCurveElement;
-use pinocchio_vm::math::field_element::FieldElement as FE;
-use pinocchio_vm::pinocchio::prover;
-use pinocchio_vm::pinocchio::setup::{setup, EvaluationKey, ToxicWaste, VerificationKey};
-use pinocchio_vm::pinocchio::verifier;
+use pinocchio_lambda_vm::circuits::test_utils::{new_test_r1cs, test_qap_solver};
+use pinocchio_lambda_vm::math::elliptic_curve::EllipticCurveElement;
+use pinocchio_lambda_vm::math::field_element::FieldElement as FE;
+use pinocchio_lambda_vm::pinocchio::prover;
+use pinocchio_lambda_vm::pinocchio::setup::{setup, EvaluationKey, ToxicWaste, VerificationKey};
+use pinocchio_lambda_vm::pinocchio::verifier;
 
 fn test_pinocchio(toxic_waste: ToxicWaste) {
     // Get example circuit.
