@@ -123,6 +123,8 @@ mod tests {
         r1cs::{ConstraintSynthesizer, ConstraintSystem, ConstraintSystemRef, SynthesisError},
     };
     use pinocchio_vm::circuits::{r1cs::Constraint, test_utils};
+
+    // These are tests circuits
     pub struct FullyPrivateMulCircuit {
         /// Public input
         pub a: Fq,
@@ -143,7 +145,6 @@ mod tests {
             Ok(())
         }
     }
-
     pub struct PrivInputPubResultMulCircuit {
         /// Public input
         pub a: Fq,
@@ -192,6 +193,8 @@ mod tests {
             Ok(())
         }
     }
+
+    // Tests start here
 
     #[test]
     fn pinocchio_paper_r1cs_from_arkworks_eq_r1cs_from_pinocchio_vm() {
