@@ -12,7 +12,7 @@ type FE = FieldElement<ORDER_P>;
 #[allow(clippy::upper_case_acronyms)]
 type FEE = FieldExtensionElement;
 
-/// Represents an elliptic curve point using the projective short weierstrass form:
+/// Represents an elliptic curve point using the projective short Weierstrass form:
 ///   y^2 * z = x^3 + a * x * z^2 + b * z^3
 /// x, y and z variables are field extension elements.
 #[derive(Debug, Clone)]

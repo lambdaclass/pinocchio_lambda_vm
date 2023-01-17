@@ -30,7 +30,7 @@ pub fn new_test_qap() -> Qap {
     let r5: FE = test_qap_r5();
     let r6: FE = test_qap_r6();
 
-    let t: Polynomial<5> =
+    let t: Polynomial<ORDER_R> =
         Polynomial::new(vec![-r5, FE::new(1)]) * Polynomial::new(vec![-r6, FE::new(1)]);
 
     let vs = &[
