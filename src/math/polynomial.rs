@@ -1,16 +1,17 @@
 use super::field_element::FieldElement;
 use std::ops;
 
+/// Represents the polynomial c_0 + c_1 * X + c_2 * X^2 + ... + c_n * X^n
+/// as a vector of coefficients `[c_0, c_1, ... , c_n]`
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Polynomial<const ORDER: u128> {
-    // coefficients[0] is the smallest coefficient
     coefficients: Vec<FieldElement<ORDER>>,
 }
 
 impl<const ORDER: u128> Polynomial<ORDER> {
     /// Creates a new polynomial with the given coefficients
     pub fn new(coefficients: Vec<FieldElement<ORDER>>) -> Self {
-        // Removes uneeded 0 coefficients at the end
+        // Removes trailing zero coefficients at the end
         let mut unpadded_coefficients = coefficients
             .into_iter()
             .rev()
@@ -69,7 +70,7 @@ impl<const ORDER: u128> Polynomial<ORDER> {
         }
     }
 
-    pub fn last_coefficient(&self) -> FieldElement<ORDER> {
+    pub fn leading_coefficient(&self) -> FieldElement<ORDER> {
         if let Some(coefficient) = self.coefficients.last() {
             *coefficient
         } else {
@@ -78,15 +79,14 @@ impl<const ORDER: u128> Polynomial<ORDER> {
     }
 
     /// Returns coefficients of the polynomial as an array
-    /// \[c0,c1,c2 .. cn\]
+    /// \[c_0, c_1, c_2, ..., c_n\]
     /// that represents the polynomial
-    /// c0 + c1*x + c2*x^2 ... cn
+    /// c_0 + c_1 * X + c_2 * X^2 + ... + c_n * X^n
     pub fn coefficients(&self) -> &[FieldElement<ORDER>] {
         &self.coefficients
     }
 
-    /// Returns two new polynomials with the same amount of coefficients
-    /// for temporal use
+    /// Pads polynomial representations with minimum number of zeros to match lengths.
     fn pad_with_zero_coefficients(
         pa: &Polynomial<ORDER>,
         pb: &Polynomial<ORDER>,
@@ -104,6 +104,9 @@ impl<const ORDER: u128> Polynomial<ORDER> {
         (pa, pb)
     }
 
+    /// Computes quotient and remainder of polynomial division.
+    ///
+    /// Output: (quotient, remainder)
     pub fn long_division_with_remainder(self, dividend: &Self) -> (Self, Self) {
         if dividend.degree() > self.degree() {
             (Polynomial::zero(), self)
@@ -111,7 +114,7 @@ impl<const ORDER: u128> Polynomial<ORDER> {
             let mut n = self;
             let mut q: Vec<FieldElement<ORDER>> = vec![FieldElement::new(0); n.degree() + 1];
             while n != Polynomial::zero() && n.degree() >= dividend.degree() {
-                let new_coefficient = n.last_coefficient() / dividend.last_coefficient();
+                let new_coefficient = n.leading_coefficient() / dividend.leading_coefficient();
                 q[n.degree() - dividend.degree()] = new_coefficient;
                 let d = dividend.mul_with_ref(&Polynomial::new_monomial(
                     new_coefficient,
@@ -214,9 +217,7 @@ impl<const ORDER: u128> ops::Mul<Polynomial<ORDER>> for Polynomial<ORDER> {
 
 #[cfg(test)]
 mod tests {
-    /*
-        Some of these tests work when the finite field has order greater than 2.
-    */
+    // Some of these tests work when the finite field has order greater than 2.
     use super::*;
     const ORDER: u128 = 23;
     type FE = FieldElement<ORDER>;
