@@ -9,8 +9,10 @@ use ark_ff::PrimeField;
 use ark_relations::r1cs::ConstraintSystemRef;
 use num_bigint::BigUint;
 use pinocchio_vm::circuits::r1cs::R1CS;
+use pinocchio_vm::config::ORDER_R;
+
 use pinocchio_vm::math::field_element::FieldElement;
-type FE = FieldElement<5>;
+type FE = FieldElement<ORDER_R>;
 
 /// Generates an `R1CS` compatible with Lambda Pinocchio from an Arkworks `ConstraintSystemRef`
 /// It supports any ConstraintSystem which isn't using constraints with explicit
