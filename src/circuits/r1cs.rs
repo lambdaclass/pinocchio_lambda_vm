@@ -6,6 +6,7 @@ type FE = FieldElement<ORDER_R>;
 #[derive(Debug, PartialEq, Eq)]
 pub enum CreationError {
     VectorsSizeMismatch,
+    MatrixesSizeMismatch,
     /// Number of IOs should be less than witness size - 1
     InputOutputTooBig,
 }
@@ -66,7 +67,7 @@ impl R1CS {
         c: Vec<Vec<FE>>,
         num_inputs: usize,
         num_outputs: usize,
-    ) -> Self {
+    ) -> Result<Self, CreationError> {
         let mut constraints: Vec<Constraint> = Vec::with_capacity(a.len());
         // TO DO:
         // - Check if sizes match
@@ -74,7 +75,7 @@ impl R1CS {
         for i in 0..a.len() {
             constraints.push(Constraint::new(a[i].clone(), b[i].clone(), c[i].clone()).unwrap())
         }
-        R1CS::new(constraints, num_inputs, num_outputs).unwrap()
+        R1CS::new(constraints, num_inputs, num_outputs)
     }
 
     #[allow(dead_code)]
