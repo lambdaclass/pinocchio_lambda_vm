@@ -11,7 +11,7 @@ use pinocchio_vm::{
 };
 
 use crate::{
-    arkworks_cs_to_pinocchio_r1cs, arkworks_io_and_witness_to_pinocchio_io_and_witness, fq5::Fq,
+    fq5::Fq, pinocchio_io_and_witness_from_arkworks_cs, pinocchio_r1cs_from_arkworks_cs,
     test_utils::PinocchioPaperExampleCircuit,
 };
 
@@ -29,8 +29,8 @@ fn create_proof_from_arkworks_and_verify_it() {
     let cs = ConstraintSystem::new_ref();
     circuit.generate_constraints(cs.clone()).unwrap();
 
-    let r1cs = arkworks_cs_to_pinocchio_r1cs(&cs);
-    let (io, witness) = arkworks_io_and_witness_to_pinocchio_io_and_witness(&cs);
+    let r1cs = pinocchio_r1cs_from_arkworks_cs(&cs);
+    let (io, witness) = pinocchio_io_and_witness_from_arkworks_cs(&cs);
 
     let qap: Qap = r1cs.into();
 

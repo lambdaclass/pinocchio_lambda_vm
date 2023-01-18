@@ -17,7 +17,7 @@ type FE = FieldElement<ORDER_R>;
 /// Generates an `R1CS` compatible with Lambda Pinocchio from an Arkworks `ConstraintSystemRef`
 /// It supports any ConstraintSystem which isn't using constraints with explicit
 /// constants like z=x*y+3
-pub fn arkworks_cs_to_pinocchio_r1cs<F: PrimeField>(cs: &ConstraintSystemRef<F>) -> R1CS {
+pub fn pinocchio_r1cs_from_arkworks_cs<F: PrimeField>(cs: &ConstraintSystemRef<F>) -> R1CS {
     cs.inline_all_lcs();
 
     let r1cs_matrices = cs.to_matrices().unwrap();
@@ -46,7 +46,7 @@ pub fn arkworks_cs_to_pinocchio_r1cs<F: PrimeField>(cs: &ConstraintSystemRef<F>)
 }
 
 /// Generates pinocchio IO and Witness from an Arkworks `ConstraintSystemRef`
-pub fn arkworks_io_and_witness_to_pinocchio_io_and_witness<F: PrimeField>(
+pub fn pinocchio_io_and_witness_from_arkworks_cs<F: PrimeField>(
     cs: &ConstraintSystemRef<F>,
 ) -> (Vec<FE>, Vec<FE>) {
     let binding = cs.borrow().unwrap();
@@ -193,7 +193,7 @@ mod tests {
             panic!()
         }
 
-        let converted_r1cs = arkworks_cs_to_pinocchio_r1cs(&cs);
+        let converted_r1cs = pinocchio_r1cs_from_arkworks_cs(&cs);
 
         assert_eq!(
             converted_r1cs.constraints,
@@ -226,7 +226,7 @@ mod tests {
             panic!()
         }
 
-        let (ark_io, ark_witness) = arkworks_io_and_witness_to_pinocchio_io_and_witness(&cs);
+        let (ark_io, ark_witness) = pinocchio_io_and_witness_from_arkworks_cs(&cs);
 
         //Since the Arcworks version of the circuit has the last variables
         //switched, c6 and c5 needs to be switched
@@ -275,7 +275,7 @@ mod tests {
         if !is_satisfied {
             panic!()
         }
-        let r1cs = arkworks_cs_to_pinocchio_r1cs(&cs);
+        let r1cs = pinocchio_r1cs_from_arkworks_cs(&cs);
         assert_eq!(r1cs.number_of_constraints(), 1)
     }
 
@@ -293,7 +293,7 @@ mod tests {
         if !is_satisfied {
             panic!()
         }
-        let (io, witness) = arkworks_io_and_witness_to_pinocchio_io_and_witness(&cs);
+        let (io, witness) = pinocchio_io_and_witness_from_arkworks_cs(&cs);
         assert_eq!(io.len(), 0);
         assert_eq!(witness.len(), 3);
     }
@@ -313,7 +313,7 @@ mod tests {
             panic!()
         }
 
-        let (io, witness) = arkworks_io_and_witness_to_pinocchio_io_and_witness(&cs);
+        let (io, witness) = pinocchio_io_and_witness_from_arkworks_cs(&cs);
 
         assert_eq!(io.len(), 1);
         assert_eq!(witness.len(), 2);
@@ -334,7 +334,7 @@ mod tests {
             panic!()
         }
 
-        let (io, _) = arkworks_io_and_witness_to_pinocchio_io_and_witness(&cs);
+        let (io, _) = pinocchio_io_and_witness_from_arkworks_cs(&cs);
 
         assert_eq!(io, [FE::new(6)]);
     }
