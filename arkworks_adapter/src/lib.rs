@@ -1,6 +1,7 @@
 mod fq5;
 #[cfg(test)]
 mod integration_tests;
+mod test_utils;
 
 use std::ops::Deref;
 
@@ -82,7 +83,6 @@ fn sparse_matrix_to_dense(m: &[Vec<(FE, usize)>], total_variables: usize) -> Vec
 
 fn sparse_row_to_dense(row: &Vec<(FE, usize)>, total_variables: usize) -> Vec<FE> {
     //The first column of the r1cs is used for constants
-    // TO DO: Check constants usage
 
     let mut dense_row = vec![FE::new(0); total_variables + 1];
 
@@ -115,6 +115,8 @@ fn biguint_to_u128(big: BigUint) -> u128 {
 
 #[cfg(test)]
 mod tests {
+    use crate::test_utils::PinocchioPaperExampleCircuit;
+
     use super::*;
     use fq5::Fq;
 
@@ -161,34 +163,6 @@ mod tests {
             let c = cs.new_input_variable(|| Ok(self.a * self.b))?;
 
             cs.enforce_constraint(lc!() + a, lc!() + b, lc!() + c)?;
-
-            Ok(())
-        }
-    }
-    pub struct PinocchioPaperExampleCircuit {
-        /// Public input
-        pub a: Fq,
-        /// Private input
-        pub b: Fq,
-        pub c: Fq,
-        pub d: Fq,
-    }
-
-    impl ConstraintSynthesizer<Fq> for PinocchioPaperExampleCircuit {
-        fn generate_constraints(self, cs: ConstraintSystemRef<Fq>) -> Result<(), SynthesisError> {
-            let a = cs.new_input_variable(|| Ok(self.a))?;
-            let b = cs.new_input_variable(|| Ok(self.b))?;
-            let c = cs.new_input_variable(|| Ok(self.c))?;
-            let d = cs.new_input_variable(|| Ok(self.d))?;
-
-            let e = cs.new_witness_variable(|| Ok(self.c * self.d))?;
-            cs.enforce_constraint(lc!() + c, lc!() + d, lc!() + e)?;
-
-            let calculated_result = self.c * self.d * (self.a + self.b);
-
-            let result = cs.new_input_variable(|| Ok(calculated_result))?;
-
-            cs.enforce_constraint(lc!() + a + b, lc!() + e, lc!() + result)?;
 
             Ok(())
         }
