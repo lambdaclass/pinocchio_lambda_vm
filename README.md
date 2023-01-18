@@ -18,7 +18,7 @@ These concepts are not simple, but they're probably simpler than you think. For 
 - [Pinocchio](https://eprint.iacr.org/2013/279.pdf): original paper with formal explanation of the system.
 - [Moonmath manual](https://leastauthority.com/community-matters/moonmath-manual/): friendly resource to understand the mathematical background of zk-SNARKs in general.
 - [Pairing for beginners](https://static1.squarespace.com/static/5fdbb09f31d71c1227082339/t/5ff394720493bd28278889c6/1609798774687/PairingsForBeginners.pdf): a good introduction to elliptic curves in general and pairings in particular.
-- [A mathematical introduction to cryptography](https://link.springer.com/book/10.1007/978-0-387-77993-5): general cryptography and useful for pairings also.
+- [An Introduction to Mathematical Cryptography](https://link.springer.com/book/10.1007/978-0-387-77993-5): general cryptography and useful for pairings also.
 - [Master thesis from David Møller Hansen](https://www.sagemath.org/files/thesis/hansen-thesis-2009.pdf): other helpful resource to understand pairings and their implementations.
 
 Some of the algorithms in `pinocchio_lambda_vm`  can be found in these books. You will find references to this resources throughout the code.
