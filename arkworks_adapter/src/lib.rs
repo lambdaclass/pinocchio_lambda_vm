@@ -37,7 +37,7 @@ pub fn arkworks_cs_to_pinocchio_r1cs<F: PrimeField>(cs: &ConstraintSystemRef<F>)
         or private data (witness/c_mid)
     */
 
-    R1CS::new_with_matrixes(a, b, c, cs.num_instance_variables() - 1, 0).unwrap();
+    R1CS::new_with_matrixes(a, b, c, cs.num_instance_variables() - 1, 0).unwrap()
 }
 
 pub fn arkworks_io_and_witness_to_pinocchio_io_and_witness<F: PrimeField>(
