@@ -12,6 +12,9 @@ use pinocchio_vm::circuits::r1cs::R1CS;
 use pinocchio_vm::math::field_element::FieldElement;
 type FE = FieldElement<5>;
 
+/// Generates an `R1CS` compatible with Lambda Pinocchio from an Arkworks `ConstraintSystemRef`
+/// It supports any ConstraintSystem which isn't using constraints with explicit
+/// constants like z=x*y+3
 pub fn arkworks_cs_to_pinocchio_r1cs<F: PrimeField>(cs: &ConstraintSystemRef<F>) -> R1CS {
     cs.inline_all_lcs();
 
@@ -40,6 +43,7 @@ pub fn arkworks_cs_to_pinocchio_r1cs<F: PrimeField>(cs: &ConstraintSystemRef<F>)
     R1CS::new_with_matrixes(a, b, c, cs.num_instance_variables() - 1, 0).unwrap()
 }
 
+/// Generates pinocchio IO and Witness from an Arkworks `ConstraintSystemRef`
 pub fn arkworks_io_and_witness_to_pinocchio_io_and_witness<F: PrimeField>(
     cs: &ConstraintSystemRef<F>,
 ) -> (Vec<FE>, Vec<FE>) {
@@ -86,7 +90,7 @@ fn sparse_row_to_dense(row: &Vec<(FE, usize)>, total_variables: usize) -> Vec<FE
 
     let mut dense_row = vec![FE::new(0); total_variables + 1];
 
-    // TO DO: Check how constants are set
+    // TO DO: Assign consttants
     dense_row[0] = FE::new(0);
     for element in row {
         dense_row[element.1] = element.0;
