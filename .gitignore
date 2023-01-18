@@ -11,4 +11,4 @@ Cargo.lock
 
 arkworks_adapter/target/
 arkworks_adapter/Cargo.lock
-**/*.rs.bk
+arkworks_adapter/**/*.rs.bk
