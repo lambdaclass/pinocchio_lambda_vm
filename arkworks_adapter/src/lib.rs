@@ -8,10 +8,10 @@ use std::ops::Deref;
 use ark_ff::PrimeField;
 use ark_relations::r1cs::ConstraintSystemRef;
 use num_bigint::BigUint;
-use pinocchio_vm::circuits::r1cs::R1CS;
-use pinocchio_vm::config::ORDER_R;
+use pinocchio_lambda_vm::circuits::r1cs::R1CS;
+use pinocchio_lambda_vm::config::ORDER_R;
 
-use pinocchio_vm::math::field_element::FieldElement;
+use pinocchio_lambda_vm::math::field_element::FieldElement;
 type FE = FieldElement<ORDER_R>;
 
 /// Generates an `R1CS` compatible with Lambda Pinocchio from an Arkworks `ConstraintSystemRef`
@@ -130,13 +130,11 @@ mod tests {
         lc,
         r1cs::{ConstraintSynthesizer, ConstraintSystem, ConstraintSystemRef, SynthesisError},
     };
-    use pinocchio_vm::circuits::{r1cs::Constraint, test_utils};
+    use pinocchio_lambda_vm::circuits::{r1cs::Constraint, test_utils};
 
     // These are tests circuits
     pub struct FullyPrivateMulCircuit {
-        /// Public input
         pub a: Fq,
-        /// Private input
         pub b: Fq,
     }
 
@@ -154,9 +152,7 @@ mod tests {
         }
     }
     pub struct PrivInputPubResultMulCircuit {
-        /// Public input
         pub a: Fq,
-        /// Private input
         pub b: Fq,
     }
 

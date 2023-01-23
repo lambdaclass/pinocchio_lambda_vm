@@ -1,6 +1,6 @@
 use ark_relations::r1cs::{ConstraintSynthesizer, ConstraintSystem};
 
-use pinocchio_vm::{
+use pinocchio_lambda_vm::{
     circuits::qap::QuadraticArithmeticProgram as Qap,
     math::elliptic_curve::EllipticCurveElement,
     pinocchio::{
