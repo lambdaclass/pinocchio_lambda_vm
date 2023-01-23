@@ -203,7 +203,6 @@ mod tests {
         circuit.generate_constraints(cs.clone()).unwrap();
 
         let is_satisfied = cs.is_satisfied().unwrap();
-
         if !is_satisfied {
             panic!()
         }
