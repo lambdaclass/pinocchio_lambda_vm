@@ -222,11 +222,7 @@ mod tests {
         let cs = ConstraintSystem::new_ref();
         circuit.generate_constraints(cs.clone()).unwrap();
 
-        println!("{:?}", cs.to_matrices().unwrap());
-
-        let (io, wit) = pinocchio_io_and_witness_from_arkworks_cs(&cs);
-
-        println!("IO, wit: {:?} {:?}", io, wit);
+        let (io, _) = pinocchio_io_and_witness_from_arkworks_cs(&cs);
 
         assert_eq!(io[0], FE::new(3))
     }
@@ -245,8 +241,6 @@ mod tests {
         if !is_satisfied {
             panic!()
         }
-
-        println!("{:?}", cs.to_matrices());
 
         let (io, _) = pinocchio_io_and_witness_from_arkworks_cs(&cs);
 
