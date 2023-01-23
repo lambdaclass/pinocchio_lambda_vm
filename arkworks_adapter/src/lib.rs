@@ -15,8 +15,6 @@ use pinocchio_lambda_vm::math::field_element::FieldElement;
 type FE = FieldElement<ORDER_R>;
 
 /// Generates an `R1CS` compatible with Lambda Pinocchio from an Arkworks `ConstraintSystemRef`
-/// It supports any ConstraintSystem which isn't using constraints with explicit
-/// constants like z=x*y+3
 pub fn pinocchio_r1cs_from_arkworks_cs<F: PrimeField>(cs: &ConstraintSystemRef<F>) -> R1CS {
     cs.inline_all_lcs();
 
