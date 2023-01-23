@@ -92,8 +92,6 @@ fn sparse_row_to_dense(row: &Vec<(FE, usize)>, total_variables: usize) -> Vec<FE
 
     let mut dense_row = vec![FE::new(0); total_variables + 1];
 
-    // TO DO: Assign consttants
-    dense_row[0] = FE::new(0);
     for element in row {
         dense_row[element.1] = element.0;
     }
@@ -121,14 +119,15 @@ fn biguint_to_u128(big: BigUint) -> u128 {
 
 #[cfg(test)]
 mod tests {
-    use crate::test_utils::PinocchioPaperExampleCircuit;
-
     use super::*;
+    use crate::test_utils::PinocchioPaperExampleCircuit;
     use fq5::Fq;
 
     use ark_relations::{
         lc,
-        r1cs::{ConstraintSynthesizer, ConstraintSystem, ConstraintSystemRef, SynthesisError},
+        r1cs::{
+            ConstraintSynthesizer, ConstraintSystem, ConstraintSystemRef, SynthesisError, Variable,
+        },
     };
     use pinocchio_lambda_vm::circuits::{r1cs::Constraint, test_utils};
 
@@ -171,6 +170,88 @@ mod tests {
     }
 
     // Tests start here
+    pub struct MulPlusThree {
+        pub a: Fq,
+        pub b: Fq,
+    }
+
+    impl ConstraintSynthesizer<Fq> for MulPlusThree {
+        fn generate_constraints(self, cs: ConstraintSystemRef<Fq>) -> Result<(), SynthesisError> {
+            let a = cs.new_witness_variable(|| Ok(self.a))?;
+
+            let b = cs.new_witness_variable(|| Ok(self.b))?;
+
+            let c = cs.new_input_variable(|| Ok(self.a * self.b + Fq::from(3)))?;
+
+            cs.enforce_constraint(
+                lc!() + a,
+                lc!() + b,
+                lc!() + c - (Fq::from(3), Variable::One),
+            )?;
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn r1cs_from_arkworks_mul_plus_three_first_constraint_c0_is_minus_three() {
+        let a = Fq::from(2);
+        let b = Fq::from(3);
+
+        let circuit = MulPlusThree { a, b };
+
+        let cs = ConstraintSystem::new_ref();
+        circuit.generate_constraints(cs.clone()).unwrap();
+
+        let is_satisfied = cs.is_satisfied().unwrap();
+
+        if !is_satisfied {
+            panic!()
+        }
+
+        let r1cs = pinocchio_r1cs_from_arkworks_cs(&cs);
+        assert_eq!(r1cs.constraints[0].c[0], -FE::new(3));
+    }
+
+    #[test]
+    fn io_from_arkworks_mul_plus_three_with_0_3_is_3() {
+        let a = Fq::from(0);
+        let b = Fq::from(3);
+
+        let circuit = MulPlusThree { a, b };
+
+        let cs = ConstraintSystem::new_ref();
+        circuit.generate_constraints(cs.clone()).unwrap();
+
+        println!("{:?}", cs.to_matrices().unwrap());
+
+        let (io, wit) = pinocchio_io_and_witness_from_arkworks_cs(&cs);
+
+        println!("IO, wit: {:?} {:?}", io, wit);
+
+        assert_eq!(io[0], FE::new(3))
+    }
+
+    #[test]
+    fn io_from_arkworks_mul_plus_three_with_1_2_is_5() {
+        let a = Fq::from(1);
+        let b = Fq::from(2);
+
+        let circuit = MulPlusThree { a, b };
+
+        let cs = ConstraintSystem::new_ref();
+        circuit.generate_constraints(cs.clone()).unwrap();
+
+        let is_satisfied = cs.is_satisfied().unwrap();
+        if !is_satisfied {
+            panic!()
+        }
+
+        println!("{:?}", cs.to_matrices());
+
+        let (io, _) = pinocchio_io_and_witness_from_arkworks_cs(&cs);
+
+        assert_eq!(io[0], FE::new(5))
+    }
 
     #[test]
     fn pinocchio_paper_r1cs_from_arkworks_eq_r1cs_from_pinocchio_vm() {
@@ -185,6 +266,7 @@ mod tests {
         circuit.generate_constraints(cs.clone()).unwrap();
 
         let is_satisfied = cs.is_satisfied().unwrap();
+
         if !is_satisfied {
             panic!()
         }

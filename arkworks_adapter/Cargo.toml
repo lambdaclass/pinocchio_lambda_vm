@@ -10,4 +10,4 @@ pinocchio_lambda_vm = { path = "../" }
 ark-r1cs-std = { version = "^0.3.1"}
 ark-ff = { version = "^0.3.0" }
 ark-relations = { version = "^0.3.0" }
-num-bigint = { version = "0.4", default-features = false }
+num-bigint = { version = "0.4", features = ["std"]}
