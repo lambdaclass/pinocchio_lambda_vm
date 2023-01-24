@@ -7,7 +7,10 @@ edition = "2021"
 
 [dependencies]
 pinocchio_lambda_vm = { path = "../" }
-ark-r1cs-std = { version = "^0.3.1"}
+ark-r1cs-std = { version = "^0.3.0"}
 ark-ff = { version = "^0.3.0" }
 ark-relations = { version = "^0.3.0" }
 num-bigint = { version = "0.4", default-features = false }
+poc-encryption-proof = { git = "https://github.com/lambdaclass/AES_zero_knowledge_proof_circuit.git", branch = "pinocchio_vm_version"}
+aes = "0.8"
+

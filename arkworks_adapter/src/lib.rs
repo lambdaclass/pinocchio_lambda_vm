@@ -1,4 +1,4 @@
-mod fq5;
+pub mod fq5;
 #[cfg(test)]
 mod integration_tests;
 mod test_utils;
