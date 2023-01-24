@@ -167,7 +167,6 @@ mod tests {
         }
     }
 
-    // Tests start here
     pub struct MulPlusThree {
         pub a: Fq,
         pub b: Fq,
@@ -189,6 +188,8 @@ mod tests {
             Ok(())
         }
     }
+    
+    // Tests start here
 
     #[test]
     fn r1cs_from_arkworks_mul_plus_three_first_constraint_c0_is_minus_three() {
