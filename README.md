@@ -1,5 +1,5 @@
 # README
-This is a self-contained Rust implementation of [Pinocchio](https://eprint.iacr.org/2013/279.pdf). It is intented for those who want to learn more about SNARKs. Pinocchio is a proving system for efficiently verifying general computations. This source code is the companion of this [blog post](https://www.notamonadtutorial.com/pinocchio-virtual-machine-nearly-practical-verifiable-computation/
+This is a self-contained Rust implementation of [Pinocchio](https://eprint.iacr.org/2013/279.pdf). It is intented for those who want to learn more about SNARKs. Pinocchio is a proving system for efficiently verifying general computations. This source code is the companion of this [blog post](https://blog.lambdaclass.com/pinocchio-virtual-machine-nearly-practical-verifiable-computation/
 ) were a more friendly and high level explanation of Pinocchio can be found.
 
 It also contains an arkworks_adapter project to use circuits made with Arkworks R1CS with this implementation of Pinocchio
